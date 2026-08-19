@@ -1,0 +1,11 @@
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\bin\Debug\net8.0\ScreenTime.Infrastructure.deps.json
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\bin\Debug\net8.0\ScreenTime.Infrastructure.dll
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\bin\Debug\net8.0\ScreenTime.Infrastructure.pdb
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\obj\Debug\net8.0\ScreenTime.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\obj\Debug\net8.0\ScreenTime.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\obj\Debug\net8.0\ScreenTime.Infrastructure.AssemblyInfo.cs
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\obj\Debug\net8.0\ScreenTime.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\obj\Debug\net8.0\ScreenTime.Infrastructure.dll
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\obj\Debug\net8.0\refint\ScreenTime.Infrastructure.dll
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\obj\Debug\net8.0\ScreenTime.Infrastructure.pdb
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Infrastructure\obj\Debug\net8.0\ref\ScreenTime.Infrastructure.dll

@@ -1,0 +1,11 @@
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\bin\Debug\net8.0\ScreenTime.Domain.deps.json
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\bin\Debug\net8.0\ScreenTime.Domain.dll
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\bin\Debug\net8.0\ScreenTime.Domain.pdb
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\obj\Debug\net8.0\ScreenTime.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\obj\Debug\net8.0\ScreenTime.Domain.AssemblyInfoInputs.cache
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\obj\Debug\net8.0\ScreenTime.Domain.AssemblyInfo.cs
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\obj\Debug\net8.0\ScreenTime.Domain.csproj.CoreCompileInputs.cache
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\obj\Debug\net8.0\ScreenTime.Domain.dll
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\obj\Debug\net8.0\refint\ScreenTime.Domain.dll
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\obj\Debug\net8.0\ScreenTime.Domain.pdb
+C:\Users\filip\Documents\ScreenTime\ScreenTime\backend\src\ScreenTime.Domain\obj\Debug\net8.0\ref\ScreenTime.Domain.dll
