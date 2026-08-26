@@ -1,6 +1,9 @@
-﻿namespace ScreenTime.Application.Entities;
+﻿using ScreenTime.Domain.Common;
 
-public class Genre
+namespace ScreenTime.Domain.Entities;
+
+public class Genre : Entity
 {
-    
+    public string Name { get; set; } = string.Empty;
+
 }
