@@ -6,8 +6,6 @@ namespace ScreenTime.Domain.Entities;
 
 public class Seat : Entity
 {
-    public int SeatId { get; set; }
-
     public int AuditoriumId { get; set; }
 
     public int SeatTypeId { get; set; }
