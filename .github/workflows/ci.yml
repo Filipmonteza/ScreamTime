@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+# A new push to the same branch cancels the run it supersedes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (.NET)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore ScreenTime.sln
+
+      - name: Build
+        run: dotnet build ScreenTime.sln --configuration Release --no-restore
+
+      # No test projects exist yet. When one is added, uncomment:
+      # - name: Test
+      #   run: dotnet test ScreenTime.sln --configuration Release --no-build
+
+  frontend:
+    name: Frontend (React / Vite)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Runs `tsc -b && vite build` - this is the only step that typechecks.
+      # `npm run dev` does not, so a type error can only be caught here.
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
