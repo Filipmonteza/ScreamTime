@@ -4,15 +4,11 @@ using System.Collections.Generic;
 
 namespace ScreenTime.Domain.Entities;
 
-public class Seat : Entity
+public class Seat : BaseEntity
 {
-    public int SeatId { get; set; }
+    public Guid AuditoriumId { get; set; }
 
-    public int AuditoriumId { get; set; }
-
-    public int SeatTypeId { get; set; }
-
-    public string RowLabel { get; set; } = string.Empty;
+    public int RowLabel { get; set; }
 
     public int SeatNumber { get; set; }
 

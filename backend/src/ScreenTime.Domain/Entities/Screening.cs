@@ -4,13 +4,11 @@ using ScreenTime.Domain.Common;
 
 namespace ScreenTime.Domain.Entities;
 
-public class Screening : Entity
+public class Screening : BaseEntity
 {
-    public int ScreeningId { get; set; }
+    public Guid MovieId { get; set; }
 
-    public int MovieId { get; set; }
-
-    public int AuditoriumId { get; set; }
+    public Guid AuditoriumId { get; set; }
 
     public DateTime StartTime { get; set; }
 
