@@ -2,7 +2,7 @@
 
 namespace ScreenTime.Domain.Entities;
 
-public class Auditorium : Entity
+public class Auditorium : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
     public bool IsActive { get; set; }
