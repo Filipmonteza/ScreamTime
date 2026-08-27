@@ -1,8 +1,9 @@
-﻿using ScreenTime.Domain.Enums;
+﻿using ScreenTime.Domain.Common;
+using ScreenTime.Domain.Enums;
 
 namespace ScreenTime.Domain.Entities;
 
-public class Booking
+public class Booking : BaseEntity
 {
     public Guid UserId { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿namespace ScreenTime.Domain.Common;
 
-public abstract class Entity
+public abstract class BaseEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 }

@@ -2,7 +2,7 @@
 
 namespace ScreenTime.Domain.Entities;
 
-public class Ticket : Entity
+public class Ticket : BaseEntity
 {
     public Guid BookingId { get; set; }
     public Booking Booking { get; set; } = null!;
