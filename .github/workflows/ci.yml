@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, dev]
   push:
-    branches: [main, dev]
+    branches: [main]
   workflow_dispatch:
 
 # A new push to the same branch cancels the run it supersedes.
