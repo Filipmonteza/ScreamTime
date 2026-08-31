@@ -10,4 +10,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ScreenTime.Domain\ScreenTime.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
