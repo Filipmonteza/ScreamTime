@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ScreenTime.Domain.Entities;
+using ScreenTime.Domain.Enums;
 
 namespace ScreenTime.Infrastructure.Data;
 
@@ -26,7 +27,7 @@ public static class SeedData
         var vip = new SeatType { Name = "VIP", Price = 180m };
         db.SeatTypes.AddRange(standard, vip);
 
-        var genres = new[] { "Action", "Animerat", "Drama", "Komedi", "Sci-Fi", "Skräck", "Thriller" }
+        var genres = new[] { "Supernatural", "Psychological", "Slasher", "Sci-Fi" }
             .ToDictionary(name => name, name => new Genre { Name = name });
         db.Genres.AddRange(genres.Values);
 
@@ -34,55 +35,87 @@ public static class SeedData
         {
             new Movie
             {
-                Title = "Dune: Part Two",
-                AgeRating = 11,
-                RuntimeMinutes = 166,
-                Description = "Paul Atreides förenar sig med fremen för att hämnas dem som förgjorde hans familj."
+                Title = "Exorcisten",
+                AgeRating = AgeRating.Age11,
+                RuntimeMinutes = 122,
+                Description = "En ung flicka drabbas av en skrämmande, oförklarlig åkomma. När läkare och psykiatriker misslyckas vänder sig hennes desperata mor till kyrkan som sista utväg."
             },
             new Movie
             {
-                Title = "Oppenheimer",
-                AgeRating = 15,
-                RuntimeMinutes = 180,
-                Description = "Fysikern J. Robert Oppenheimer leder arbetet med att bygga den första atombomben."
+                Title = "Hereditary",
+                AgeRating = AgeRating.Age15,
+                RuntimeMinutes = 126,
+                Description = "Efter matriarken Ellens död avslöjas kryptiska hemligheter om familjen Grahams historia, hemligheter som drar dem allt närmare ett olycksaligt öde."
             },
             new Movie
             {
-                Title = "Barbie",
-                AgeRating = 7,
-                RuntimeMinutes = 114,
-                Description = "Barbie lämnar Barbieland för den verkliga världen och får en existentiell kris på köpet."
+                Title = "The Shining",
+                AgeRating = AgeRating.Age15,
+                RuntimeMinutes = 120,
+                Description = "Jack Torrance tar jobb som vintervaktmästare på det isolerade hotellet Overlook tillsammans med sin fru och son. Men hotellet döljer en ond och mörk hemlighet."
             },
             new Movie
             {
-                Title = "Spider-Man: Across the Spider-Verse",
-                AgeRating = 11,
-                RuntimeMinutes = 140,
-                Description = "Miles Morales kastas genom multiversumet och möter ett helt sällskap av spindlar."
+                Title = "Psycho",
+                AgeRating = AgeRating.Age7,
+                RuntimeMinutes = 109,
+                Description = "På flykt efter en stöld svänger Marion Crane förbi ett ödsligt motell som drivs av den blyge Norman Bates och hans mor, en man med en mörk hemlighet."
             },
             new Movie
             {
-                Title = "Poor Things",
-                AgeRating = 15,
-                RuntimeMinutes = 141,
-                Description = "Bella Baxter återuppväcks av en excentrisk vetenskapsman och ger sig ut i världen."
+                Title = "The Thing",
+                AgeRating = AgeRating.Age11,
+                RuntimeMinutes = 109,
+                Description = "På en isolerad forskningsstation i Antarktis väcker en grupp forskare något främmande till liv som legat begravt i isen i 100 000 år, med förödande konsekvenser."
             },
             new Movie
             {
-                Title = "Wicked",
-                AgeRating = 7,
-                RuntimeMinutes = 160,
-                Description = "Vänskapen mellan Elphaba och Glinda innan de blir den onda och den goda häxan."
+                Title = "Casper",
+                AgeRating = AgeRating.AllAges,
+                RuntimeMinutes = 101,
+                Description = "Spökdoktorn James Harvey och hans dotter Kat flyttar in i slottet Whipstaff Manor, där det vänliga spöket Casper längtar efter en vän, men hans stökiga farbröder har andra planer."
+            },
+            new Movie
+            {
+                Title = "The Conjuring",
+                AgeRating = AgeRating.Age11,
+                RuntimeMinutes = 112,
+                Description = "De paranormala utredarna Ed och Lorraine Warren kallas in för att hjälpa en familj som terroriseras av en okänd kraft i sitt hus på landsbygden."
+            },
+            new Movie
+            {
+                Title = "Alien",
+                AgeRating = AgeRating.Age15,
+                RuntimeMinutes = 117,
+                Description = "Besättningen på rymdskeppet Nostromo får en nödsignal från en närliggande planet. Vad de möter där är en mardröm ingen av dem var förberedd på."
+            },
+            new Movie
+            {
+                Title = "Alla Helgons Blodiga Natt",
+                AgeRating = AgeRating.Age15,
+                RuntimeMinutes = 91,
+                Description = "1963 mördar sexårige Michael Myers sin syster och spärras in. 15 år senare rymmer han och återvänder till Haddonfield för att mörda igen."
+            },
+            new Movie
+            {
+                Title = "Sinister",
+                AgeRating = AgeRating.Age15,
+                RuntimeMinutes = 110,
+                Description = "En författare som utreder ett brutalt mord hittar gamla inspelningar i sitt nya hus, en upptäckt som gör honom och hans familj till mål för ett övernaturligt väsen."
             }
         };
         db.Movies.AddRange(movies);
 
-        db.MovieGenres.AddRange(Link(movies[0], "Sci-Fi", "Action"));
-        db.MovieGenres.AddRange(Link(movies[1], "Drama", "Thriller"));
-        db.MovieGenres.AddRange(Link(movies[2], "Komedi"));
-        db.MovieGenres.AddRange(Link(movies[3], "Animerat", "Action"));
-        db.MovieGenres.AddRange(Link(movies[4], "Drama", "Komedi"));
-        db.MovieGenres.AddRange(Link(movies[5], "Drama"));
+        db.MovieGenres.AddRange(Link(movies[0], "Supernatural"));
+        db.MovieGenres.AddRange(Link(movies[1], "Supernatural", "Psychological"));
+        db.MovieGenres.AddRange(Link(movies[2], "Supernatural", "Psychological"));
+        db.MovieGenres.AddRange(Link(movies[3], "Psychological"));
+        db.MovieGenres.AddRange(Link(movies[4], "Sci-Fi", "Slasher"));
+        db.MovieGenres.AddRange(Link(movies[5], "Supernatural"));
+        db.MovieGenres.AddRange(Link(movies[6], "Supernatural"));
+        db.MovieGenres.AddRange(Link(movies[7], "Sci-Fi"));
+        db.MovieGenres.AddRange(Link(movies[8], "Slasher"));
+        db.MovieGenres.AddRange(Link(movies[9], "Supernatural", "Psychological"));
 
         var stora = new Auditorium { Name = "Stora salongen", IsActive = true };
         var lilla = new Auditorium { Name = "Lilla salongen", IsActive = true };
