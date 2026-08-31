@@ -5,7 +5,7 @@ namespace ScreenTime.Domain.Entities;
 
 public class Booking : BaseEntity
 {
-    public Guid UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
     public Guid ScreeningId { get; set; }
     public Screening Screening { get; set; } = null!;
