@@ -358,3 +358,8 @@ AppPackages/
 BundleArtifacts/
 _pkginfo.txt
 
+
+# SQLite database files (created locally by `dotnet run`)
+*.db
+*.db-shm
+*.db-wal
