@@ -28,5 +28,15 @@ public record MovieDto(
     AgeRating AgeRating,
     int RuntimeMinutes,
     string Description,
-    bool IsActive
+    bool IsActive,
+    List<string> Genres
+);
+
+// Data Transfer Object for updating an existing movie.
+public record UpdateMovieDto(
+    [Required, MaxLength(100)] string Title,
+    AgeRating AgeRating,
+    [Range(1, 600)] int RuntimeMinutes,
+    [Required, MaxLength(1000)] string Description,
+    List<Guid> GenreIds
 );
