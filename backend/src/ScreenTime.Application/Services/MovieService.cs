@@ -16,17 +16,29 @@ public class MovieService : IMovieService
     public async Task<List<MovieDto>> GetAllMoviesAsync()
     {
         var movies = await _movieRepository.GetAllAsync();
+
         return movies.Select(MapToDto).ToList();
     }
 
     public async Task<MovieDto?> GetMovieByIdAsync(Guid id)
     {
         var movie = await _movieRepository.GetByIdAsync(id);
+
         return movie is null ? null : MapToDto(movie);
     }
 
-    public async Task<MovieDto> CreateMovieAsync(CreateMovieDto dto)
+    public async Task<MovieDto?> CreateMovieAsync(CreateMovieDto dto)
     {
+        // Remove duplicate genre IDs
+        var genreIds = dto.GenreIds.Distinct().ToList();
+
+        // Get the genres from the database
+        var genres = await _movieRepository.GetGenresByIdsAsync(genreIds);
+
+        // Make sure all requested genres exist
+        if (genres.Count != genreIds.Count)
+            return null;
+
         var movie = new Movie
         {
             Id = Guid.NewGuid(),
@@ -35,47 +47,55 @@ public class MovieService : IMovieService
             RuntimeMinutes = dto.RuntimeMinutes,
             Description = dto.Description,
             IsActive = true,
-            MovieGenres = dto.GenreIds.Select(gid => new MovieGenre
-            {
-                GenreId = gid
-            }).ToList()
+            Genres = genres
         };
 
         await _movieRepository.AddAsync(movie);
         await _movieRepository.SaveChangesAsync();
 
-        var created = await _movieRepository.GetByIdAsync(movie.Id);
         return MapToDto(movie);
     }
 
-    public async Task<bool> UpdateMovieAsync(Guid id, UpdateMovieDto dto)
+    public async Task<bool?> UpdateMovieAsync(Guid id, UpdateMovieDto dto)
     {
-        var movie = await _movieRepository.GetByIdAsync(id);
-        if (movie is null) return false;
+        var movie = await _movieRepository.GetByIdAsync(id, includeInactive: true, track: true);
 
-        var genres = await _movieRepository.GetGenresByIdsAsync(dto.GenreIds);
+        if (movie is null)
+            return false;
+
+        // Remove duplicate genre IDs
+        var genreIds = dto.GenreIds.Distinct().ToList();
+
+        // Get the genres from the database
+        var genres = await _movieRepository.GetGenresByIdsAsync(genreIds);
+
+        // Make sure all requested genres exist
+        if (genres.Count != genreIds.Count)
+            return null;
 
         movie.Title = dto.Title;
         movie.AgeRating = dto.AgeRating;
         movie.RuntimeMinutes = dto.RuntimeMinutes;
         movie.Description = dto.Description;
-        movie.MovieGenres = genres.Select(g => new MovieGenre
-        {
-            MovieId = movie.Id,
-            GenreId = g.Id
-        }).ToList();
+        movie.IsActive = dto.IsActive;
+        movie.Genres = genres;
 
         _movieRepository.Update(movie);
+
         return await _movieRepository.SaveChangesAsync();
     }
 
     public async Task<bool> DeleteMovieAsync(Guid id)
     {
-        var movie = await _movieRepository.GetByIdAsync(id);
-        if (movie is null) return false;
+        var movie = await _movieRepository.GetByIdAsync(id, track: true);
 
-        movie.IsActive = false; // soft delete
+        if (movie is null)
+            return false;
+
+        movie.IsActive = false; // Soft delete
+
         _movieRepository.Update(movie);
+
         return await _movieRepository.SaveChangesAsync();
     }
 

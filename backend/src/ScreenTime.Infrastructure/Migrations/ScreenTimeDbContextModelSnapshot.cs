@@ -279,7 +279,7 @@ namespace ScreenTime.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("ScreenTime.Domain.Entities.Movie", "Movie")
-                        .WithMany("MovieGenres")
+                        .WithMany()
                         .HasForeignKey("MovieId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -357,11 +357,6 @@ namespace ScreenTime.Infrastructure.Migrations
             modelBuilder.Entity("ScreenTime.Domain.Entities.Booking", b =>
                 {
                     b.Navigation("Tickets");
-                });
-
-            modelBuilder.Entity("ScreenTime.Domain.Entities.Movie", b =>
-                {
-                    b.Navigation("MovieGenres");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.Screening", b =>

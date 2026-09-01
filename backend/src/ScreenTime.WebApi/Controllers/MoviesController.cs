@@ -35,7 +35,11 @@ public class MoviesController : ControllerBase
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateMovie(Guid id, UpdateMovieDto dto)
-        => await _movieService.UpdateMovieAsync(id, dto) ? NoContent() : NotFound();
+    {
+        var result = await _movieService.UpdateMovieAsync(id, dto);
+        if (result is null) return BadRequest("En eller flera GenreIds finns inte.");
+        return result.Value ? NoContent() : NotFound();
+    }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteMovie(Guid id)

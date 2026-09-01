@@ -38,5 +38,6 @@ public record UpdateMovieDto(
     AgeRating AgeRating,
     [Range(1, 600)] int RuntimeMinutes,
     [Required, MaxLength(1000)] string Description,
+    bool IsActive,
     List<Guid> GenreIds
 );

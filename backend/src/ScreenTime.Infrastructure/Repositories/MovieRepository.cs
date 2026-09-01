@@ -18,13 +18,21 @@ public class MovieRepository : IMovieRepository
         await _context.Movies
             .Include(m => m.Genres)
             .Where(m => m.IsActive)
+            .AsNoTracking()
             .ToListAsync();
 
-    public async Task<Movie?> GetByIdAsync(Guid id) =>
-        await _context.Movies
-            .Include(m => m.MovieGenres)
-                .ThenInclude(mg => mg.Genre)
-            .FirstOrDefaultAsync(m => m.Id == id);
+    public async Task<Movie?> GetByIdAsync(Guid id, bool includeInactive = false, bool track = false)
+    {
+        var query = _context.Movies.Include(m => m.Genres).Where(m => m.Id == id);
+
+        if (!includeInactive)
+            query = query.Where(m => m.IsActive);
+
+        if (!track)
+            query = query.AsNoTracking();
+
+        return await query.FirstOrDefaultAsync();
+    }
 
     public async Task<List<Genre>> GetGenresByIdsAsync(List<Guid> genreIds) =>
         await _context.Genres
