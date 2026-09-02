@@ -192,6 +192,18 @@ public sealed class BookingService : IBookingService
             seats,
             booking.TotalAmount);
     }
+    private static BookingDto MapToBookingDto(Booking booking)
+    {
+        return new BookingDto(
+            booking.Id,
+            booking.ScreeningId,
+            booking.BookingReference,
+            booking.Status,
+            booking.CreatedAt,
+            booking.CancelledAt,
+            booking.TotalAmount,
+            booking.Tickets.Count);
+    }
 
     // Gets all current bookings for a user
     public async Task<IReadOnlyList<BookingListItemDto>> GetCurrentBookingsAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -233,6 +245,77 @@ public sealed class BookingService : IBookingService
 
             // Converts the result to a list
             .ToList();
+    }
+
+    public async Task<BookingDto> CancelBookingAsync(Guid bookingId, Guid requesterUserId, bool canManageAllBookings,
+        CancellationToken cancellationToken = default)
+    {
+        if (bookingId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Bokningens ID får inte vara tomt.",
+                nameof(bookingId));
+        }
+
+        if (requesterUserId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Användarens ID får inte vara tomt.",
+                nameof(requesterUserId));
+        }
+
+        var booking = await _bookingRepository.GetByIdAsync(
+            bookingId,
+            cancellationToken);
+
+        if (booking is null)
+        {
+            throw new KeyNotFoundException(
+                "Bokningen kunde inte hittas.");
+        }
+
+        var ownsBooking = booking.UserId == requesterUserId;
+
+        if (!ownsBooking && !canManageAllBookings)
+        {
+            throw new UnauthorizedAccessException(
+                "Du har inte behörighet att avboka bokningen.");
+        }
+
+        if (booking.Status == BookingStatus.Cancelled)
+        {
+            throw new InvalidOperationException(
+                "Bokningen är redan avbokad.");
+        }
+
+        if (booking.Status != BookingStatus.Paid)
+        {
+            throw new InvalidOperationException(
+                "Endast betalda bokningar kan avbokas.");
+        }
+
+        var cancelledAt = DateTime.UtcNow;
+
+        var cancellationDeadline =
+            booking.Screening.StartTime.AddMinutes(-15);
+
+        if (cancelledAt >= cancellationDeadline)
+        {
+            throw new InvalidOperationException(
+                "Bokningen kan inte avbokas senare än 15 minuter före visningen.");
+        }
+
+        booking.Status = BookingStatus.Cancelled;
+        booking.CancelledAt = cancelledAt;
+
+        foreach (var ticket in booking.Tickets.Where(ticket => ticket.IsActive))
+        {
+            ticket.Release(cancelledAt);
+        }
+
+        await _bookingRepository.SaveChangesAsync(cancellationToken);
+
+        return MapToBookingDto(booking);
     }
 
     // Validates that the booking request contains valid information

@@ -17,4 +17,11 @@ public interface IBookingService
         Guid userId,
         CancellationToken cancellationToken = default
     );
+    
+    Task<BookingDto> CancelBookingAsync(
+        Guid bookingId,
+        Guid requesterUserId,
+        bool canManageAllBookings,
+        CancellationToken cancellationToken = default
+    );
 }
