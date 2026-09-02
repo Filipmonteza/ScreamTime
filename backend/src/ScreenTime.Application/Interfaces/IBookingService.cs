@@ -12,4 +12,10 @@ public interface IBookingService
         CancellationToken cancellationToken = default
     );
     
+    // Gets all current bookings for a user
+    Task<IReadOnlyList<BookingListItemDto>> GetCurrentBookingsAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    );
+    
 }

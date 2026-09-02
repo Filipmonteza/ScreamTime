@@ -46,5 +46,18 @@ public record BookingConfirmationDto(
     decimal TotalAmount,
     DateTime CreatedAt
 );
+
+// Represents a booking shown on the customer's booking page
+public record BookingListItemDto(
+    Guid BookingId,
+    Guid ScreeningId,
+    string BookingReference,
+    BookingStatus Status,
+    string MovieTitle,
+    DateTime ScreeningStartTime,
+    string AuditoriumName,
+    IReadOnlyList<BookedSeatDto> Seats,
+    decimal TotalAmount
+);
     
     
