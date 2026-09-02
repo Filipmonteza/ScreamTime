@@ -106,7 +106,7 @@ public sealed class BookingService : IBookingService
             ScreeningId = screening.Id,
             BookingReference =
                 await CreateUniqueBookingReferenceAsync(cancellationToken),
-            Status = BookingStatus.Reserved,
+            Status = BookingStatus.Paid,
             CreatedAt = createdAt
         };
 
