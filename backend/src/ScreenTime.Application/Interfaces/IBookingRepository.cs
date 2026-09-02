@@ -38,17 +38,20 @@ public interface IBookingRepository
         CancellationToken cancellationToken = default
     );
     
+    // Gets a screening by its ID
     Task<Screening?> GetScreeningAsync(
         Guid screeningId,
         CancellationToken cancellationToken = default
     );
-
+    
+    // Gets selected seats from a specific auditorium
     Task<IReadOnlyList<Seat>> GetSeatsByIdsAsync(
         Guid auditoriumId,
         IReadOnlyCollection<Guid> seatIds,
         CancellationToken cancellationToken = default
     );
 
+    // checks if a booking reference already exsist
     Task<bool> BookingReferenceExistsAsync(
         string bookingReference,
         CancellationToken cancellationToken = default

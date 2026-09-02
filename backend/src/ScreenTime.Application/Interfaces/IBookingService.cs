@@ -6,9 +6,18 @@ namespace ScreenTime.Application.Interfaces;
 /// Creates a booking for the specified user and selected seats.
 public interface IBookingService
 {
+    // Booking confirmation
     Task<BookingConfirmationDto> CreateBookingAsync(
         Guid userId,
         CreateBookingDto request,
+        CancellationToken cancellationToken = default
+    );
+    
+    // Cancels booking
+    Task<BookingDto> CancelBookingAsync(
+        Guid bookingId,
+        Guid requesterUserId,
+        bool canManageAllBookings,
         CancellationToken cancellationToken = default
     );
     
@@ -18,10 +27,5 @@ public interface IBookingService
         CancellationToken cancellationToken = default
     );
     
-    Task<BookingDto> CancelBookingAsync(
-        Guid bookingId,
-        Guid requesterUserId,
-        bool canManageAllBookings,
-        CancellationToken cancellationToken = default
-    );
+   
 }

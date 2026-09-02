@@ -192,6 +192,8 @@ public sealed class BookingService : IBookingService
             seats,
             booking.TotalAmount);
     }
+    
+    // Converts a Booking entity to a BookingDto
     private static BookingDto MapToBookingDto(Booking booking)
     {
         return new BookingDto(
@@ -247,6 +249,7 @@ public sealed class BookingService : IBookingService
             .ToList();
     }
 
+    // Cancels a booking and releases its seats
     public async Task<BookingDto> CancelBookingAsync(Guid bookingId, Guid requesterUserId, bool canManageAllBookings,
         CancellationToken cancellationToken = default)
     {
