@@ -11,7 +11,8 @@ public class Booking : BaseEntity
     public Screening Screening { get; set; } = null!;
 
     public string BookingReference { get; set; } = string.Empty;
-    public BookingStatus Status { get; set; } = BookingStatus.Reserved;
+    
+    public required BookingStatus Status { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CancelledAt { get; set; }
@@ -20,4 +21,5 @@ public class Booking : BaseEntity
 
     public ICollection<Ticket> Tickets { get; set; }
         = new List<Ticket>();
+    
 }
