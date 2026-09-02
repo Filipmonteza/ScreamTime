@@ -37,4 +37,30 @@ public record BookingDto(
     DateTime? CancelledAt,
     decimal TotalAmount,
     int TicketCount
-    );
+);
+    
+
+// Represents bookedSeats
+public record BookedSeatDto(
+    Guid SeatId,
+    Guid BookingId,
+    int SeatNumber,
+    string SeatType,
+    decimal SeatPrice
+);
+
+// Represents BookingConfirmation
+public record BookingConfirmationDto(
+    Guid BookingId,
+    Guid ScreeningId,
+    string BookingReference,
+    BookingStatus Status,
+    string MovieTitle,
+    DateTime ScreeningStartTime,
+    string AuditoriumName,
+    IReadOnlyList<BookedSeatDto> Seats,
+    decimal TotalAmount,
+    DateTime CreatedAt
+);
+    
+    
