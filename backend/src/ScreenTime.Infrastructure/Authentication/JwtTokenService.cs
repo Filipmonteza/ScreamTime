@@ -3,8 +3,8 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using ScreenTime.Application.Contracts;
 using ScreenTime.Application.Contracts.Authentication;
-using ScreenTime.Domain.Entities;
 
 namespace ScreenTime.Infrastructure.Authentication;
 
@@ -20,7 +20,7 @@ public class JwtTokenService : IJwtTokenService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public Task<(string Token, DateTime Expiration)> GenerateTokenAsync(ApplicationUser user, string? role = null)
+    public Task<(string Token, DateTime Expiration)> GenerateTokenAsync(UserTokenInfo user, string? role = null)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -30,7 +30,7 @@ public class JwtTokenService : IJwtTokenService
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+            new(JwtRegisteredClaimNames.Email, user.Email),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(ClaimTypes.NameIdentifier, user.Id.ToString())
         };

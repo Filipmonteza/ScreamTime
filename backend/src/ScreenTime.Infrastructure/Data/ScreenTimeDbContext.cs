@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ScreenTime.Domain.Entities;
+using ScreenTime.Infrastructure.Identity;
 
 namespace ScreenTime.Infrastructure.Data;
 

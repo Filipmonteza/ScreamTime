@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ScreenTime.Domain.Entities;
+using ScreenTime.Infrastructure.Identity;
 
 namespace ScreenTime.Infrastructure.Data.Configurations;
 

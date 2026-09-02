@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ScreenTime.Application.Contracts;
 using ScreenTime.Application.Contracts.Authentication;
-using ScreenTime.Domain.Entities;
+using ScreenTime.Infrastructure.Identity;
 
 namespace ScreenTime.WebApi.Controllers;
 
@@ -79,7 +79,13 @@ public class AuthController : ControllerBase
         var primaryRole = roles.FirstOrDefault();
 
         // Generate JWT token
-        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(user, primaryRole);
+        var tokenInfo = new UserTokenInfo
+        {
+            Id = user.Id,
+            Email = user.Email ?? string.Empty
+        };
+
+        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, primaryRole);
 
         _logger.LogInformation("User {UserId} logged in successfully", user.Id);
 

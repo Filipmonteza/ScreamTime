@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using ScreenTime.Domain.Entities;
+using ScreenTime.Infrastructure.Identity;
 using ScreenTime.Infrastructure;
 using ScreenTime.Infrastructure.Data;
 
@@ -47,8 +47,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configure ASP.NET Core Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+// Configure ASP.NET Core Identity.
+// AddIdentityCore, not AddIdentity: this API authenticates with bearer tokens only.
+// AddIdentity internally calls AddAuthentication and would overwrite the JWT default
+// schemes configured above with its cookie schemes.
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
     // Password settings (adjust based on your security requirements)
     options.Password.RequireDigit = true;
@@ -69,7 +72,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
     options.SignIn.RequireConfirmedEmail = false; // Set to true when email is configured
     options.SignIn.RequireConfirmedAccount = false;
 })
+.AddRoles<IdentityRole<Guid>>()                 // RoleManager + role-aware user store
 .AddEntityFrameworkStores<ScreenTimeDbContext>()
+.AddSignInManager()                              // AuthController injects SignInManager
 .AddDefaultTokenProviders(); // Required for password reset, email confirmation tokens
 
 builder.Services.AddCors(options =>

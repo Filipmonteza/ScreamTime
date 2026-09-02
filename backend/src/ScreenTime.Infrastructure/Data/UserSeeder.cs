@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using ScreenTime.Domain.Entities;
+using ScreenTime.Infrastructure.Identity;
 
 namespace ScreenTime.Infrastructure.Data;
 

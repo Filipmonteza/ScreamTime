@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace ScreenTime.Domain.Entities;
+namespace ScreenTime.Infrastructure.Identity;
 
 /// <summary>
 /// Represents an authenticated user in the ScreenTime application.
