@@ -96,6 +96,10 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
     await db.Database.MigrateAsync();
     await SeedData.SeedAsync(db);
+
+    // Seed a development test user so login can be tested
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    await ScreenTime.Infrastructure.Data.UserSeeder.SeedTestUserAsync(userManager);
 }
 
 app.UseHttpsRedirection();
