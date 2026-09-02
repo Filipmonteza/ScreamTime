@@ -284,6 +284,69 @@ public sealed class BookingService : IBookingService
             .Select(MapToBookingListItemDto)
             .ToList();
     }
+    
+    // Gets a booking with all information needed by the details page
+    public async Task<BookingConfirmationDto> GetBookingByIdAsync(
+        Guid bookingId,
+        Guid requesterUserId,
+        bool canManageAllBookings,
+        CancellationToken cancellationToken = default)
+    {
+        if (bookingId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Bokningens ID får inte vara tomt.",
+                nameof(bookingId));
+        }
+
+        if (requesterUserId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Användarens ID får inte vara tomt.",
+                nameof(requesterUserId));
+        }
+
+        var booking = await _bookingRepository.GetByIdAsync(
+            bookingId,
+            cancellationToken);
+
+        if (booking is null)
+        {
+            throw new KeyNotFoundException(
+                "Bokningen kunde inte hittas.");
+        }
+
+        var ownsBooking = booking.UserId == requesterUserId;
+
+        if (!ownsBooking && !canManageAllBookings)
+        {
+            throw new UnauthorizedAccessException(
+                "Du har inte behörighet att visa bokningen.");
+        }
+
+        var seats = booking.Tickets
+            .OrderBy(ticket => ticket.Seat.RowLabel)
+            .ThenBy(ticket => ticket.Seat.SeatNumber)
+            .Select(ticket => new BookedSeatDto(
+                ticket.SeatId,
+                ticket.Seat.RowLabel,
+                ticket.Seat.SeatNumber,
+                ticket.Seat.SeatType.Name,
+                ticket.Price))
+            .ToList();
+
+        return new BookingConfirmationDto(
+            booking.Id,
+            booking.ScreeningId,
+            booking.BookingReference,
+            booking.Status,
+            booking.Screening.Movie.Title,
+            booking.Screening.StartTime,
+            booking.Screening.Auditorium.Name,
+            seats,
+            booking.TotalAmount,
+            booking.CreatedAt);
+    }
 
     // Cancels a booking and releases its seats
     public async Task<BookingDto> CancelBookingAsync(Guid bookingId, Guid requesterUserId, bool canManageAllBookings,
