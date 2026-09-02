@@ -285,10 +285,68 @@ public sealed class BookingService : IBookingService
             .ToList();
     }
 
-    public Task<ScreeningSeatMapDto> GetSeatMapAsync(Guid screeningId, CancellationToken cancellationToken = default)
+    public async Task<ScreeningSeatMapDto> GetSeatMapAsync(Guid screeningId, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        if (screeningId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Visningens ID får inte vara tomt.",
+                nameof(screeningId));
+        }
+
+        var screening = await _bookingRepository.GetScreeningAsync(
+            screeningId,
+            cancellationToken);
+
+        if (screening is null)
+        {
+            throw new KeyNotFoundException(
+                "Visningen kunde inte hittas.");
+        }
+
+        if (screening.IsCancelled)
+        {
+            throw new InvalidOperationException(
+                "Visningen är avbokad.");
+        }
+
+        if (screening.StartTime <= DateTime.UtcNow)
+        {
+            throw new InvalidOperationException(
+                "Visningen har redan börjat.");
+        }
+
+        var seats = await _bookingRepository.GetSeatsByAuditoriumIdAsync(
+            screening.AuditoriumId,
+            cancellationToken);
+
+        var unavailableSeatIds =
+            await _bookingRepository.GetUnavailableSeatIdsAsync(
+                screening.Id,
+                cancellationToken);
+
+        var unavailableSeatIdSet = unavailableSeatIds.ToHashSet();
+
+        var seatDtos = seats
+            .OrderBy(seat => seat.RowLabel)
+            .ThenBy(seat => seat.SeatNumber)
+            .Select(seat => new SeatAvailabilityDto(
+                seat.Id,
+                seat.RowLabel,
+                seat.SeatNumber,
+                seat.SeatType.Name,
+                seat.SeatType.Price,
+                !unavailableSeatIdSet.Contains(seat.Id)))
+            .ToList();
+
+        return new ScreeningSeatMapDto(
+            screening.Id,
+            screening.Movie.Title,
+            screening.StartTime,
+            screening.Auditorium.Name,
+            seatDtos);
     }
+
 
     // Gets a booking with all information needed by the details page
     public async Task<BookingConfirmationDto> GetBookingByIdAsync(

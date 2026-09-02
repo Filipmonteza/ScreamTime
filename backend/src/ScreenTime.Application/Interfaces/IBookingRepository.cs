@@ -56,4 +56,16 @@ public interface IBookingRepository
         string bookingReference,
         CancellationToken cancellationToken = default
     );
+    
+    // Gets all seats in an auditorium
+    Task<IReadOnlyList<Seat>> GetSeatsByAuditoriumIdAsync(
+        Guid auditoriumId,
+        CancellationToken cancellationToken = default
+    );
+
+    // Gets occupied seat IDs for a screening
+    Task<IReadOnlyCollection<Guid>> GetUnavailableSeatIdsAsync(
+        Guid screeningId,
+        CancellationToken cancellationToken = default
+    );
 }
