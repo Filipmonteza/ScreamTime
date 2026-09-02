@@ -1,0 +1,245 @@
+﻿using System.Security.Cryptography;
+using ScreenTime.Application.Contracts;
+using ScreenTime.Application.Exceptions;
+using ScreenTime.Application.Interfaces;
+using ScreenTime.Domain.Entities;
+using ScreenTime.Domain.Enums;
+
+namespace ScreenTime.Application.Services;
+
+// Handles the logic for creating bookings
+public sealed class BookingService : IBookingService
+{
+    // Characters used to generate the booking reference
+    private const string BookingReferenceCharacters =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    // Repository used to get and save booking data
+    private readonly IBookingRepository _bookingRepository;
+
+    // Gets the booking repository through dependency injection
+    public BookingService(IBookingRepository bookingRepository)
+    {
+        _bookingRepository = bookingRepository;
+    }
+
+    // Creates a new booking and returns a booking confirmation
+    public async Task<BookingConfirmationDto> CreateBookingAsync(
+        Guid userId,
+        CreateBookingDto request,
+        CancellationToken cancellationToken = default)
+    {
+        // Validates the user ID and booking request
+        ValidateRequest(userId, request);
+
+        // Removes duplicate seat IDs
+        var seatIds = request.SeatIds
+            .Distinct()
+            .ToArray();
+
+        // Prevents the same seat from being selected more than once
+        if (seatIds.Length != request.SeatIds.Count)
+        {
+            throw new ArgumentException(
+                "Samma säte får inte väljas flera gånger.",
+                nameof(request));
+        }
+
+        // Gets the selected screening from the database
+        var screening = await _bookingRepository.GetScreeningAsync(
+            request.ScreeningId,
+            cancellationToken);
+
+        // Checks if the screening exists
+        if (screening is null)
+        {
+            throw new KeyNotFoundException("Visningen kunde inte hittas.");
+        }
+
+        // Prevents booking a cancelled screening
+        if (screening.IsCancelled)
+        {
+            throw new InvalidOperationException("Visningen är avbokad.");
+        }
+
+        // Prevents booking a screening that has already started
+        if (screening.StartTime <= DateTime.UtcNow)
+        {
+            throw new InvalidOperationException(
+                "Det går inte att boka en visning som redan har börjat.");
+        }
+
+        // Gets the selected seats from the screening auditorium
+        var seats = await _bookingRepository.GetSeatsByIdsAsync(
+            screening.AuditoriumId,
+            seatIds,
+            cancellationToken);
+
+        // Checks that all selected seats exist
+        if (seats.Count != seatIds.Length)
+        {
+            throw new ArgumentException(
+                "Ett eller flera säten finns inte i visningens salong.",
+                nameof(request));
+        }
+
+        // Checks if all selected seats are available
+        var seatsAreAvailable =
+            await _bookingRepository.AreSeatsAvailableAsync(
+                screening.Id,
+                seatIds,
+                cancellationToken);
+
+        // Stops the booking if one or more seats are already booked
+        if (!seatsAreAvailable)
+        {
+            throw new SeatsUnavailableException();
+        }
+
+        // Saves the current time as the booking creation time
+        var createdAt = DateTime.UtcNow;
+
+        // Creates the new booking
+        var booking = new Booking
+        {
+            UserId = userId,
+            ScreeningId = screening.Id,
+            BookingReference =
+                await CreateUniqueBookingReferenceAsync(cancellationToken),
+            Status = BookingStatus.Reserved,
+            CreatedAt = createdAt
+        };
+
+        // Creates a ticket for each selected seat
+        foreach (var seat in seats)
+        {
+            booking.Tickets.Add(new Ticket
+            {
+                BookingId = booking.Id,
+                ScreeningId = screening.Id,
+                SeatId = seat.Id,
+                Price = seat.SeatType.Price
+            });
+        }
+
+        // Calculates the total price of all tickets
+        booking.TotalAmount = booking.Tickets.Sum(ticket => ticket.Price);
+
+        // Adds the booking to the database
+        await _bookingRepository.AddAsync(booking, cancellationToken);
+
+        // Saves all changes to the database
+        await _bookingRepository.SaveChangesAsync(cancellationToken);
+
+        // Creates a list of the booked seats for the confirmation
+        var bookedSeats = seats
+            .OrderBy(seat => seat.RowLabel)
+            .ThenBy(seat => seat.SeatNumber)
+            .Select(seat => new BookedSeatDto(
+                seat.Id,
+                seat.RowLabel,
+                seat.SeatNumber,
+                seat.SeatType.Name,
+                seat.SeatType.Price))
+            .ToList();
+
+        // Returns the completed booking confirmation
+        return new BookingConfirmationDto(
+            booking.Id,
+            screening.Id,
+            booking.BookingReference,
+            booking.Status,
+            screening.Movie.Title,
+            screening.StartTime,
+            screening.Auditorium.Name,
+            bookedSeats,
+            booking.TotalAmount,
+            booking.CreatedAt);
+    }
+
+    // Validates that the booking request contains valid information
+    private static void ValidateRequest(
+        Guid userId,
+        CreateBookingDto request)
+    {
+        // Checks that the user ID is valid
+        if (userId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Användarens ID får inte vara tomt.",
+                nameof(userId));
+        }
+
+        // Checks that the screening ID is valid
+        if (request.ScreeningId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Visningens ID får inte vara tomt.",
+                nameof(request));
+        }
+
+        // Checks that at least one seat has been selected
+        if (request.SeatIds is null || request.SeatIds.Count == 0)
+        {
+            throw new ArgumentException(
+                "Minst ett säte måste väljas.",
+                nameof(request));
+        }
+
+        // Checks that all seat IDs are valid
+        if (request.SeatIds.Any(id => id == Guid.Empty))
+        {
+            throw new ArgumentException(
+                "Ett sätes-ID får inte vara tomt.",
+                nameof(request));
+        }
+    }
+
+    // Creates a unique booking reference
+    private async Task<string> CreateUniqueBookingReferenceAsync(
+        CancellationToken cancellationToken)
+    {
+        // Maximum number of attempts to create a unique reference
+        const int maximumAttempts = 5;
+
+        // Tries to create a unique booking reference
+        for (var attempt = 0; attempt < maximumAttempts; attempt++)
+        {
+            var reference = CreateBookingReference();
+
+            // Checks if the booking reference already exists
+            var alreadyExists =
+                await _bookingRepository.BookingReferenceExistsAsync(
+                    reference,
+                    cancellationToken);
+
+            // Returns the reference if it is unique
+            if (!alreadyExists)
+            {
+                return reference;
+            }
+        }
+
+        throw new InvalidOperationException(
+            "Det gick inte att skapa ett unikt bokningsnummer.");
+    }
+
+    // Generates a random 10-character booking reference
+    private static string CreateBookingReference()
+    {
+        const int referenceLength = 10;
+        Span<char> reference = stackalloc char[referenceLength];
+
+        // Generates each character in the booking reference
+        for (var i = 0; i < reference.Length; i++)
+        {
+            var index = RandomNumberGenerator.GetInt32(
+                BookingReferenceCharacters.Length);
+
+            reference[i] = BookingReferenceCharacters[index];
+        }
+
+        // Converts the generated characters into a string
+        return new string(reference);
+    }
+}
