@@ -39,5 +39,10 @@ public interface IBookingService
         Guid userId,
         CancellationToken cancellationToken = default
     );
+    
+    Task<ScreeningSeatMapDto> GetSeatMapAsync(
+        Guid screeningId,
+        CancellationToken cancellationToken = default
+    );
    
 }

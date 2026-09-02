@@ -284,7 +284,12 @@ public sealed class BookingService : IBookingService
             .Select(MapToBookingListItemDto)
             .ToList();
     }
-    
+
+    public Task<ScreeningSeatMapDto> GetSeatMapAsync(Guid screeningId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     // Gets a booking with all information needed by the details page
     public async Task<BookingConfirmationDto> GetBookingByIdAsync(
         Guid bookingId,
