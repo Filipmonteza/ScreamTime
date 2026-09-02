@@ -249,6 +249,42 @@ public sealed class BookingService : IBookingService
             .ToList();
     }
 
+    // Gets the customer's completed paid bookings
+    public async Task<IReadOnlyList<BookingListItemDto>> GetBookingHistoryAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Användarens ID får inte vara tomt.",
+                nameof(userId));
+        }
+
+        var bookings = await _bookingRepository.GetByUserIdAsync(
+            userId,
+            cancellationToken);
+
+        var currentTime = DateTime.UtcNow;
+
+        return bookings
+            // Only return the customer's bookings
+            .Where(booking => booking.UserId == userId)
+
+            // Cancelled bookings must not appear
+            .Where(booking =>
+                booking.Status == BookingStatus.Paid)
+
+            // Only screenings that have already started
+            .Where(booking =>
+                booking.Screening.StartTime <= currentTime)
+
+            // Show the most recent screening first
+            .OrderByDescending(booking =>
+                booking.Screening.StartTime)
+
+            .Select(MapToBookingListItemDto)
+            .ToList();
+    }
+
     // Cancels a booking and releases its seats
     public async Task<BookingDto> CancelBookingAsync(Guid bookingId, Guid requesterUserId, bool canManageAllBookings,
         CancellationToken cancellationToken = default)

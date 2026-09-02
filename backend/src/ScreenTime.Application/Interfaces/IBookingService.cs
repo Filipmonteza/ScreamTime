@@ -27,5 +27,9 @@ public interface IBookingService
         CancellationToken cancellationToken = default
     );
     
+    Task<IReadOnlyList<BookingListItemDto>> GetBookingHistoryAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    );
    
 }
