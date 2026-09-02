@@ -156,6 +156,84 @@ public sealed class BookingService : IBookingService
             booking.TotalAmount,
             booking.CreatedAt);
     }
+    
+    // Converts a Booking entity to a BookingListItemDto
+    private static BookingListItemDto MapToBookingListItemDto(
+        Booking booking)
+    {
+        // Gets and sorts all booked seats
+        var seats = booking.Tickets
+            // Sorts the seats by row
+            .OrderBy(ticket => ticket.Seat.RowLabel)
+
+            // Sorts seats in the same row by seat number
+            .ThenBy(ticket => ticket.Seat.SeatNumber)
+
+            // Converts each ticket to a BookedSeatDto
+            .Select(ticket => new BookedSeatDto(
+                ticket.SeatId,
+                ticket.Seat.RowLabel,
+                ticket.Seat.SeatNumber,
+                ticket.Seat.SeatType.Name,
+                ticket.Price))
+
+            // Converts the result to a list
+            .ToList();
+
+        // Creates and returns the booking information as a DTO
+        return new BookingListItemDto(
+            booking.Id,
+            booking.ScreeningId,
+            booking.BookingReference,
+            booking.Status,
+            booking.Screening.Movie.Title,
+            booking.Screening.StartTime,
+            booking.Screening.Auditorium.Name,
+            seats,
+            booking.TotalAmount);
+    }
+
+    // Gets all current bookings for a user
+    public async Task<IReadOnlyList<BookingListItemDto>> GetCurrentBookingsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        // Checks that the user ID is valid
+        if (userId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Användarens ID får inte vara tomt.",
+                nameof(userId));
+        }
+
+        // Gets all bookings that belong to the user
+        var bookings = await _bookingRepository.GetByUserIdAsync(
+            userId,
+            cancellationToken);
+
+        // Gets the current time
+        var currentTime = DateTime.UtcNow;
+
+        return bookings
+            // Makes sure the booking belongs to the user
+            .Where(booking => booking.UserId == userId)
+
+            // Removes cancelled bookings
+            .Where(booking =>
+                booking.Status != BookingStatus.Cancelled)
+
+            // Only includes bookings for upcoming screenings
+            .Where(booking =>
+                booking.Screening.StartTime > currentTime)
+
+            // Sorts bookings by the closest screening first
+            .OrderBy(booking =>
+                booking.Screening.StartTime)
+
+            // Converts each booking to a BookingListItemDto
+            .Select(MapToBookingListItemDto)
+
+            // Converts the result to a list
+            .ToList();
+    }
 
     // Validates that the booking request contains valid information
     private static void ValidateRequest(
