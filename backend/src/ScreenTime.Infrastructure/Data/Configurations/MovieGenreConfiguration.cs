@@ -8,8 +8,6 @@ public class MovieGenreConfiguration : IEntityTypeConfiguration<MovieGenre>
 {
     public void Configure(EntityTypeBuilder<MovieGenre> builder)
     {
-        // ER: composite PK (MovieId, GenreId).
-        // Stops the same genre being attached to the same film twice.
         builder.HasKey(mg => new { mg.MovieId, mg.GenreId });
 
         builder.HasOne(mg => mg.Movie)
