@@ -1,53 +1,28 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using System.Linq;
 using ScreenTime.Application.Contracts;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using ScreenTime.Infrastructure.Data;
 using Xunit;
 
 namespace ScreenTime.WebApi.IntegrationTests;
 
-public class RegisterTests : IClassFixture<WebApplicationFactory<Program>>
+public class RegisterTests : IClassFixture<ScreenTimeApiFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly ScreenTimeApiFactory _factory;
 
-    public RegisterTests(WebApplicationFactory<Program> factory)
+    public RegisterTests(ScreenTimeApiFactory factory)
     {
         _factory = factory;
     }
 
     [Fact]
-    public async Task Register_ReturnsCreatedAndToken()
+    public async Task Register_WithNewEmail_ReturnsCreatedWithCustomerToken()
     {
-        // Arrange: create factory that replaces DB with InMemory
-        var factory = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                // Remove existing DbContext registration
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ScreenTimeDbContext>));
-                if (descriptor != null)
-                {
-                    services.Remove(descriptor);
-                }
-
-                // Add InMemory DB
-                services.AddDbContext<ScreenTimeDbContext>(options =>
-                {
-                    options.UseInMemoryDatabase("TestDb");
-                });
-            });
-        });
-
-        var client = factory.CreateClient();
-
+        // Arrange
+        var client = _factory.CreateClient();
         var request = new
         {
-            email = $"test{Guid.NewGuid()}@example.com",
+            email = $"test{Guid.NewGuid():N}@example.com",
             password = "Test1234!"
         };
 
@@ -57,9 +32,10 @@ public class RegisterTests : IClassFixture<WebApplicationFactory<Program>>
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        var content = await response.Content.ReadFromJsonAsync<RegisterResponseDto>();
+        var content = await response.Content.ReadFromJsonAsync<AuthResponse>();
         content.Should().NotBeNull();
         content!.Token.Should().NotBeNullOrEmpty();
+        content.Email.Should().Be(request.email);
         content.Role.Should().Be("Customer");
     }
 }
