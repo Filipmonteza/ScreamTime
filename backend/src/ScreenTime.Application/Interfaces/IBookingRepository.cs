@@ -7,70 +7,72 @@ namespace ScreenTime.Application.Interfaces;
 /// </summary>
 public interface IBookingRepository
 {
-    /// <summary>
-    /// Retrieves a booking by its unique ID.
-    /// </summary>
-    /// <param name="bookingId">The ID of the booking to retrieve.</param>
-    /// <param name="cancellationToken">
-    /// Allows the operation to be cancelled.
-    /// </param>
-    /// <returns>
-    /// The matching booking, or null if no booking was found.
-    /// </returns>
+    
+    // Retrieves a booking by its unique ID, tracked, with Screening.Movie,
+    // Screening.Auditorium, Tickets and Ticket.Seat.SeatType loaded. The
+    // service reads all of those and there is no lazy loading.
     Task<Booking?> GetByIdAsync(
         Guid bookingId,
         CancellationToken cancellationToken = default
     );
-
-    /// <summary>
-    /// Retrieves all bookings belonging to a specific user.
-    /// </summary>
-    /// <param name="userId">The ID of the user.</param>
-    /// <param name="cancellationToken">
-    /// Allows the operation to be cancelled.
-    /// </param>
-    /// <returns>A read-only list of the user's bookings.</returns>
+    
+    // Retrieves all bookings belonging to a specific user, with the same
+    // object graph loaded as GetByIdAsync.
     Task<IReadOnlyList<Booking>> GetByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken = default
     );
-
-    /// <summary>
-    /// Determines whether the selected seats are available for a screening.
-    /// </summary>
-    /// <param name="screeningId">The ID of the screening.</param>
-    /// <param name="seatIds">The IDs of the selected seats.</param>
-    /// <param name="cancellationToken">
-    /// Allows the operation to be cancelled.
-    /// </param>
-    /// <returns>
-    /// True if all selected seats are available; otherwise, false.
-    /// </returns>
+    
+    // Determines whether the selected seats are available for a screening.
+    // A released ticket (Ticket.ReleasedAt) does not occupy its seat.
     Task<bool> AreSeatsAvailableAsync(
         Guid screeningId,
         IReadOnlyCollection<Guid> seatIds,
         CancellationToken cancellationToken = default
     );
-
-    /// <summary>
-    /// Adds a new booking to the data store.
-    /// </summary>
-    /// <param name="booking">The booking to add.</param>
-    /// <param name="cancellationToken">
-    /// Allows the operation to be cancelled.
-    /// </param>
+    
+    // Adds a new booking to the data store.
     Task AddAsync(
         Booking booking,
         CancellationToken cancellationToken = default
     );
-
-    /// <summary>
-    /// Saves all pending booking changes to the data store.
-    /// </summary>
-    /// <param name="cancellationToken">
-    /// Allows the operation to be cancelled.
-    /// </param>
+    
+    // Saves all pending booking changes to the data store. A seat taken by
+    // someone else between the availability check and the insert surfaces as
+    // SeatsUnavailableException rather than a raw DbUpdateException.
     Task SaveChangesAsync(
+        CancellationToken cancellationToken = default
+    );
+    
+    // Gets a screening by its ID, with Movie and Auditorium loaded.
+    Task<Screening?> GetScreeningAsync(
+        Guid screeningId,
+        CancellationToken cancellationToken = default
+    );
+    
+    // Gets selected seats from a specific auditorium, with SeatType loaded.
+    Task<IReadOnlyList<Seat>> GetSeatsByIdsAsync(
+        Guid auditoriumId,
+        IReadOnlyCollection<Guid> seatIds,
+        CancellationToken cancellationToken = default
+    );
+
+    // checks if a booking reference already exsist
+    Task<bool> BookingReferenceExistsAsync(
+        string bookingReference,
+        CancellationToken cancellationToken = default
+    );
+    
+    // Gets all seats in an auditorium, with SeatType loaded.
+    Task<IReadOnlyList<Seat>> GetSeatsByAuditoriumIdAsync(
+        Guid auditoriumId,
+        CancellationToken cancellationToken = default
+    );
+
+    // Gets the seat IDs held by an active (not released) ticket for the
+    // given screening.
+    Task<IReadOnlyCollection<Guid>> GetUnavailableSeatIdsAsync(
+        Guid screeningId,
         CancellationToken cancellationToken = default
     );
 }

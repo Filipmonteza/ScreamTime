@@ -12,10 +12,13 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         // not rewrite history.
         builder.Property(t => t.Price).HasPrecision(18, 2);
 
-        // The double-booking guard: one ticket per seat per screening.
-        // Note this means cancelling a booking must DELETE its tickets, not
-        // just flag the booking, or the seat stays occupied.
-        builder.HasIndex(t => new { t.ScreeningId, t.SeatId }).IsUnique();
+        // The double-booking guard: one *active* ticket per seat per screening.
+        // Cancelling releases a ticket (Ticket.ReleasedAt) instead of deleting
+        // it, so the row survives as history. The filter is what stops a
+        // released row from holding the seat for good.
+        builder.HasIndex(t => new { t.ScreeningId, t.SeatId })
+            .IsUnique()
+            .HasFilter("[ReleasedAt] IS NULL");
 
         builder.HasOne(t => t.Booking)
             .WithMany(b => b.Tickets)

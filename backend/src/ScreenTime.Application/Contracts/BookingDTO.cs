@@ -12,22 +12,7 @@ public record CreateBookingDto(
     List<Guid> SeatIds
 );
 
-
-/// <summary>
-/// Represents booking information returned to the client.
-/// </summary>
-/// <param name="BookingId">The unique ID of the booking.</param>
-/// <param name="ScreeningId">The ID of the booked screening.</param>
-/// <param name="BookingReference">
-/// The unique reference used to identify the booking.
-/// </param>
-/// <param name="Status">The current status of the booking.</param>
-/// <param name="CreatedAt">The date and time when the booking was created.</param>
-/// <param name="CancelledAt">
-/// The date and time when the booking was cancelled, or null if it is active.
-/// </param>
-/// <param name="TotalAmount">The total price of the booking.</param>
-/// <param name="TicketCount">The number of tickets included in the booking.</param>
+// Represents booking information returned to the client.
 public record BookingDto(
     Guid BookingId,
     Guid ScreeningId,
@@ -37,4 +22,42 @@ public record BookingDto(
     DateTime? CancelledAt,
     decimal TotalAmount,
     int TicketCount
-    );
+);
+
+// Represents bookedSeats
+public record BookedSeatDto(
+    Guid SeatId,
+    string RowLabel,
+    int SeatNumber,
+    string SeatType,
+    decimal SeatPrice
+);
+
+// Represents BookingConfirmation
+public record BookingConfirmationDto(
+    Guid BookingId,
+    Guid ScreeningId,
+    string BookingReference,
+    BookingStatus Status,
+    string MovieTitle,
+    DateTime ScreeningStartTime,
+    string AuditoriumName,
+    IReadOnlyList<BookedSeatDto> Seats,
+    decimal TotalAmount,
+    DateTime CreatedAt
+);
+
+// Represents a booking shown on the customer's booking page
+public record BookingListItemDto(
+    Guid BookingId,
+    Guid ScreeningId,
+    string BookingReference,
+    BookingStatus Status,
+    string MovieTitle,
+    DateTime ScreeningStartTime,
+    string AuditoriumName,
+    IReadOnlyList<BookedSeatDto> Seats,
+    decimal TotalAmount
+);
+    
+    

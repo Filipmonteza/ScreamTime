@@ -27,6 +27,9 @@ public static class DependencyInjection
         services.AddScoped<IGenreRepository, GenreRepository>();
         services.AddScoped<IGenreService, GenreService>();
 
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IBookingService, BookingService>();
+
         // Configure JWT settings
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
 

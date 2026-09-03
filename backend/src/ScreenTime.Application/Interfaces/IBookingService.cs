@@ -5,20 +5,43 @@ namespace ScreenTime.Application.Interfaces;
 // Defines the application operations available for managing bookings.
 public interface IBookingService
 {
-    /// <summary>
-    /// Creates a booking for the specified user and selected seats.
-    /// </summary>
-    /// <param name="userId">The ID of the authenticated user.</param>
-    /// <param name="request">The screening and seats selected by the user.</param>
-    /// <param name="cancellationToken">
-    /// Allows the operation to be cancelled.
-    /// </param>
-    /// <returns>The newly created booking.</returns>
-    Task<BookingDto> CreateBookingAsync(
+    // Booking confirmation
+    Task<BookingConfirmationDto> CreateBookingAsync(
         Guid userId,
         CreateBookingDto request,
         CancellationToken cancellationToken = default
     );
     
-    //Todo aktivera detta i infrastrucktur.
+    // Gets a booking with all details
+    Task<BookingConfirmationDto> GetBookingByIdAsync(
+        Guid bookingId,
+        Guid requesterUserId,
+        bool canManageAllBookings,
+        CancellationToken cancellationToken = default
+    );
+    
+    // Cancels booking
+    Task<BookingDto> CancelBookingAsync(
+        Guid bookingId,
+        Guid requesterUserId,
+        bool canManageAllBookings,
+        CancellationToken cancellationToken = default
+    );
+    
+    // Gets all current bookings for a user
+    Task<IReadOnlyList<BookingListItemDto>> GetCurrentBookingsAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    );
+    
+    Task<IReadOnlyList<BookingListItemDto>> GetBookingHistoryAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    );
+    
+    Task<ScreeningSeatMapDto> GetSeatMapAsync(
+        Guid screeningId,
+        CancellationToken cancellationToken = default
+    );
+   
 }
