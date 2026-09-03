@@ -94,30 +94,31 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
 
-    // Applies pending migrations and seeds, so a fresh clone only needs
-    // `dotnet run` to get a working database.
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
-    await db.Database.MigrateAsync();
-    await SeedData.SeedAsync(db);
+using (var scope = app.Services.CreateScope())
+{
+    if (app.Environment.IsDevelopment())
+    {
+        // Applies pending migrations and seeds, so a fresh clone only needs
+        // `dotnet run` to get a working database.
+        var db = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
+        await db.Database.MigrateAsync();
+        await SeedData.SeedAsync(db);
+    }
 
-    // Seed a development test user so login can be tested
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    await ScreenTime.Infrastructure.Data.UserSeeder.SeedTestUserAsync(userManager);
-        // Ensure Customer role exists and assign it to the seeded test user
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-        const string customerRole = "Customer";
-        if (!await roleManager.RoleExistsAsync(customerRole))
-        {
-            await roleManager.CreateAsync(new IdentityRole<Guid>(customerRole));
-        }
+    // The Admin/Staff/Customer roles are an application invariant, not demo data:
+    // registration assigns Customer and assumes it already exists. Seeded in every
+    // environment, and before any user so the test user can be put in a role.
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+    await IdentitySeeder.SeedRolesAsync(roleManager);
 
-        var seededTestUser = await userManager.FindByEmailAsync("test@screentime.com");
-        if (seededTestUser != null && !await userManager.IsInRoleAsync(seededTestUser, customerRole))
-        {
-            await userManager.AddToRoleAsync(seededTestUser, customerRole);
-        }
+    if (app.Environment.IsDevelopment())
+    {
+        // Seed a development test user so login can be tested
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        await UserSeeder.SeedTestUserAsync(userManager);
+    }
 }
 
 

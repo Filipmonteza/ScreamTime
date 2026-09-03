@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using ScreenTime.Application.Contracts;
 using ScreenTime.Application.Contracts.Authentication;
@@ -17,20 +16,17 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        RoleManager<IdentityRole<Guid>> roleManager,
         IJwtTokenService jwtTokenService,
         ILogger<AuthController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _roleManager = roleManager;
         _jwtTokenService = jwtTokenService;
         _logger = logger;
     }
@@ -109,7 +105,7 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("register")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(RegisterResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
     {
@@ -137,18 +133,8 @@ public class AuthController : ControllerBase
             return BadRequest(new { errors = createResult.Errors.Select(e => new { e.Code, e.Description }) });
         }
 
-        const string customerRole = "Customer";
-        if (!await _roleManager.RoleExistsAsync(customerRole))
-        {
-            var roleCreate = await _roleManager.CreateAsync(new IdentityRole<Guid>(customerRole));
-            if (!roleCreate.Succeeded)
-            {
-                await _userManager.DeleteAsync(user);
-                return BadRequest(new { errors = roleCreate.Errors.Select(e => new { e.Code, e.Description }) });
-            }
-        }
-
-        var addRoleResult = await _userManager.AddToRoleAsync(user, customerRole);
+        // Admin/Staff/Customer are seeded at startup by IdentitySeeder.
+        var addRoleResult = await _userManager.AddToRoleAsync(user, IdentitySeeder.CustomerRole);
         if (!addRoleResult.Succeeded)
         {
             await _userManager.DeleteAsync(user);
@@ -161,17 +147,17 @@ public class AuthController : ControllerBase
             Email = user.Email ?? string.Empty
         };
 
-        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, customerRole);
+        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, IdentitySeeder.CustomerRole);
 
         _logger.LogInformation("New user {UserId} registered successfully", user.Id);
 
-        var response = new RegisterResponseDto
+        var response = new AuthResponse
         {
             Token = token,
             Expiration = expiration,
             UserId = user.Id,
             Email = user.Email ?? string.Empty,
-            Role = customerRole
+            Role = IdentitySeeder.CustomerRole
         };
 
         return Created(string.Empty, response);
