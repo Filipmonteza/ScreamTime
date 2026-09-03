@@ -2,13 +2,27 @@ import { useEffect, useMemo, useState } from "react";
 import type { Movie } from "../types/movie";
 import { getAllMovies } from "../api/moviesApi";
 import "./Home.css";
-import searchIcon from "../assets/icons/Icon_Search.svg";
+import iconSearch from "../assets/icons/Icon_Search.svg";
+import iconChevronLeft from "../assets/icons/Icon_Chevron_Left.svg";
+import iconChevronLeftDouble from "../assets/icons/Icon_Chevron_Left_Double.svg";
+import iconChevronRight from "../assets/icons/Icon_Chevron_Right.svg";
+import iconChevronRightDouble from "../assets/icons/Icon_Chevron_Right_Double.svg";
+import iconChevronDown from "../assets/icons/Icon_Chevron_Down.svg";
+
+/* TODO: dayOptions och auditoriumOptions är hårdkodade platshållare, så detta måste vi lösa. */
+const dayOptions = ["Måndag", "Tisdag"];
+const auditoriumOptions = ["Salong 1", "Salong 2"];
+const PAGE_SIZE = 5;
 
 function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [dayFilter, setDayFilter] = useState("");
+  const [genreFilter, setGenreFilter] = useState("");
+  const [auditoriumFilter, setAuditoriumFilter] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     getAllMovies()
@@ -19,47 +33,223 @@ function Home() {
 
   const filteredMovies = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return movies;
-    return movies.filter(
-      (movie) =>
-        movie.title.toLowerCase().includes(q) ||
-        movie.genres.some((genre) => genre.toLowerCase().includes(q)),
-    );
-  }, [movies, query]);
+    return movies.filter((movie) => {
+      const matchesQuery = !q || movie.title.toLowerCase().includes(q);
+      const matchesGenre = !genreFilter || movie.genres.includes(genreFilter);
+      return matchesQuery && matchesGenre;
+    });
+  }, [movies, query, genreFilter]);
+
+  function shuffle<T>(arr: T[]): T[] {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  const tipMovies = useMemo(() => shuffle(movies).slice(0, 6), [movies]);
+
+  const genreOptions = useMemo(() => {
+    const set = new Set<string>();
+    movies.forEach((movie) => movie.genres.forEach((genre) => set.add(genre)));
+    return Array.from(set).sort();
+  }, [movies]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMovies.length / PAGE_SIZE));
+
+  const pagedMovies = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredMovies.slice(start, start + PAGE_SIZE);
+  }, [filteredMovies, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, genreFilter]);
+
+  function goToFirst() {
+    setPage(1);
+  }
+  function goToPrev() {
+    setPage((p) => Math.max(1, p - 1));
+  }
+  function goToNext() {
+    setPage((p) => Math.min(totalPages, p + 1));
+  }
+  function goToLast() {
+    setPage(totalPages);
+  }
+
+  const pageNumbers = useMemo(() => {
+    let start = page - 1;
+    let end = page + 1;
+    if (start < 1) {
+      end += 1 - start;
+      start = 1;
+    }
+    if (end > totalPages) {
+      start -= end - totalPages;
+      end = totalPages;
+    }
+    start = Math.max(1, start);
+
+    const numbers: number[] = [];
+    for (let n = start; n <= end; n++) numbers.push(n);
+    return numbers;
+  }, [page, totalPages]);
 
   return (
     <div className="page home">
-      <h2>Hitta film</h2>
-      <div className="search-bar">
-        <img src={searchIcon} alt="Search icon" className="search-icon" />
-        <input className="search-bar-input"
-          type="text"
-          placeholder="Sök efter film..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </div>
+      {loading && <p>Laddar...</p>}
+      {error && <p>Fel: {error}</p>}
 
-      <div>
-        <h2>Våra tips</h2>
-        {loading && <p>Laddar...</p>}
-        {error && <p>Fel: {error}</p>}
-        {!loading && !error && filteredMovies.length === 0 && (
-          <p>Inga filmer kunde hittas</p>
-        )}
-
-        {!loading && !error && filteredMovies.length > 0 && (
-          <div className="movie-row">
-            {filteredMovies.map((movie) => (
-              <div className="movie-card" key={movie.movieId}>
-                <div className="movie-card-poster" />
-                <p className="title-movie-card">{movie.title}</p>
-                <p className="genre-movie-card">{movie.genres.join(", ")}</p>
+      {!loading && !error && (
+        <>
+          <div className="tips-section">
+            <h2>Våra tips</h2>
+            {tipMovies.length > 0 && (
+              <div className="movie-row">
+                {tipMovies.map((movie) => (
+                  <div className="movie-card" key={movie.movieId}>
+                    <div className="movie-card-poster" />
+                    <p className="title-movie-card">{movie.title}</p>
+                    <p className="genre-movie-card">
+                      {movie.genres.join(", ")}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
-      </div>
+          <div className="find-section">
+            <h2>Hitta film</h2>
+            <div className="search-bar">
+              <img src={iconSearch} alt="Search icon" className="search-icon" />
+              <input
+                className="search-bar-input"
+                type="text"
+                placeholder="Sök efter film..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <div className="toolbar">
+              <div className="filter-row">
+                <div className="filter-select-wrapper">
+                  <span className="filter-label">{dayFilter || "Dag"}</span>
+                  <img
+                    src={iconChevronDown}
+                    alt=""
+                    className="filter-chevron"
+                  />
+                  <select
+                    className="filter-select"
+                    value={dayFilter}
+                    onChange={(e) => setDayFilter(e.target.value)}
+                  >
+                    <option value="">Dag</option>
+                    {dayOptions.map((day) => (
+                      <option key={day} value={day}>
+                        {day}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-select-wrapper">
+                  <span className="filter-label">{genreFilter || "Genre"}</span>
+                  <img
+                    src={iconChevronDown}
+                    alt=""
+                    className="filter-chevron"
+                  />
+                  <select
+                    className="filter-select"
+                    value={genreFilter}
+                    onChange={(e) => setGenreFilter(e.target.value)}
+                  >
+                    <option value="">Genre</option>
+                    {genreOptions.map((genre) => (
+                      <option key={genre} value={genre}>
+                        {genre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-select-wrapper">
+                  <span className="filter-label">
+                    {auditoriumFilter || "Salong"}
+                  </span>
+                  <img
+                    src={iconChevronDown}
+                    alt=""
+                    className="filter-chevron"
+                  />
+                  <select
+                    className="filter-select"
+                    value={auditoriumFilter}
+                    onChange={(e) => setAuditoriumFilter(e.target.value)}
+                  >
+                    <option value="">Salong</option>
+                    {auditoriumOptions.map((room) => (
+                      <option key={room} value={room}>
+                        {room}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="pagination">
+                <button onClick={goToFirst} disabled={page === 1}>
+                  <img src={iconChevronLeftDouble} alt="Första sidan" />
+                </button>
+                <button onClick={goToPrev} disabled={page === 1}>
+                  <img src={iconChevronLeft} alt="Föregående sida" />
+                </button>
+                <>
+                  {pageNumbers.map((n) => (
+                    <button
+                      key={n}
+                      className={
+                        n === page ? "page-number active" : "page-number"
+                      }
+                      onClick={() => setPage(n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </>
+                <button onClick={goToNext} disabled={page === totalPages}>
+                  <img src={iconChevronRight} alt="Nästa sida" />
+                </button>
+                <button onClick={goToLast} disabled={page === totalPages}>
+                  <img src={iconChevronRightDouble} alt="Sista sidan" />
+                </button>
+              </div>
+            </div>
+            <div>
+              {pagedMovies.length === 0 && <p>Inga filmer kunde hittas</p>}
+
+              {pagedMovies.length > 0 && (
+                <div className="movie-list">
+                  {pagedMovies.map((movie) => (
+                    <div className="movie-card" key={movie.movieId}>
+                      <div className="movie-card-poster" />
+                      <p className="title-movie-card">{movie.title}</p>
+                      <p className="genre-movie-card">
+                        {movie.genres.join(", ")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
