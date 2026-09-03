@@ -3,7 +3,6 @@
 namespace ScreenTime.Application.Interfaces;
 
 // Defines the application operations available for managing bookings.
-/// Creates a booking for the specified user and selected seats.
 public interface IBookingService
 {
     // Booking confirmation

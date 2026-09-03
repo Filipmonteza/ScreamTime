@@ -269,12 +269,11 @@ public sealed class BookingService : IBookingService
             // Only return the customer's bookings
             .Where(booking => booking.UserId == userId)
 
-            // Cancelled bookings must not appear
+            // Everything that is no longer upcoming: the screening has been
+            // and gone, or the customer cancelled it. Cancelled bookings have
+            // to land somewhere, or the customer never sees that status.
             .Where(booking =>
-                booking.Status == BookingStatus.Paid)
-
-            // Only screenings that have already started
-            .Where(booking =>
+                booking.Status == BookingStatus.Cancelled ||
                 booking.Screening.StartTime <= currentTime)
 
             // Show the most recent screening first
@@ -451,12 +450,6 @@ public sealed class BookingService : IBookingService
         {
             throw new InvalidOperationException(
                 "Bokningen är redan avbokad.");
-        }
-
-        if (booking.Status != BookingStatus.Paid)
-        {
-            throw new InvalidOperationException(
-                "Endast betalda bokningar kan avbokas.");
         }
 
         var cancelledAt = DateTime.UtcNow;
