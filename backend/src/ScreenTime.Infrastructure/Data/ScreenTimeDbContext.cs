@@ -1,9 +1,16 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ScreenTime.Domain.Entities;
+using ScreenTime.Infrastructure.Identity;
 
 namespace ScreenTime.Infrastructure.Data;
 
-public class ScreenTimeDbContext : DbContext
+/// <summary>
+/// Database context for ScreenTime application with ASP.NET Identity support.
+/// Inherits from IdentityDbContext to include Identity tables for users and roles.
+/// </summary>
+public class ScreenTimeDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
     public ScreenTimeDbContext(DbContextOptions<ScreenTimeDbContext> options)
         : base(options)
@@ -23,6 +30,7 @@ public class ScreenTimeDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ScreenTimeDbContext).Assembly);
     }
 }
