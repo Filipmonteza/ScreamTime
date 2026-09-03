@@ -107,14 +107,19 @@ if (app.Environment.IsDevelopment())
     await ScreenTime.Infrastructure.Data.UserSeeder.SeedTestUserAsync(userManager);
 }
 
-app.UseHttpsRedirection();
+
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseCors(FrontendCorsPolicy);
 
 // IMPORTANT: Authentication must come before Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseCors(FrontendCorsPolicy);
 
 app.Run();
