@@ -14,6 +14,15 @@ const dayOptions = ["Måndag", "Tisdag"];
 const auditoriumOptions = ["Salong 1", "Salong 2"];
 const PAGE_SIZE = 5;
 
+function shuffle<T>(arr: T[]): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [tipMovies, setTipMovies] = useState<Movie[]>([]);
@@ -43,15 +52,6 @@ function Home() {
       return matchesQuery && matchesGenre;
     });
   }, [movies, query, genreFilter]);
-
-  function shuffle<T>(arr: T[]): T[] {
-    const copy = [...arr];
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-  }
 
   const genreOptions = useMemo(() => {
     const set = new Set<string>();
