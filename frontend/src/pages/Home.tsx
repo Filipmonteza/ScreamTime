@@ -16,6 +16,7 @@ const PAGE_SIZE = 5;
 
 function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [tipMovies, setTipMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -26,7 +27,10 @@ function Home() {
 
   useEffect(() => {
     getAllMovies()
-      .then(setMovies)
+      .then((data) => {
+        setMovies(data);
+        setTipMovies(shuffle(data).slice(0, 6));
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -49,8 +53,6 @@ function Home() {
     return copy;
   }
 
-  const tipMovies = useMemo(() => shuffle(movies).slice(0, 6), [movies]);
-
   const genreOptions = useMemo(() => {
     const set = new Set<string>();
     movies.forEach((movie) => movie.genres.forEach((genre) => set.add(genre)));
@@ -64,9 +66,12 @@ function Home() {
     return filteredMovies.slice(start, start + PAGE_SIZE);
   }, [filteredMovies, page]);
 
-  useEffect(() => {
+  const filterKey = `${query}__${genreFilter}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
     setPage(1);
-  }, [query, genreFilter]);
+  }
 
   function goToFirst() {
     setPage(1);
