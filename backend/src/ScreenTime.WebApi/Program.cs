@@ -105,6 +105,19 @@ if (app.Environment.IsDevelopment())
     // Seed a development test user so login can be tested
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await ScreenTime.Infrastructure.Data.UserSeeder.SeedTestUserAsync(userManager);
+        // Ensure Customer role exists and assign it to the seeded test user
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        const string customerRole = "Customer";
+        if (!await roleManager.RoleExistsAsync(customerRole))
+        {
+            await roleManager.CreateAsync(new IdentityRole<Guid>(customerRole));
+        }
+
+        var seededTestUser = await userManager.FindByEmailAsync("test@screentime.com");
+        if (seededTestUser != null && !await userManager.IsInRoleAsync(seededTestUser, customerRole))
+        {
+            await userManager.AddToRoleAsync(seededTestUser, customerRole);
+        }
 }
 
 
@@ -123,3 +136,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Expose Program class for integration tests (WebApplicationFactory uses this)
+public partial class Program { }
