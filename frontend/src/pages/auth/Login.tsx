@@ -15,9 +15,9 @@ function Login() {
         </div>
         <div className="auth-field">
           <label className="auth-label" htmlFor="password">
-            Password
+            Lösenord
           </label>
-          <input className="auth-input" type="password" id="email" />
+          <input className="auth-input" type="password" id="password" />
         </div>
         <div className="auth-button-row">
           <button type="button" className="btn-pill">
