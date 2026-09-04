@@ -1,11 +1,12 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using ScreenTime.Infrastructure.Identity;
+using Microsoft.OpenApi.Models;
 using ScreenTime.Infrastructure;
 using ScreenTime.Infrastructure.Data;
+using ScreenTime.Infrastructure.Identity;
+using System.Text;
 
 const string FrontendCorsPolicy = "Frontend";
 
@@ -14,7 +15,34 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ange din JWT-token. Exempel: \"eyJhbGciOi...\" (utan ordet Bearer, Swagger lägger till det åt dig)."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Register Infrastructure services (DbContext, repositories, JWT service, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
