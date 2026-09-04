@@ -30,6 +30,12 @@ public static class DependencyInjection
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IBookingService, BookingService>();
 
+        services.AddScoped<ISeatRepository, SeatRepository>();
+        services.AddScoped<ISeatService, SeatService>();
+
+        services.AddScoped<IScreeningRepository, ScreeningRepository>();
+        services.AddScoped<IScreeningService, ScreeningService>();
+
         // Configure JWT settings
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
 

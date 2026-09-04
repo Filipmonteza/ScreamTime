@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import type { Movie } from "../types/movie";
 import { getAllMovies } from "../api/moviesApi";
 import "./Home.css";
@@ -116,13 +117,17 @@ function Home() {
             {tipMovies.length > 0 && (
               <div className="movie-row">
                 {tipMovies.map((movie) => (
-                  <div className="movie-card" key={movie.movieId}>
+                  <Link
+                    to={`/movieDetail/${movie.movieId}`}
+                    className="movie-card"
+                    key={movie.movieId}
+                  >
                     <div className="movie-card-poster" />
                     <p className="title-movie-card">{movie.title}</p>
                     <p className="genre-movie-card">
                       {movie.genres.join(", ")}
                     </p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -241,13 +246,13 @@ function Home() {
               {pagedMovies.length > 0 && (
                 <div className="movie-list">
                   {pagedMovies.map((movie) => (
-                    <div className="movie-card" key={movie.movieId}>
+                    <Link to={`/movieDetail/${movie.movieId}`} className="movie-card" key={movie.movieId}>
                       <div className="movie-card-poster" />
                       <p className="title-movie-card">{movie.title}</p>
                       <p className="genre-movie-card">
                         {movie.genres.join(", ")}
                       </p>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
