@@ -6,11 +6,11 @@ namespace ScreenTime.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ScreeningController : ControllerBase
+public class ScreeningsController : ControllerBase
 {
     private readonly IScreeningService _screeningService;
 
-    public ScreeningController(IScreeningService screeningService)
+    public ScreeningsController(IScreeningService screeningService)
     {
         _screeningService = screeningService;
     }
