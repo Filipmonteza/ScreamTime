@@ -320,7 +320,7 @@ $RECYCLE.BIN/
 .DS_Store
 .AppleDouble
 .LSOverride
-Icon?
+/Icon?
 ._*
 
 .DocumentRevisions-V100
@@ -357,6 +357,9 @@ Icon?
 AppPackages/
 BundleArtifacts/
 _pkginfo.txt
-.idea/
-.DS_Store
 
+
+# SQLite database files (created locally by `dotnet run`)
+*.db
+*.db-shm
+*.db-wal

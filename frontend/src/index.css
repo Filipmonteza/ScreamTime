@@ -1,0 +1,61 @@
+:root {
+  /* COLORS */
+  --color-bg: #121212;
+  --color-surface: #252525;
+  --color-surface-muted: #565656;
+  --color-input-bg: #f7f7f7;
+  --color-text: #f7f7f7;
+  --color-text-muted: #f7f7f799;
+  --color-text-input: #121212;
+  --accent-color-1: #f7f7f7;
+  --accent-color-1-disabled: #f7f7f799;
+}
+
+body {
+  font-family: "Open Sans", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.page {
+  padding: 80px 80px 80px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* FONTS */
+h1 {
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 120%;
+}
+
+h2 {
+  font-weight: 700;
+  font-size: 1.8rem;
+  line-height: 120%;
+  margin: 0
+}
+
+p {
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 120%;
+}
+
+/* BUTTONS */
+.btn-pill {
+    display: inline-block;
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: none;
+    font-size: 1rem;
+    color: var(--color-text-input);
+    background: var(--accent-color-1);
+}
+
+.btn-pill:disabled {
+    background: var(--accent-color-1-disabled);
+}

@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, dev]
   push:
-    branches: [main, dev]
+    branches: [main]
   workflow_dispatch:
 
 # A new push to the same branch cancels the run it supersedes.
@@ -32,9 +32,8 @@ jobs:
       - name: Build
         run: dotnet build ScreenTime.sln --configuration Release --no-restore
 
-      # No test projects exist yet. When one is added, uncomment:
-      # - name: Test
-      #   run: dotnet test ScreenTime.sln --configuration Release --no-build
+      - name: Test
+        run: dotnet test ScreenTime.sln --configuration Release --no-build
 
   frontend:
     name: Frontend (React / Vite)
