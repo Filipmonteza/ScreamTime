@@ -5,4 +5,5 @@ export interface Movie {
     description: string
     isActive: boolean
     genres: string[]
+    runtimeMinutes: number
 }
