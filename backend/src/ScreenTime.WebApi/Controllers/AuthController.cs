@@ -98,4 +98,68 @@ public class AuthController : ControllerBase
             Role = primaryRole
         });
     }
+
+    /// <summary>
+    /// Registers a new user, assigns the Customer role and returns a JWT token.
+    /// Immediate sign in without requiring email confirmation.
+    /// </summary>
+    [HttpPost("register")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var existing = await _userManager.FindByEmailAsync(request.Email);
+        if (existing != null)
+        {
+            return BadRequest(new { errors = new[] { new { Code = "DuplicateEmail", Description = "A user with this email already exists." } } });
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName = request.Email,
+            Email = request.Email,
+            EmailConfirmed = true // immediate sign in without email confirmation
+        };
+
+        var createResult = await _userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+        {
+            return BadRequest(new { errors = createResult.Errors.Select(e => new { e.Code, e.Description }) });
+        }
+
+        // Admin/Staff/Customer are seeded at startup by IdentitySeeder.
+        var addRoleResult = await _userManager.AddToRoleAsync(user, IdentitySeeder.CustomerRole);
+        if (!addRoleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+            return BadRequest(new { errors = addRoleResult.Errors.Select(e => new { e.Code, e.Description }) });
+        }
+
+        var tokenInfo = new UserTokenInfo
+        {
+            Id = user.Id,
+            Email = user.Email ?? string.Empty
+        };
+
+        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, IdentitySeeder.CustomerRole);
+
+        _logger.LogInformation("New user {UserId} registered successfully", user.Id);
+
+        var response = new AuthResponse
+        {
+            Token = token,
+            Expiration = expiration,
+            UserId = user.Id,
+            Email = user.Email ?? string.Empty,
+            Role = IdentitySeeder.CustomerRole
+        };
+
+        return Created(string.Empty, response);
+    }
 }

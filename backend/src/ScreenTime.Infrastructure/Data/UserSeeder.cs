@@ -16,7 +16,9 @@ public static class UserSeeder
         var existingUser = await userManager.FindByEmailAsync(testEmail);
         if (existingUser != null)
         {
-            return; // User already exists
+            // Existing databases predate the role assignment below.
+            await EnsureCustomerRoleAsync(userManager, existingUser);
+            return;
         }
 
         var testUser = new ApplicationUser
@@ -30,6 +32,8 @@ public static class UserSeeder
 
         if (result.Succeeded)
         {
+            await EnsureCustomerRoleAsync(userManager, testUser);
+
             Console.WriteLine($"✅ Test user created successfully:");
             Console.WriteLine($"   Email: {testEmail}");
             Console.WriteLine($"   Password: {testPassword}");
@@ -41,6 +45,16 @@ public static class UserSeeder
             {
                 Console.WriteLine($"   - {error.Description}");
             }
+        }
+    }
+
+    private static async Task EnsureCustomerRoleAsync(
+        UserManager<ApplicationUser> userManager,
+        ApplicationUser user)
+    {
+        if (!await userManager.IsInRoleAsync(user, IdentitySeeder.CustomerRole))
+        {
+            await userManager.AddToRoleAsync(user, IdentitySeeder.CustomerRole);
         }
     }
 }
