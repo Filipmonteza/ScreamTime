@@ -23,7 +23,6 @@ function Movies() {
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
 
   function loadMovies() {
-    setLoading(true);
     getAllMovies()
       .then(setMovies)
       .catch((err) => setError(err.message))

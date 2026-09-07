@@ -25,14 +25,15 @@ function MovieForm({ movie, onClose, onSaved }: MovieFormProps) {
     getAllGenres().then(setGenres);
   }, []);
 
-  useEffect(() => {
-    if (movie) {
-      const ids = genres
+  const [genresAppliedTo, setGenresAppliedTo] = useState<Genre[] | null>(null);
+  if (movie && genres.length > 0 && genresAppliedTo !== genres) {
+    setGenresAppliedTo(genres);
+    setSelectedGenreIds(
+      genres
         .filter((genre) => movie.genres.includes(genre.name))
-        .map((genre) => genre.id);
-      setSelectedGenreIds(ids);
-    }
-  }, [genres, movie]);
+        .map((genre) => genre.id),
+    );
+  }
 
   function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
