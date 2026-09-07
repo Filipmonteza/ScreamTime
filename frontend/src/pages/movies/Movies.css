@@ -1,0 +1,15 @@
+.movie-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.movie-list-item {
+  width: 358px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--color-surface);
+}
