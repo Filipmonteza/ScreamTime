@@ -126,10 +126,7 @@ public class AuthController : ControllerBase
         {
             UserName = request.Email,
             Email = request.Email,
-            EmailConfirmed = true, // immediate sign in without email confirmation
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Birthdate = request.Birthdate
+            EmailConfirmed = true // immediate sign in without email confirmation
         };
 
         var createResult = await _userManager.CreateAsync(user, request.Password);

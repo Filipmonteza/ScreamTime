@@ -23,7 +23,8 @@ public class RegisterTests : IClassFixture<ScreenTimeApiFactory>
         var request = new
         {
             email = $"test{Guid.NewGuid():N}@example.com",
-            password = "Test1234!"
+            password = "Test1234!",
+            confirmPassword = "Test1234!"
         };
 
         // Act

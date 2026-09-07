@@ -15,10 +15,8 @@ public record RegisterRequestDto
     [MinLength(8)]
     public string Password { get; init; } = string.Empty;
 
-    // Optional profile fields
-    public string? FirstName { get; init; }
-    public string? LastName { get; init; }
+    [Required]
+    [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+    public string ConfirmPassword { get; init; } = string.Empty;
 
-    // Optional birthdate
-    public DateTime? Birthdate { get; init; }
 }
