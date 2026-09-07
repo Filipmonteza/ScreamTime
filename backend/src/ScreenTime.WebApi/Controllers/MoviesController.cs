@@ -35,6 +35,9 @@ public class MoviesController : ControllerBase
     public async Task<ActionResult<MovieDto>> CreateMovie(CreateMovieDto dto)
     {
         var created = await _movieService.CreateMovieAsync(dto);
+        if (created is null)
+            return BadRequest("En eller flera GenreIds finns inte.");
+
         return CreatedAtAction(nameof(GetById), new { id = created.MovieId }, created);
     }
 
