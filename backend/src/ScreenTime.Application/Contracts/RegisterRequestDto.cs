@@ -14,4 +14,11 @@ public record RegisterRequestDto
     [Required]
     [MinLength(8)]
     public string Password { get; init; } = string.Empty;
+
+    // Optional profile fields
+    public string? FirstName { get; init; }
+    public string? LastName { get; init; }
+
+    // Optional birthdate
+    public DateTime? Birthdate { get; init; }
 }

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ScreenTime.Application.Contracts;
@@ -124,7 +126,10 @@ public class AuthController : ControllerBase
         {
             UserName = request.Email,
             Email = request.Email,
-            EmailConfirmed = true // immediate sign in without email confirmation
+            EmailConfirmed = true, // immediate sign in without email confirmation
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Birthdate = request.Birthdate
         };
 
         var createResult = await _userManager.CreateAsync(user, request.Password);
@@ -161,5 +166,26 @@ public class AuthController : ControllerBase
         };
 
         return Created(string.Empty, response);
+    }
+
+    /// <summary>
+    /// Logs out the current user. For JWT this is primarily a client-side operation
+    /// (client must discard the token). Calling SignOutAsync here clears any server
+    /// sign-in state and attempts to sign out the bearer scheme (no-op for stateless JWTs).
+    /// </summary>
+    [HttpPost("logout")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout()
+    {
+    
+        await _signInManager.SignOutAsync();
+
+        // Attempt to sign out the JWT bearer scheme. For pure JWTs this does not
+        // invalidate tokens already issued. Implement token revocation for true
+        // server-side logout if required.
+        await HttpContext.SignOutAsync(JwtBearerDefaults.AuthenticationScheme);
+
+        return NoContent();
     }
 }
