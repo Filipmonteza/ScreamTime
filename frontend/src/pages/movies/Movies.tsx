@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Movie } from "../../types/movie";
 import { getAllMovies } from "../../api/moviesApi";
+import MovieForm from "./MovieForm";
 import "./Movies.css";
 
 const ageRatingLabels: Record<number, string> = {
@@ -18,12 +19,19 @@ function Movies() {
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
     null,
   );
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
 
-  useEffect(() => {
+  function loadMovies() {
+    setLoading(true);
     getAllMovies()
       .then(setMovies)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadMovies();
   }, []);
 
   const filteredMovies = useMemo(() => {
@@ -76,7 +84,12 @@ function Movies() {
                 </div>
               ) : (
                 <div className="movie-list-item-actions">
-                  <button className="btn-pill">Redigera</button>
+                  <button
+                    className="btn-pill"
+                    onClick={() => setEditingMovie(movie)}
+                  >
+                    Redigera
+                  </button>
                   <button
                     className="btn-pill"
                     onClick={() => setConfirmingDeleteId(movie.movieId)}
@@ -90,7 +103,29 @@ function Movies() {
         </div>
       )}
 
-      <button className="btn-pill">Lägg till film</button>
+      <button className="btn-pill" onClick={() => setShowAddForm(true)}>
+        Lägg till film
+      </button>
+
+      {showAddForm && (
+        <MovieForm
+          onClose={() => setShowAddForm(false)}
+          onSaved={() => {
+            setShowAddForm(false);
+            loadMovies();
+          }}
+        />
+      )}
+      {editingMovie && (
+        <MovieForm
+          movie={editingMovie}
+          onClose={() => setEditingMovie(null)}
+          onSaved={() => {
+            setEditingMovie(null);
+            loadMovies();
+          }}
+        />
+      )}
     </div>
   );
 }
