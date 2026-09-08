@@ -1,4 +1,5 @@
-import { NavLink, Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, Link, useLocation } from "react-router-dom";
 import "./Navbar.css";
 
 import iconHomeDefault from "../assets/icons/Icon_Home_Default.svg";
@@ -25,6 +26,19 @@ type NavItem = {
   iconFill: string;
 };
 
+type NavDropdownItem = {
+  label: string;
+  iconDefault: string;
+  iconFill: string;
+  children: NavItem[];
+};
+
+type NavEntry = NavItem | NavDropdownItem;
+
+function isDropdown(entry: NavEntry): entry is NavDropdownItem {
+  return "children" in entry;
+}
+
 const customerItems: NavItem[] = [
   {
     to: "/",
@@ -46,7 +60,7 @@ const customerItems: NavItem[] = [
   },
 ];
 
-const adminItems: NavItem[] = [
+const adminItems: NavEntry[] = [
   {
     to: "/",
     label: "Hem",
@@ -72,10 +86,23 @@ const adminItems: NavItem[] = [
     iconFill: iconAuditoriumsFill,
   },
   {
-    to: "/staff",
-    label: "Personal",
+    label: "Konton",
     iconDefault: iconStaffDefault,
     iconFill: iconStaffFill,
+    children: [
+      {
+        to: "/staff",
+        label: "Personal",
+        iconDefault: iconStaffDefault,
+        iconFill: iconStaffFill,
+      },
+      {
+        to: "/account",
+        label: "Mitt konto",
+        iconDefault: iconProfileDefault,
+        iconFill: iconProfileFill,
+      },
+    ],
   },
 ];
 
@@ -88,7 +115,7 @@ const loggedOutItems: NavItem[] = [
   },
 ];
 
-function getNavItems(role: Role): NavItem[] {
+function getNavItems(role: Role): NavEntry[] {
   if (role === "Admin" || role === "Staff") return adminItems;
   if (role === "Customer") return customerItems;
   return loggedOutItems;
@@ -100,34 +127,115 @@ type NavbarProps = {
 
 function Navbar({ role }: NavbarProps) {
   const items = getNavItems(role);
+  const location = useLocation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsDropdownOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isDropdownOpen]);
 
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
         ScreenTime
       </Link>
-      <div className={`navbar-links navbar-links--${role === "Customer" ? "customer" : "admin"}`}>
-        {items.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className={({ isActive }) =>
-              isActive ? "navbar-link active" : "navbar-link"
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <img
-                  src={isActive ? item.iconFill : item.iconDefault}
-                  alt=""
-                  className="navbar-icon"
-                />
-                <span>{item.label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
+      <div
+        className={`navbar-links navbar-links--${role === "Customer" ? "customer" : "admin"}`}
+      >
+        {items.map((item) => {
+          if (isDropdown(item)) {
+            const isChildActive = item.children.some(
+              (child) => location.pathname === child.to,
+            );
+            return (
+              <div
+                className="navbar-dropdown"
+                ref={dropdownRef}
+                key={item.label}
+              >
+                <button
+                  type="button"
+                  className={
+                    isChildActive ? "navbar-link active" : "navbar-link"
+                  }
+                  onClick={() => setIsDropdownOpen((open) => !open)}
+                >
+                  <img
+                    src={isChildActive ? item.iconFill : item.iconDefault}
+                    alt=""
+                    className="navbar-icon"
+                  />
+                  <span>{item.label}</span>
+                </button>
+                {isDropdownOpen && (
+                  <div className="navbar-dropdown-menu">
+                    {item.children.map((child) => (
+                      <NavLink
+                        key={child.to}
+                        to={child.to}
+                        className={({ isActive }) =>
+                          isActive
+                            ? "navbar-dropdown-item active"
+                            : "navbar-dropdown-item"
+                        }
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <img
+                              src={
+                                isActive ? child.iconFill : child.iconDefault
+                              }
+                              alt=""
+                              className="navbar-icon"
+                            />
+                            <span>{child.label}</span>
+                          </>
+                        )}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/"}
+              className={({ isActive }) =>
+                isActive ? "navbar-link active" : "navbar-link"
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <img
+                    src={isActive ? item.iconFill : item.iconDefault}
+                    alt=""
+                    className="navbar-icon"
+                  />
+                  <span>{item.label}</span>
+                </>
+              )}
+            </NavLink>
+          );
+        })}
         {role === null && (
           <Link to="/login" className="navbar-link">
             Logga in
