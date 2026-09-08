@@ -39,4 +39,22 @@ public class RegisterTests : IClassFixture<ScreenTimeApiFactory>
         content.Email.Should().Be(request.email);
         content.Role.Should().Be("Customer");
     }
+    [Fact]
+    public async Task Register_WithMismatchedPasswords_ReturnsBadRequest()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var request = new
+        {
+            email = $"test{Guid.NewGuid():N}@example.com",
+            password = "Test1234!",
+            confirmPassword = "Different1234!"
+        };
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/Auth/register", request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }
