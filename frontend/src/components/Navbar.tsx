@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import "./Navbar.css";
-
 import iconHomeDefault from "../assets/icons/Icon_Home_Default.svg";
 import iconHomeFill from "../assets/icons/Icon_Home_Fill.svg";
 import iconBookingsDefault from "../assets/icons/Icon_Bookings_Deafult.svg";
@@ -16,6 +15,7 @@ import iconAuditoriumsDefault from "../assets/icons/Icon_Auditoriums_Default.svg
 import iconAuditoriumsFill from "../assets/icons/Icon_Auditoriums_Fill.svg";
 import iconStaffDefault from "../assets/icons/Icon_Staff_Default.svg";
 import iconStaffFill from "../assets/icons/Icon_Staff_Fill.svg";
+import iconLogoutDefault from "../assets/icons/Icon_Logout_Default.svg";
 
 export type Role = "Admin" | "Staff" | "Customer" | null;
 
@@ -39,7 +39,7 @@ function isDropdown(entry: NavEntry): entry is NavDropdownItem {
   return "children" in entry;
 }
 
-const customerItems: NavItem[] = [
+const customerItems: NavEntry[] = [
   {
     to: "/",
     label: "Hem",
@@ -53,10 +53,23 @@ const customerItems: NavItem[] = [
     iconFill: iconBookingsFill,
   },
   {
-    to: "/account",
-    label: "Mitt konto",
+    label: "Konto",
     iconDefault: iconProfileDefault,
     iconFill: iconProfileFill,
+    children: [
+      {
+        to: "/account",
+        label: "Mitt konto",
+        iconDefault: iconProfileDefault,
+        iconFill: iconProfileFill,
+      },
+      {
+        to: "/login",
+        label: "Logga ut",
+        iconDefault: iconLogoutDefault,
+        iconFill: iconLogoutDefault,
+      },
+    ],
   },
 ];
 
@@ -101,6 +114,12 @@ const adminItems: NavEntry[] = [
         label: "Mitt konto",
         iconDefault: iconProfileDefault,
         iconFill: iconProfileFill,
+      },
+      {
+        to: "/login",
+        label: "Logga ut",
+        iconDefault: iconLogoutDefault,
+        iconFill: iconLogoutDefault,
       },
     ],
   },
