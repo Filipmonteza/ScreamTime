@@ -165,23 +165,15 @@ public class AuthController : ControllerBase
         return Created(string.Empty, response);
     }
 
-    /// <summary>
-    /// Logs out the current user. For JWT this is primarily a client-side operation
-    /// (client must discard the token). Calling SignOutAsync here clears any server
-    /// sign-in state and attempts to sign out the bearer scheme (no-op for stateless JWTs).
-    /// </summary>
+   /// <summary>
+   /// Logs out the current user.
+   /// For JWT authentication, logout is handled client-side by removing the token.
+   /// </summary>
     [HttpPost("logout")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Logout()
     {
-    
-        await _signInManager.SignOutAsync();
-
-        // Attempt to sign out the JWT bearer scheme. For pure JWTs this does not
-        // invalidate tokens already issued. Implement token revocation for true
-        // server-side logout if required.
-        await HttpContext.SignOutAsync(JwtBearerDefaults.AuthenticationScheme);
 
         return NoContent();
     }
