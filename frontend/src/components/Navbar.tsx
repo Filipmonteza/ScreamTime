@@ -131,9 +131,11 @@ function Navbar({ role }: NavbarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  if (location.pathname !== prevPathname) {
+    setPrevPathname(location.pathname);
     setIsDropdownOpen(false);
-  }, [location.pathname]);
+  }
 
   useEffect(() => {
     if (!isDropdownOpen) return;
