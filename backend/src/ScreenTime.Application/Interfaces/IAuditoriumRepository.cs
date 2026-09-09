@@ -22,8 +22,11 @@ public interface IAuditoriumRepository
     Task<List<Seat>> GetSeatsByAuditoriumIdAsync(
         Guid auditoriumId);
 
-    // Return the auditorium's capacity. This is calculated from seats rather than stored,
+    // Return the auditorium's capacity, calculated from seats rather than stored,
     // ensuring consistency even after seat updates or reconfiguration.
+    // Currently unused internally (GetAllAuditoriumsAsync uses the batched
+    // GetCapacitiesAsync instead) — kept for single-auditorium lookups,
+    // e.g. seeding validation or detail views.
     Task<int> GetCapacityAsync(Guid auditoriumId);
     
     // Return capacities for multiple auditoriums in a single grouped query,

@@ -125,7 +125,7 @@ public class AuditoriumService : IAuditoriumService
     }
 
     // Soft-delete an auditorium by marking it inactive.
-    // Note: does not currently check for future showtimes — that business
+    // Note: does not currently check for future showtimes.
     public async Task<bool> DeleteAuditoriumAsync(Guid id)
     {
         var auditorium = await _auditoriumRepository.GetByIdAsync(id, track: true);
