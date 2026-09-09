@@ -1,28 +1,9 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { useState, type ReactNode } from "react";
 import * as authApi from "../api/authApi";
 import type { AuthResponse } from "../types/auth";
-
-interface AuthContextValue {
-  user: { userId: string; email: string; role: string | null } | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    password: string,
-    confirmPassword: string,
-  ) => Promise<void>;
-  logout: () => Promise<void>;
-}
+import { AuthContext, type AuthContextValue } from "./AuthContextInstance";
 
 const STORAGE_KEY = "auth";
-
-const AuthContext = createContext<AuthContextValue | null>(null);
 
 function readStoredAuth(): AuthResponse | null {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -77,10 +58,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
-  return context;
 }

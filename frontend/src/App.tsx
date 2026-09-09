@@ -1,4 +1,4 @@
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./context/useAuth";
 import { Routes, Route } from "react-router-dom";
 import Navbar, { type Role } from "./components/Navbar";
 import Home from "./pages/Home";

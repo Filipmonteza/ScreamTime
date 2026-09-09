@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import iconHomeDefault from "../assets/icons/Icon_Home_Default.svg";
 import iconHomeFill from "../assets/icons/Icon_Home_Fill.svg";
 import iconBookingsDefault from "../assets/icons/Icon_Bookings_Deafult.svg";
