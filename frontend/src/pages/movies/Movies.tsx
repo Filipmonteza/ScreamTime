@@ -25,8 +25,10 @@ function Movies() {
   );
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function loadMovies() {
+    setError(null);
     getAllMovies()
       .then(setMovies)
       .catch((err) => setError(err.message))
@@ -38,12 +40,18 @@ function Movies() {
   }, []);
 
   function handleDelete(id: string) {
+    setError(null);
+    setDeletingId(id);
     deleteMovie(id)
       .then(() => {
         setConfirmingDeleteId(null);
         loadMovies();
       })
-      .catch((err) => setError(err.message));
+      .catch((err) => {
+        setConfirmingDeleteId(null);
+        setError(err.message);
+      })
+      .finally(() => setDeletingId(null));
   }
 
   const filteredMovies = useMemo(() => {
@@ -56,6 +64,10 @@ function Movies() {
   const [page, setPage] = useState(1);
 
   const totalPages = Math.max(1, Math.ceil(filteredMovies.length / PAGE_SIZE));
+
+  if (page > totalPages) {
+    setPage(totalPages);
+  }
 
   const pagedMovies = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
@@ -163,6 +175,7 @@ function Movies() {
                   <button
                     className="btn-pill"
                     onClick={() => handleDelete(movie.movieId)}
+                    disabled={deletingId === movie.movieId}
                   >
                     Ja
                   </button>
