@@ -1,3 +1,4 @@
+import { useAuth } from "./context/AuthContext";
 import { Routes, Route } from "react-router-dom";
 import Navbar, { type Role } from "./components/Navbar";
 import Home from "./pages/Home";
@@ -10,10 +11,12 @@ import Bookings from "./pages/bookings/Bookings";
 import Screenings from "./pages/screenings/Screenings";
 import Staff from "./pages/staff/Staff";
 import Account from "./pages/account/Account";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
-  // TODO: replace role with real auth state once login is implemented
-  const role: Role = "Admin";
+  const { user } = useAuth();
+  const role: Role = (user?.role as Role) ?? null;
+
   return (
     <>
       <Navbar role={role} />
@@ -22,12 +25,12 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/movieDetail/:id" element={<MovieDetail />} />
-        <Route path="/movies" element={<Movies />} />
-        <Route path="/auditoriums" element={<Auditoriums />} />
-        <Route path="/bookings" element={<Bookings />} />
-        <Route path="/screenings" element={<Screenings />} />
-        <Route path="/staff" element={<Staff />} />
-        <Route path="/account" element={<Account />} />
+        <Route path="/movies" element={<ProtectedRoute roles={["Admin", "Staff"]}><Movies /></ProtectedRoute>} />
+        <Route path="/auditoriums" element={<ProtectedRoute roles={["Admin", "Staff"]}><Auditoriums /></ProtectedRoute>} />
+        <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+        <Route path="/screenings" element={<ProtectedRoute roles={["Admin", "Staff"]}><Screenings /></ProtectedRoute>} />
+        <Route path="/staff" element={<ProtectedRoute roles={["Admin", "Staff"]}><Staff /></ProtectedRoute>} />
+        <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
       </Routes>
     </>
   );
