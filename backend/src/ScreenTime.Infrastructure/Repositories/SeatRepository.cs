@@ -5,7 +5,7 @@ using ScreenTime.Infrastructure.Data;
 
 namespace ScreenTime.Infrastructure.Repositories;
 
-    public class SeatRepository : ISeatRepository
+public class SeatRepository : ISeatRepository
 {
     private readonly ScreenTimeDbContext _context;
 

@@ -16,6 +16,6 @@ public interface IAuditoriumService
     // Update an auditorium and return true, false, or null depending on outcome and validation.
     Task<bool?> UpdateAuditoriumAsync(Guid id, AuditoriumUpdateDto dto);
 
-    // Soft-delete an auditorium when allowed by business rules (e.g., no future showtimes).
+    // Soft-delete an auditorium by marking it as inactive.
     Task<bool> DeleteAuditoriumAsync(Guid id);
 }
