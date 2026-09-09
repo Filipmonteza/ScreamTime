@@ -45,4 +45,57 @@ public class AuditoriumService : IAuditoriumService
             auditorium.IsActive
         );
     }
+
+    public async Task<List<AuditoriumListDto>> GetAllAuditoriumsAsync(
+        bool includeInactive = false)
+    {
+        var auditoriums = await _auditoriumRepository.GetAllAsync(
+            includeInactive);
+
+        var auditoriumDtos = new List<AuditoriumListDto>();
+
+        foreach (var auditorium in auditoriums)
+        {
+            var capacity = await _auditoriumRepository.GetCapacityAsync(
+                auditorium.Id);
+
+            auditoriumDtos.Add(new AuditoriumListDto(
+                auditorium.Id,
+                auditorium.Name,
+                capacity,
+                auditorium.IsActive
+            ));
+        }
+
+        return auditoriumDtos;
+    }
+
+    public async Task<AuditoriumDetailsDto?> GetAuditoriumByIdAsync(Guid id, bool includeInactive = false)
+    {
+        var auditorium = await _auditoriumRepository.GetByIdAsync(
+            id,
+            includeInactive);
+        if (auditorium is null)
+            return null;
+        var seats = await _auditoriumRepository.GetSeatsByAuditoriumIdAsync(auditorium.Id);
+
+        var seatDtos = seats
+            .OrderBy(seat => seat.RowLabel)
+            .ThenBy(seat => seat.SeatNumber)
+            .Select(seat => new AuditoriumSeatDto(
+                seat.Id,
+                seat.RowLabel,
+                seat.SeatNumber,
+                seat.SeatType.Name
+            ))
+            .ToList();
+
+        return new AuditoriumDetailsDto(
+            auditorium.Id,
+            auditorium.Name,
+            seats.Count,
+            auditorium.IsActive,
+            seatDtos
+            );
+    }
 }

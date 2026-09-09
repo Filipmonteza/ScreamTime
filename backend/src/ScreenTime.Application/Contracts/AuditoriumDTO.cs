@@ -11,3 +11,25 @@ public record AuditoriumDto(
     string Name,
     bool IsActive
 );
+
+public record AuditoriumListDto(
+    Guid AuditoriumId,
+    string Name,
+    int Capacity,
+    bool IsActive
+);
+
+public record AuditoriumSeatDto(
+    Guid SeatId,
+    string RowLabel,
+    int SeatNumber,
+    string SeatTypeName
+);
+
+public record AuditoriumDetailsDto(
+    Guid AuditoriumId,
+    string Name,
+    int Capacity,
+    bool IsActive,
+    List<AuditoriumSeatDto> Seats
+);
