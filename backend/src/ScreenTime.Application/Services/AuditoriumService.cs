@@ -8,13 +8,14 @@ public class AuditoriumService : IAuditoriumService
 {
     private readonly IAuditoriumRepository _auditoriumRepository;
 
+    // Inject repository to access auditorium persistence and validation rules.
     public AuditoriumService(IAuditoriumRepository auditoriumRepository)
     {
         _auditoriumRepository = auditoriumRepository;
     }
 
-    public async Task<AuditoriumDto?> CreateAuditoriumAsync(
-        AuditoriumCreateDto dto)
+    // Create a new auditorium when name is valid, unique and within allowed limits.
+    public async Task<AuditoriumDto?> CreateAuditoriumAsync(AuditoriumCreateDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
             return null;
@@ -46,18 +47,16 @@ public class AuditoriumService : IAuditoriumService
         );
     }
 
-    public async Task<List<AuditoriumListDto>> GetAllAuditoriumsAsync(
-        bool includeInactive = false)
+    // Retrieve all auditoriums and include capacity for listing views.
+    public async Task<List<AuditoriumListDto>> GetAllAuditoriumsAsync(bool includeInactive = false)
     {
-        var auditoriums = await _auditoriumRepository.GetAllAsync(
-            includeInactive);
+        var auditoriums = await _auditoriumRepository.GetAllAsync(includeInactive);
 
         var auditoriumDtos = new List<AuditoriumListDto>();
 
         foreach (var auditorium in auditoriums)
         {
-            var capacity = await _auditoriumRepository.GetCapacityAsync(
-                auditorium.Id);
+            var capacity = await _auditoriumRepository.GetCapacityAsync(auditorium.Id);
 
             auditoriumDtos.Add(new AuditoriumListDto(
                 auditorium.Id,
@@ -70,13 +69,13 @@ public class AuditoriumService : IAuditoriumService
         return auditoriumDtos;
     }
 
+    // Fetch full auditorium details including ordered seat map.
     public async Task<AuditoriumDetailsDto?> GetAuditoriumByIdAsync(Guid id, bool includeInactive = false)
     {
-        var auditorium = await _auditoriumRepository.GetByIdAsync(
-            id,
-            includeInactive);
+        var auditorium = await _auditoriumRepository.GetByIdAsync(id, includeInactive);
         if (auditorium is null)
             return null;
+
         var seats = await _auditoriumRepository.GetSeatsByAuditoriumIdAsync(auditorium.Id);
 
         var seatDtos = seats
@@ -96,9 +95,10 @@ public class AuditoriumService : IAuditoriumService
             seats.Count,
             auditorium.IsActive,
             seatDtos
-            );
+        );
     }
 
+    // Update auditorium name and active status when validation and uniqueness checks pass.
     public async Task<bool?> UpdateAuditoriumAsync(Guid id, AuditoriumUpdateDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
@@ -117,9 +117,7 @@ public class AuditoriumService : IAuditoriumService
         if (auditorium is null)
             return false;
 
-        if (await _auditoriumRepository.AuditoriumNameExistsAsync(
-                name,
-                auditorium.Id))
+        if (await _auditoriumRepository.AuditoriumNameExistsAsync(name, auditorium.Id))
             return null;
 
         auditorium.Name = name;
@@ -130,11 +128,10 @@ public class AuditoriumService : IAuditoriumService
         return await _auditoriumRepository.SaveChangesAsync();
     }
 
+    // Soft-delete auditorium by marking it inactive.
     public async Task<bool> DeleteAuditoriumAsync(Guid id)
     {
-        var auditorium = await _auditoriumRepository.GetByIdAsync(
-            id,
-            track: true);
+        var auditorium = await _auditoriumRepository.GetByIdAsync(id, track: true);
 
         if (auditorium is null)
             return false;
