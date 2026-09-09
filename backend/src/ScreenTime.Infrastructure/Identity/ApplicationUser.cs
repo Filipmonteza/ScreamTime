@@ -8,5 +8,6 @@ namespace ScreenTime.Infrastructure.Identity;
 /// </summary>
 public class ApplicationUser : IdentityUser<Guid>
 {
- 
+
+
 }

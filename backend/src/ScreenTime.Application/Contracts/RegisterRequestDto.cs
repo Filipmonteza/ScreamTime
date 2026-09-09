@@ -14,4 +14,9 @@ public record RegisterRequestDto
     [Required]
     [MinLength(8)]
     public string Password { get; init; } = string.Empty;
+
+    [Required]
+    [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+    public string ConfirmPassword { get; init; } = string.Empty;
+
 }

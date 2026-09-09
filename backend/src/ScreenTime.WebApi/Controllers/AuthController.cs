@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ScreenTime.Application.Contracts;
@@ -161,5 +163,18 @@ public class AuthController : ControllerBase
         };
 
         return Created(string.Empty, response);
+    }
+
+   /// <summary>
+   /// Logs out the current user.
+   /// For JWT authentication, logout is handled client-side by removing the token.
+   /// </summary>
+    [HttpPost("logout")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout()
+    {
+
+        return NoContent();
     }
 }
