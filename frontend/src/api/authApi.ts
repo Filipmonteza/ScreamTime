@@ -9,7 +9,8 @@ export async function login(email: string, password: string): Promise<AuthRespon
         body: JSON.stringify({ email, password }),
     })
     if (!response.ok) {
-        throw new Error(`Failed to log in: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.message ?? `Failed to log in: ${response.status}`)
     }
     return response.json()
 }
@@ -21,7 +22,8 @@ export async function register(email: string, password: string, confirmPassword:
         body: JSON.stringify({ email, password, confirmPassword }),
     })
     if (!response.ok) {
-        throw new Error(`Failed to register: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.errors?.[0]?.description ?? `Failed to register: ${response.status}`)
     }
     return response.json()
 }

@@ -16,8 +16,8 @@ function Login() {
     try {
       await login(email, password);
       navigate("/");
-    } catch {
-      setError("Fel email eller lösenord");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Fel email eller lösenord");
     }
   }
 

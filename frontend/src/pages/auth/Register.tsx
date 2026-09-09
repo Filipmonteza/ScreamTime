@@ -21,8 +21,10 @@ function Register() {
     try {
       await register(email, password, confirmPassword);
       navigate("/");
-    } catch {
-      setError("Kunde inte registrera kontot");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Kunde inte registrera kontot",
+      );
     }
   }
 
