@@ -1,0 +1,25 @@
+.account-current-email {
+    font-size: 16px;
+    color: var(--color-text);
+    text-align: center;
+    margin: 0 0 16px;
+}
+
+.account-divider {
+    border: none;
+    border-top: 1px solid var(--color-input-bg);
+    margin: 24px 0;
+}
+
+.account-error {
+    font-size: 14px;
+    color: #e57373;
+    margin: 4px 0 0;
+}
+
+.account-success {
+    font-size: 14px;
+    color: #81c784;
+    text-align: center;
+    margin: 8px 0 0;
+}

@@ -1,0 +1,29 @@
+import { getAuthHeader } from './authHeader'
+import type { AuthResponse } from '../types/auth'
+
+const API_BASE_URL = 'http://localhost:5267'
+
+export async function updateEmail(newEmail: string, currentPassword: string): Promise<AuthResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/account/email`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        body: JSON.stringify({ newEmail, currentPassword }),
+    })
+    if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.errors?.[0]?.description ?? `Failed to update email: ${response.status}`)
+    }
+    return response.json()
+}
+
+export async function updatePassword(currentPassword: string, newPassword: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/account/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        body: JSON.stringify({ currentPassword, newPassword }),
+    })
+    if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.errors?.[0]?.description ?? `Failed to update password: ${response.status}`)
+    }
+}
