@@ -12,4 +12,5 @@ public interface IAuditoriumService
     Task<bool?> UpdateAuditoriumAsync(
         Guid id,
         AuditoriumUpdateDto dto);
+    Task<bool> DeleteAuditoriumAsync(Guid id);
 }

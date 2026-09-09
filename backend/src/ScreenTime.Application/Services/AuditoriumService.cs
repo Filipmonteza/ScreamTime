@@ -129,4 +129,20 @@ public class AuditoriumService : IAuditoriumService
 
         return await _auditoriumRepository.SaveChangesAsync();
     }
+
+    public async Task<bool> DeleteAuditoriumAsync(Guid id)
+    {
+        var auditorium = await _auditoriumRepository.GetByIdAsync(
+            id,
+            track: true);
+
+        if (auditorium is null)
+            return false;
+
+        auditorium.IsActive = false;
+
+        _auditoriumRepository.Update(auditorium);
+
+        return await _auditoriumRepository.SaveChangesAsync();
+    }
 }
