@@ -33,3 +33,8 @@ public record AuditoriumDetailsDto(
     bool IsActive,
     List<AuditoriumSeatDto> Seats
 );
+
+public record AuditoriumUpdateDto(
+    [Required, MaxLength(50)] string Name,
+    bool IsActive
+);

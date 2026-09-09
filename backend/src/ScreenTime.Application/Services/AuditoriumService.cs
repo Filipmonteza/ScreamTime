@@ -98,4 +98,35 @@ public class AuditoriumService : IAuditoriumService
             seatDtos
             );
     }
+
+    public async Task<bool?> UpdateAuditoriumAsync(Guid id, AuditoriumUpdateDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            return null;
+
+        var name = dto.Name.Trim();
+
+        if (name.Length > 50)
+            return null;
+
+        var auditorium = await _auditoriumRepository.GetByIdAsync(
+            id,
+            includeInactive: true,
+            track: true);
+
+        if (auditorium is null)
+            return false;
+
+        if (await _auditoriumRepository.AuditoriumNameExistsAsync(
+                name,
+                auditorium.Id))
+            return null;
+
+        auditorium.Name = name;
+        auditorium.IsActive = dto.IsActive;
+
+        _auditoriumRepository.Update(auditorium);
+
+        return await _auditoriumRepository.SaveChangesAsync();
+    }
 }

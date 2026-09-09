@@ -9,4 +9,7 @@ public interface IAuditoriumService
     Task<AuditoriumDetailsDto?> GetAuditoriumByIdAsync(
         Guid id,
         bool includeInactive = false);
+    Task<bool?> UpdateAuditoriumAsync(
+        Guid id,
+        AuditoriumUpdateDto dto);
 }

@@ -13,8 +13,10 @@ public interface IAuditoriumRepository
     Task<List<Seat>> GetSeatsByAuditoriumIdAsync(
         Guid auditoriumId);
     Task<int> GetCapacityAsync(Guid auditoriumId);
-    Task<bool> AuditoriumNameExistsAsync(string name);
+    Task<bool> AuditoriumNameExistsAsync(string name,
+        Guid? excludeAuditoriumId = null);
     Task AddAsync(Auditorium auditorium);
+    void Update(Auditorium auditorium);
     Task<bool> SaveChangesAsync();
 }
 
