@@ -1,15 +1,45 @@
 .movie-list {
   display: flex;
-  flex-wrap: wrap;
+  grid-template-columns: repeat(auto-fill, 358px);
   gap: 16px;
 }
 
 .movie-list-item {
   width: 358px;
-  flex-shrink: 0;
+  min-height: 130px;
   display: flex;
   justify-content: space-between;
   padding: 16px;
   border-radius: 8px;
   background: var(--color-surface);
+}
+
+.movie-list-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.movie-list-item-info h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.movie-list-item-info p {
+  margin: 0;
+}
+
+.movie-list-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.movies-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 24px 0;
 }

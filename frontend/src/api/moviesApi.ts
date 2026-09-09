@@ -54,3 +54,13 @@ export async function updateMovie(id: string, movie: {
         throw new Error(`Failed to update movie: ${response.status}`)
     }
 }
+
+export async function deleteMovie(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/movies/${id}`, {
+        method: 'DELETE',
+        headers: { ...getAuthHeader() },
+    })
+    if (!response.ok) {
+        throw new Error(`Failed to delete movie: ${response.status}`)
+    }
+}

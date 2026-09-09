@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Movie } from "../../types/movie";
-import { getAllMovies } from "../../api/moviesApi";
+import { getAllMovies, deleteMovie } from "../../api/moviesApi";
 import MovieForm from "./MovieForm";
 import "./Movies.css";
+import iconChevronLeft from "../../assets/icons/Icon_Chevron_Left.svg";
+import iconChevronLeftDouble from "../../assets/icons/Icon_Chevron_Left_Double.svg";
+import iconChevronRight from "../../assets/icons/Icon_Chevron_Right.svg";
+import iconChevronRightDouble from "../../assets/icons/Icon_Chevron_Right_Double.svg";
 
 const ageRatingLabels: Record<number, string> = {
   0: "Barntillåten",
@@ -33,10 +37,67 @@ function Movies() {
     loadMovies();
   }, []);
 
+  function handleDelete(id: string) {
+    deleteMovie(id)
+      .then(() => {
+        setConfirmingDeleteId(null);
+        loadMovies();
+      })
+      .catch((err) => setError(err.message));
+  }
+
   const filteredMovies = useMemo(() => {
     const q = query.trim().toLowerCase();
     return movies.filter((movie) => movie.title.toLowerCase().includes(q));
   }, [movies, query]);
+
+  const PAGE_SIZE = 12;
+
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMovies.length / PAGE_SIZE));
+
+  const pagedMovies = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredMovies.slice(start, start + PAGE_SIZE);
+  }, [filteredMovies, page]);
+
+  const [prevQuery, setPrevQuery] = useState(query);
+  if (query !== prevQuery) {
+    setPrevQuery(query);
+    setPage(1);
+  }
+
+  const pageNumbers = useMemo(() => {
+    let start = page - 1;
+    let end = page + 1;
+    if (start < 1) {
+      end += 1 - start;
+      start = 1;
+    }
+    if (end > totalPages) {
+      start -= end - totalPages;
+      end = totalPages;
+    }
+    start = Math.max(1, start);
+
+    const numbers: number[] = [];
+    for (let n = start; n <= end; n++) numbers.push(n);
+    return numbers;
+  }, [page, totalPages]);
+
+  function goToFirst() {
+    setPage(1);
+  }
+  function goToPrev() {
+    setPage((p) => Math.max(1, p - 1));
+  }
+  function goToNext() {
+    setPage((p) => Math.min(totalPages, p + 1));
+  }
+  function goToLast() {
+    setPage(totalPages);
+  }
 
   return (
     <div className="page movies">
@@ -51,12 +112,43 @@ function Movies() {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
+
+      <div className="movies-toolbar">
+        <button className="btn-pill" onClick={() => setShowAddForm(true)}>
+          Lägg till film
+        </button>
+
+        <div className="pagination">
+          <button onClick={goToFirst} disabled={page === 1}>
+            <img src={iconChevronLeftDouble} alt="Första sidan" />
+          </button>
+          <button onClick={goToPrev} disabled={page === 1}>
+            <img src={iconChevronLeft} alt="Föregående sida" />
+          </button>
+          {pageNumbers.map((n) => (
+            <button
+              key={n}
+              className={n === page ? "page-number active" : "page-number"}
+              onClick={() => setPage(n)}
+            >
+              {n}
+            </button>
+          ))}
+          <button onClick={goToNext} disabled={page === totalPages}>
+            <img src={iconChevronRight} alt="Nästa sida" />
+          </button>
+          <button onClick={goToLast} disabled={page === totalPages}>
+            <img src={iconChevronRightDouble} alt="Sista sidan" />
+          </button>
+        </div>
+      </div>
+
       {loading && <p>Laddar...</p>}
       {error && <p>Fel: {error}</p>}
 
       {!loading && !error && (
         <div className="movie-list">
-          {filteredMovies.map((movie) => (
+          {pagedMovies.map((movie) => (
             <div className="movie-list-item" key={movie.movieId}>
               <div className="movie-list-item-info">
                 <h2>{movie.title}</h2>
@@ -70,7 +162,7 @@ function Movies() {
                   <span>Är du säker?</span>
                   <button
                     className="btn-pill"
-                    onClick={() => setConfirmingDeleteId(null)}
+                    onClick={() => handleDelete(movie.movieId)}
                   >
                     Ja
                   </button>
@@ -101,10 +193,6 @@ function Movies() {
           ))}
         </div>
       )}
-
-      <button className="btn-pill" onClick={() => setShowAddForm(true)}>
-        Lägg till film
-      </button>
 
       {showAddForm && (
         <MovieForm
