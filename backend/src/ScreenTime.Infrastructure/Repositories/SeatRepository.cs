@@ -25,7 +25,6 @@ namespace ScreenTime.Infrastructure.Repositories;
     {
         return await _context.Seats
             .Where(s => s.AuditoriumId == auditoriumId)
-            .Include(s => s.SeatType)
             .AsNoTracking()
             .ToListAsync();
     }

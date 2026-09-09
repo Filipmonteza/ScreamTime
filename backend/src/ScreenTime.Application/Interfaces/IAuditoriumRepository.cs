@@ -10,7 +10,7 @@ public interface IAuditoriumRepository
         bool includeInactive = false);
 
     // Fetch a single auditorium by ID. Optional flags:
-    // - includeInactive: needed when editing or inspecting archived salonger.
+    // - includeInactive: needed when editing or inspecting archived auditoriums.
     // - track: disabled by default to avoid unnecessary change tracking in read-only flows.
     Task<Auditorium?> GetByIdAsync(
         Guid id,
@@ -25,6 +25,11 @@ public interface IAuditoriumRepository
     // Return the auditorium's capacity. This is calculated from seats rather than stored,
     // ensuring consistency even after seat updates or reconfiguration.
     Task<int> GetCapacityAsync(Guid auditoriumId);
+    
+    // Return capacities for multiple auditoriums in a single grouped query,
+    // avoiding N+1 lookups when listing many auditoriums at once.
+    Task<Dictionary<Guid, int>> GetCapacitiesAsync(
+        IEnumerable<Guid> auditoriumIds);
 
     // Check if an auditorium name already exists. Optional exclusion parameter allows
     // renaming an existing auditorium without triggering false positives.

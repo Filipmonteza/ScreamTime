@@ -52,21 +52,17 @@ public class AuditoriumService : IAuditoriumService
     {
         var auditoriums = await _auditoriumRepository.GetAllAsync(includeInactive);
 
-        var auditoriumDtos = new List<AuditoriumListDto>();
+        var auditoriumIds = auditoriums.Select(a => a.Id).ToList();
+        var capacities = await _auditoriumRepository.GetCapacitiesAsync(auditoriumIds);
 
-        foreach (var auditorium in auditoriums)
-        {
-            var capacity = await _auditoriumRepository.GetCapacityAsync(auditorium.Id);
-
-            auditoriumDtos.Add(new AuditoriumListDto(
+        return auditoriums
+            .Select(auditorium => new AuditoriumListDto(
                 auditorium.Id,
                 auditorium.Name,
-                capacity,
+                capacities.GetValueOrDefault(auditorium.Id, 0),
                 auditorium.IsActive
-            ));
-        }
-
-        return auditoriumDtos;
+            ))
+            .ToList();
     }
 
     // Fetch full auditorium details including ordered seat map.
@@ -128,7 +124,8 @@ public class AuditoriumService : IAuditoriumService
         return await _auditoriumRepository.SaveChangesAsync();
     }
 
-    // Soft-delete auditorium by marking it inactive.
+    // Soft-delete an auditorium by marking it inactive.
+    // Note: does not currently check for future showtimes — that business
     public async Task<bool> DeleteAuditoriumAsync(Guid id)
     {
         var auditorium = await _auditoriumRepository.GetByIdAsync(id, track: true);

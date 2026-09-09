@@ -7,7 +7,7 @@ namespace ScreenTime.Infrastructure.Repositories;
 
 public class AuditoriumRepository : IAuditoriumRepository
 {
-    private readonly  ScreenTimeDbContext _context;
+    private readonly ScreenTimeDbContext _context;
 
     public AuditoriumRepository(ScreenTimeDbContext context)
     {
@@ -44,6 +44,15 @@ public class AuditoriumRepository : IAuditoriumRepository
     {
         return await _context.Seats
             .CountAsync(s => s.AuditoriumId == auditoriumId);
+    }
+
+    public async Task<Dictionary<Guid, int>> GetCapacitiesAsync(IEnumerable<Guid> auditoriumIds)
+    {
+        return await _context.Seats
+            .Where(s => auditoriumIds.Contains(s.AuditoriumId))
+            .GroupBy(s => s.AuditoriumId)
+            .Select(g => new { AuditoriumId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.AuditoriumId, x => x.Count);
     }
 
     public async Task<bool> AuditoriumNameExistsAsync(string name, Guid? excludeAuditoriumId = null)

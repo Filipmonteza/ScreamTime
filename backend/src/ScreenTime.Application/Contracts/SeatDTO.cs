@@ -16,10 +16,10 @@ public record SeatDto(
 );
 
 public record SeatCreateDto(
-    [Required, MaxLength(5)] string RowLabel,
-    [Range(1, int.MaxValue)] int SeatNumber,
-    Guid SeatTypeId
-);
+        [Required, MaxLength(5)] string RowLabel,
+        [Range(1, int.MaxValue)] int SeatNumber,
+        Guid SeatTypeId
+    );
 
 public record AddSeatsToAuditoriumDto(
     Guid AuditoriumId,
