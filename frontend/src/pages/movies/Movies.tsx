@@ -160,7 +160,7 @@ function Movies() {
       {loading && <p>Laddar...</p>}
       {error && <p>Fel: {error}</p>}
 
-      {!loading && !error && (
+      {!loading && (
         <div className="movie-list">
           {pagedMovies.map((movie) => (
             <div className="movie-list-item" key={movie.movieId}>
