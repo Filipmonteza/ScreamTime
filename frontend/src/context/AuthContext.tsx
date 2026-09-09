@@ -24,6 +24,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuth(result);
   }
 
+  function updateAuth(result: AuthResponse) {
+    storeAuth(result);
+  }
+
   async function login(email: string, password: string) {
     const result = await authApi.login(email, password);
     storeAuth(result);
@@ -55,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     logout,
+    updateAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
