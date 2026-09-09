@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, Link, useLocation } from "react-router-dom";
+import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
+import { useAuth } from "../context/AuthContext";
 import iconHomeDefault from "../assets/icons/Icon_Home_Default.svg";
 import iconHomeFill from "../assets/icons/Icon_Home_Fill.svg";
 import iconBookingsDefault from "../assets/icons/Icon_Bookings_Deafult.svg";
@@ -15,6 +16,7 @@ import iconAuditoriumsDefault from "../assets/icons/Icon_Auditoriums_Default.svg
 import iconAuditoriumsFill from "../assets/icons/Icon_Auditoriums_Fill.svg";
 import iconStaffDefault from "../assets/icons/Icon_Staff_Default.svg";
 import iconStaffFill from "../assets/icons/Icon_Staff_Fill.svg";
+import iconLoginDefault from "../assets/icons/Icon_Login_Default.svg";
 import iconLogoutDefault from "../assets/icons/Icon_Logout_Default.svg";
 
 export type Role = "Admin" | "Staff" | "Customer" | null;
@@ -24,6 +26,7 @@ type NavItem = {
   label: string;
   iconDefault: string;
   iconFill: string;
+  isLogout?: boolean;
 };
 
 type NavDropdownItem = {
@@ -68,6 +71,7 @@ const customerItems: NavEntry[] = [
         label: "Logga ut",
         iconDefault: iconLogoutDefault,
         iconFill: iconLogoutDefault,
+        isLogout: true,
       },
     ],
   },
@@ -120,6 +124,7 @@ const adminItems: NavEntry[] = [
         label: "Logga ut",
         iconDefault: iconLogoutDefault,
         iconFill: iconLogoutDefault,
+        isLogout: true,
       },
     ],
   },
@@ -149,6 +154,13 @@ function Navbar({ role }: NavbarProps) {
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login");
+  }
 
   const [prevPathname, setPrevPathname] = useState(location.pathname);
   if (location.pathname !== prevPathname) {
@@ -205,30 +217,46 @@ function Navbar({ role }: NavbarProps) {
                 </button>
                 {isDropdownOpen && (
                   <div className="navbar-dropdown-menu">
-                    {item.children.map((child) => (
-                      <NavLink
-                        key={child.to}
-                        to={child.to}
-                        className={({ isActive }) =>
-                          isActive
-                            ? "navbar-dropdown-item active"
-                            : "navbar-dropdown-item"
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            <img
-                              src={
-                                isActive ? child.iconFill : child.iconDefault
-                              }
-                              alt=""
-                              className="navbar-icon"
-                            />
-                            <span>{child.label}</span>
-                          </>
-                        )}
-                      </NavLink>
-                    ))}
+                    {item.children.map((child) =>
+                      child.isLogout ? (
+                        <button
+                          key={child.label}
+                          type="button"
+                          className="navbar-dropdown-item"
+                          onClick={handleLogout}
+                        >
+                          <img
+                            src={child.iconDefault}
+                            alt=""
+                            className="navbar-icon"
+                          />
+                          <span>{child.label}</span>
+                        </button>
+                      ) : (
+                        <NavLink
+                          key={child.to}
+                          to={child.to}
+                          className={({ isActive }) =>
+                            isActive
+                              ? "navbar-dropdown-item active"
+                              : "navbar-dropdown-item"
+                          }
+                        >
+                          {({ isActive }) => (
+                            <>
+                              <img
+                                src={
+                                  isActive ? child.iconFill : child.iconDefault
+                                }
+                                alt=""
+                                className="navbar-icon"
+                              />
+                              <span>{child.label}</span>
+                            </>
+                          )}
+                        </NavLink>
+                      ),
+                    )}
                   </div>
                 )}
               </div>
@@ -259,7 +287,8 @@ function Navbar({ role }: NavbarProps) {
         })}
         {role === null && (
           <Link to="/login" className="navbar-link">
-            Logga in
+            <img src={iconLoginDefault} alt="" className="navbar-icon" />
+            <span>Logga in</span>
           </Link>
         )}
       </div>
