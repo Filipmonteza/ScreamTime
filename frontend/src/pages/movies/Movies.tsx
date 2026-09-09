@@ -28,9 +28,11 @@ function Movies() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   function loadMovies() {
-    setError(null);
     getAllMovies()
-      .then(setMovies)
+      .then((data) => {
+        setError(null);
+        setMovies(data);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }
