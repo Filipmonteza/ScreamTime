@@ -15,7 +15,9 @@ public class AuditoriumsController : ControllerBase
     private readonly IAuditoriumService _auditoriumService;
     private readonly ISeatService _seatService;
 
-    public AuditoriumsController(IAuditoriumService auditoriumService, ISeatService seatService)
+    public AuditoriumsController(
+        IAuditoriumService auditoriumService,
+        ISeatService seatService)
     {
         _auditoriumService = auditoriumService;
         _seatService = seatService;
@@ -23,12 +25,31 @@ public class AuditoriumsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<List<AuditoriumListDto>>> GetAll(bool includeInactive = false)
-        => Ok(await _auditoriumService.GetAllAuditoriumsAsync(includeInactive));
+    {
+        if (includeInactive &&
+            !User.IsInRole(IdentitySeeder.AdminRole) &&
+            !User.IsInRole(IdentitySeeder.StaffRole))
+        {
+            return Forbid();
+        }
+
+        return Ok(await _auditoriumService.GetAllAuditoriumsAsync(includeInactive));
+    }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<AuditoriumDetailsDto>> GetById(Guid id, bool includeInactive = false)
+    public async Task<ActionResult<AuditoriumDetailsDto>> GetById(
+        Guid id,
+        bool includeInactive = false)
     {
+        if (includeInactive &&
+            !User.IsInRole(IdentitySeeder.AdminRole) &&
+            !User.IsInRole(IdentitySeeder.StaffRole))
+        {
+            return Forbid();
+        }
+
         var auditorium = await _auditoriumService.GetAuditoriumByIdAsync(id, includeInactive);
+
         return auditorium is null ? NotFound() : Ok(auditorium);
     }
 
@@ -37,6 +58,7 @@ public class AuditoriumsController : ControllerBase
     public async Task<ActionResult<AuditoriumDto>> CreateAuditorium(AuditoriumCreateDto dto)
     {
         var created = await _auditoriumService.CreateAuditoriumAsync(dto);
+
         if (created is null)
             return BadRequest("Ogiltigt eller redan använt salongsnamn.");
 
@@ -45,21 +67,24 @@ public class AuditoriumsController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = ManageAuditoriumsRoles)]
-    public async Task<IActionResult> UpdateAuditorium(Guid id, AuditoriumUpdateDto dto)
+    public async Task<IActionResult> UpdateAuditorium(
+        Guid id,
+        AuditoriumUpdateDto dto)
     {
         var result = await _auditoriumService.UpdateAuditoriumAsync(id, dto);
-        return result switch
-        {
-            null => BadRequest("Ogiltigt eller redan använt salongsnamn."),
-            false => NotFound(),
-            true => NoContent()
-        };
+
+        if (result is null)
+            return BadRequest("Ogiltigt eller redan använt salongsnamn.");
+
+        return result.Value ? NoContent() : NotFound();
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = ManageAuditoriumsRoles)]
     public async Task<IActionResult> DeleteAuditorium(Guid id)
-        => await _auditoriumService.DeleteAuditoriumAsync(id) ? NoContent() : NotFound();
+        => await _auditoriumService.DeleteAuditoriumAsync(id)
+            ? NoContent()
+            : NotFound();
 
     [HttpPost("{id:guid}/seats")]
     [Authorize(Roles = ManageAuditoriumsRoles)]
