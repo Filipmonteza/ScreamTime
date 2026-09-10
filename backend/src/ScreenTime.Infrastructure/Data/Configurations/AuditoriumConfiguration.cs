@@ -8,9 +8,13 @@ public class AuditoriumConfiguration : IEntityTypeConfiguration<Auditorium>
 {
     public void Configure(EntityTypeBuilder<Auditorium> builder)
     {
-        builder.Property(a => a.Name).IsRequired().HasMaxLength(50);
+        builder.Property(a => a.Name)
+            .IsRequired()
+            .HasMaxLength(50)
+            .UseCollation("NOCASE");
 
-        // ER: Auditorium.Name is UK.
-        builder.HasIndex(a => a.Name).IsUnique();
+        builder.HasIndex(a => a.Name)
+            .IsUnique()
+            .HasFilter("[IsActive] = 1");
     }
 }
