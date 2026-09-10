@@ -34,6 +34,7 @@
   height: 404px;
   border-radius: 4px;
   background: var(--color-surface);
+  object-fit: cover;
 }
 
 .title-movie-card {

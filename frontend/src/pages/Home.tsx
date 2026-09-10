@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { Movie } from "../types/movie";
 import { getAllMovies } from "../api/moviesApi";
 import "./Home.css";
+import { getPosterForMovie } from "../utils/posterMap";
 import iconSearch from "../assets/icons/Icon_Search.svg";
 import iconChevronLeft from "../assets/icons/Icon_Chevron_Left.svg";
 import iconChevronLeftDouble from "../assets/icons/Icon_Chevron_Left_Double.svg";
@@ -122,7 +123,7 @@ function Home() {
                     className="movie-card"
                     key={movie.movieId}
                   >
-                    <div className="movie-card-poster" />
+                    <img className="movie-card-poster" src={getPosterForMovie(movie)} alt={movie.title} />
                     <p className="title-movie-card">{movie.title}</p>
                     <p className="genre-movie-card">
                       {movie.genres.join(", ")}
@@ -247,7 +248,7 @@ function Home() {
                 <div className="movie-list">
                   {pagedMovies.map((movie) => (
                     <Link to={`/movieDetail/${movie.movieId}`} className="movie-card" key={movie.movieId}>
-                      <div className="movie-card-poster" />
+                      <img className="movie-card-poster" src={getPosterForMovie(movie)} alt={movie.title} />
                       <p className="title-movie-card">{movie.title}</p>
                       <p className="genre-movie-card">
                         {movie.genres.join(", ")}

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import type { Movie } from "../../types/movie";
 import { getMovieById } from "../../api/moviesApi";
 import "./MovieDetail.css";
+import { getPosterForMovie } from "../../utils/posterMap";
 import iconArrowBack from "../../assets/icons/Icon_Arrow_Back.svg";
 
 const ageRatingLabels: Record<number, string> = {
@@ -37,7 +38,7 @@ function MovieDetail() {
 
       {!loading && !error && movie && (
         <div className="movie-detail-content">
-          <div className="movie-detail-poster" />
+          <img className="movie-detail-poster" src={getPosterForMovie(movie)} alt={movie.title} />
           <div className="movie-detail-info">
             <h1>{movie.title}</h1>
             <p className="movie-detail-meta">
