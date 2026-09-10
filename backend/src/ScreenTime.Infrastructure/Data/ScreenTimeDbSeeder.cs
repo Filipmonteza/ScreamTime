@@ -38,70 +38,80 @@ public static class SeedData
                 Title = "Exorcisten",
                 AgeRating = AgeRating.Age11,
                 RuntimeMinutes = 122,
-                Description = "En ung flicka drabbas av en skrämmande, oförklarlig åkomma. När läkare och psykiatriker misslyckas vänder sig hennes desperata mor till kyrkan som sista utväg."
+                Description = "En ung flicka drabbas av en skrämmande, oförklarlig åkomma. När läkare och psykiatriker misslyckas vänder sig hennes desperata mor till kyrkan som sista utväg.",
+                Poster = "Exorcisten.png"
             },
             new Movie
             {
                 Title = "Hereditary",
                 AgeRating = AgeRating.Age15,
                 RuntimeMinutes = 126,
-                Description = "Efter matriarken Ellens död avslöjas kryptiska hemligheter om familjen Grahams historia, hemligheter som drar dem allt närmare ett olycksaligt öde."
+                Description = "Efter matriarken Ellens död avslöjas kryptiska hemligheter om familjen Grahams historia, hemligheter som drar dem allt närmare ett olycksaligt öde.",
+                Poster = "Hereditary.png"
             },
             new Movie
             {
                 Title = "The Shining",
                 AgeRating = AgeRating.Age15,
                 RuntimeMinutes = 120,
-                Description = "Jack Torrance tar jobb som vintervaktmästare på det isolerade hotellet Overlook tillsammans med sin fru och son. Men hotellet döljer en ond och mörk hemlighet."
+                Description = "Jack Torrance tar jobb som vintervaktmästare på det isolerade hotellet Overlook tillsammans med sin fru och son. Men hotellet döljer en ond och mörk hemlighet.",
+                Poster = "TheShining.png"
             },
             new Movie
             {
                 Title = "Psycho",
                 AgeRating = AgeRating.Age7,
                 RuntimeMinutes = 109,
-                Description = "På flykt efter en stöld svänger Marion Crane förbi ett ödsligt motell som drivs av den blyge Norman Bates och hans mor, en man med en mörk hemlighet."
+                Description = "På flykt efter en stöld svänger Marion Crane förbi ett ödsligt motell som drivs av den blyge Norman Bates och hans mor, en man med en mörk hemlighet.",
+                Poster = "Psycho.png"
             },
             new Movie
             {
                 Title = "The Thing",
                 AgeRating = AgeRating.Age11,
                 RuntimeMinutes = 109,
-                Description = "På en isolerad forskningsstation i Antarktis väcker en grupp forskare något främmande till liv som legat begravt i isen i 100 000 år, med förödande konsekvenser."
+                Description = "På en isolerad forskningsstation i Antarktis väcker en grupp forskare något främmande till liv som legat begravt i isen i 100 000 år, med förödande konsekvenser.",
+                Poster = "TheThing.png"
             },
             new Movie
             {
                 Title = "Casper",
                 AgeRating = AgeRating.AllAges,
                 RuntimeMinutes = 101,
-                Description = "Spökdoktorn James Harvey och hans dotter Kat flyttar in i slottet Whipstaff Manor, där det vänliga spöket Casper längtar efter en vän, men hans stökiga farbröder har andra planer."
+                Description = "Spökdoktorn James Harvey och hans dotter Kat flyttar in i slottet Whipstaff Manor, där det vänliga spöket Casper längtar efter en vän, men hans stökiga farbröder har andra planer.",
+                Poster = "Casper.png"
             },
             new Movie
             {
                 Title = "The Conjuring",
                 AgeRating = AgeRating.Age11,
                 RuntimeMinutes = 112,
-                Description = "De paranormala utredarna Ed och Lorraine Warren kallas in för att hjälpa en familj som terroriseras av en okänd kraft i sitt hus på landsbygden."
+                Description = "De paranormala utredarna Ed och Lorraine Warren kallas in för att hjälpa en familj som terroriseras av en okänd kraft i sitt hus på landsbygden.",
+                Poster = "TheConjuring.png"
             },
             new Movie
             {
                 Title = "Alien",
                 AgeRating = AgeRating.Age15,
                 RuntimeMinutes = 117,
-                Description = "Besättningen på rymdskeppet Nostromo får en nödsignal från en närliggande planet. Vad de möter där är en mardröm ingen av dem var förberedd på."
+                Description = "Besättningen på rymdskeppet Nostromo får en nödsignal från en närliggande planet. Vad de möter där är en mardröm ingen av dem var förberedd på.",
+                Poster = "Alien.png"
             },
             new Movie
             {
                 Title = "Alla Helgons Blodiga Natt",
                 AgeRating = AgeRating.Age15,
                 RuntimeMinutes = 91,
-                Description = "1963 mördar sexårige Michael Myers sin syster och spärras in. 15 år senare rymmer han och återvänder till Haddonfield för att mörda igen."
+                Description = "1963 mördar sexårige Michael Myers sin syster och spärras in. 15 år senare rymmer han och återvänder till Haddonfield för att mörda igen.",
+                Poster = "AllaHelgonsBlodigaNatt.png"
             },
             new Movie
             {
                 Title = "Sinister",
                 AgeRating = AgeRating.Age15,
                 RuntimeMinutes = 110,
-                Description = "En författare som utreder ett brutalt mord hittar gamla inspelningar i sitt nya hus, en upptäckt som gör honom och hans familj till mål för ett övernaturligt väsen."
+                Description = "En författare som utreder ett brutalt mord hittar gamla inspelningar i sitt nya hus, en upptäckt som gör honom och hans familj till mål för ett övernaturligt väsen.",
+                Poster = "Sinister.png"
             }
         };
         db.Movies.AddRange(movies);

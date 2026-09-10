@@ -245,6 +245,10 @@ namespace ScreenTime.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Poster")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("RuntimeMinutes")
                         .HasColumnType("INTEGER");
 

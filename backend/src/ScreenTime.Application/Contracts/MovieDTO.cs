@@ -29,7 +29,8 @@ public record MovieDto(
     int RuntimeMinutes,
     string Description,
     bool IsActive,
-    List<string> Genres
+    List<string> Genres,
+    string? Poster
 );
 
 // Data Transfer Object for updating an existing movie.
