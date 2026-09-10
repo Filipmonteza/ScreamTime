@@ -35,7 +35,7 @@
 
 .movie-detail-poster {
   flex-shrink: 0;
-  width: 284px;
+  width: 269px;
   height: 404px;
   border-radius: 4px;
   background: var(--color-surface);

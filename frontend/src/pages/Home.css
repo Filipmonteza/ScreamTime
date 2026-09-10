@@ -30,7 +30,7 @@
 }
 
 .movie-card-poster {
-  width: 284px;
+  width: 269px;
   height: 404px;
   border-radius: 4px;
   background: var(--color-surface);
@@ -179,10 +179,10 @@
 }
 
 .movie-list .movie-card-poster {
-  width: 212px;
+  width: 201px;
   height: 302px;
 }
 
 .movie-list .movie-card {
-  width: 212px;
+  width: 201px;
 }
