@@ -14,5 +14,7 @@ public class MovieConfiguration : IEntityTypeConfiguration<Movie>
         builder.HasMany(m => m.Genres)
             .WithMany(g => g.Movies)
             .UsingEntity<MovieGenre>();
+
+        builder.Property(m => m.Poster).HasMaxLength(100);
     }
 }
