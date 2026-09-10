@@ -7,11 +7,15 @@ namespace ScreenTime.Application.Services;
 public class AuditoriumService : IAuditoriumService
 {
     private readonly IAuditoriumRepository _auditoriumRepository;
+    private readonly ISeatRepository _seatRepository;
 
     // Inject repository to access auditorium persistence and validation rules.
-    public AuditoriumService(IAuditoriumRepository auditoriumRepository)
+    public AuditoriumService(
+        IAuditoriumRepository auditoriumRepository,
+        ISeatRepository seatRepository)
     {
         _auditoriumRepository = auditoriumRepository;
+        _seatRepository = seatRepository;
     }
 
     // Create a new auditorium when name is valid, unique and within allowed limits.
@@ -66,13 +70,19 @@ public class AuditoriumService : IAuditoriumService
     }
 
     // Fetch full auditorium details including ordered seat map.
-    public async Task<AuditoriumDetailsDto?> GetAuditoriumByIdAsync(Guid id, bool includeInactive = false)
+    public async Task<AuditoriumDetailsDto?> GetAuditoriumByIdAsync(
+        Guid id,
+        bool includeInactive = false)
     {
-        var auditorium = await _auditoriumRepository.GetByIdAsync(id, includeInactive);
+        var auditorium = await _auditoriumRepository.GetByIdAsync(
+            id,
+            includeInactive);
+
         if (auditorium is null)
             return null;
 
-        var seats = await _auditoriumRepository.GetSeatsByAuditoriumIdAsync(auditorium.Id);
+        var seats = await _seatRepository.GetByAuditoriumIdAsync(
+            auditorium.Id);
 
         var seatDtos = seats
             .OrderBy(seat => seat.RowLabel)

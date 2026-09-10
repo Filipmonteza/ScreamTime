@@ -160,9 +160,10 @@ namespace ScreenTime.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsActive] = 1");
 
-                    b.ToTable("Auditoriums", (string)null);
+                    b.ToTable("Auditoriums");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.Booking", b =>
@@ -204,7 +205,7 @@ namespace ScreenTime.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.Genre", b =>
@@ -223,7 +224,7 @@ namespace ScreenTime.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Genres", (string)null);
+                    b.ToTable("Genres");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.Movie", b =>
@@ -253,7 +254,7 @@ namespace ScreenTime.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Movies", (string)null);
+                    b.ToTable("Movies");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.MovieGenre", b =>
@@ -268,7 +269,7 @@ namespace ScreenTime.Infrastructure.Migrations
 
                     b.HasIndex("GenreId");
 
-                    b.ToTable("MovieGenres", (string)null);
+                    b.ToTable("MovieGenres");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.Screening", b =>
@@ -298,7 +299,7 @@ namespace ScreenTime.Infrastructure.Migrations
 
                     b.HasIndex("AuditoriumId", "StartTime");
 
-                    b.ToTable("Screenings", (string)null);
+                    b.ToTable("Screenings");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.Seat", b =>
@@ -328,7 +329,7 @@ namespace ScreenTime.Infrastructure.Migrations
                     b.HasIndex("AuditoriumId", "RowLabel", "SeatNumber")
                         .IsUnique();
 
-                    b.ToTable("Seats", (string)null);
+                    b.ToTable("Seats");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.SeatType", b =>
@@ -351,7 +352,7 @@ namespace ScreenTime.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("SeatTypes", (string)null);
+                    b.ToTable("SeatTypes");
                 });
 
             modelBuilder.Entity("ScreenTime.Domain.Entities.Ticket", b =>
@@ -386,7 +387,7 @@ namespace ScreenTime.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[ReleasedAt] IS NULL");
 
-                    b.ToTable("Tickets", (string)null);
+                    b.ToTable("Tickets");
                 });
 
             modelBuilder.Entity("ScreenTime.Infrastructure.Identity.ApplicationUser", b =>

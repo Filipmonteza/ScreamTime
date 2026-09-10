@@ -9,11 +9,21 @@ namespace ScreenTime.Application.Interfaces;
 
 public interface ISeatRepository
 {
-    Task<List<Seat>> GetAllAsync();
+    Task<List<Seat>> GetAllAsync(
+        CancellationToken cancellationToken = default);
+
     Task<List<Seat>> GetByAuditoriumIdAsync(
-        Guid auditoriumId);
+        Guid auditoriumId,
+        CancellationToken cancellationToken = default);
+
     Task<List<SeatType>> GetSeatTypesByIdsAsync(
-        List<Guid> seatTypeIds);
-    Task AddRangeAsync(IEnumerable<Seat> seats);
-    Task<bool> SaveChangesAsync();
+        List<Guid> seatTypeIds,
+        CancellationToken cancellationToken = default);
+
+    Task AddRangeAsync(
+        IEnumerable<Seat> seats,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> SaveChangesAsync(
+        CancellationToken cancellationToken = default);
 }

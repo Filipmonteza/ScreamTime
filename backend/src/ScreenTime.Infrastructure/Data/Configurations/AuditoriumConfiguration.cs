@@ -10,7 +10,8 @@ public class AuditoriumConfiguration : IEntityTypeConfiguration<Auditorium>
     {
         builder.Property(a => a.Name).IsRequired().HasMaxLength(50);
 
-        // ER: Auditorium.Name is UK.
-        builder.HasIndex(a => a.Name).IsUnique();
+        builder.HasIndex(a => a.Name)
+            .IsUnique()
+            .HasFilter("[IsActive] = 1");
     }
 }

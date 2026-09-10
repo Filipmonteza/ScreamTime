@@ -14,36 +14,47 @@ public class SeatRepository : ISeatRepository
         _context = context;
     }
 
-    public async Task<List<Seat>> GetAllAsync() =>
+    public async Task<List<Seat>> GetAllAsync(
+        CancellationToken cancellationToken = default) =>
         await _context.Seats
             .Include(s => s.Auditorium)
             .Include(s => s.SeatType)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
-    public async Task<List<Seat>> GetByAuditoriumIdAsync(Guid auditoriumId)
+    public async Task<List<Seat>> GetByAuditoriumIdAsync(
+        Guid auditoriumId,
+        CancellationToken cancellationToken = default)
     {
         return await _context.Seats
             .Where(s => s.AuditoriumId == auditoriumId)
+            .Include(s => s.SeatType)
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<SeatType>> GetSeatTypesByIdsAsync(List<Guid> seatTypeIds)
+    public async Task<List<SeatType>> GetSeatTypesByIdsAsync(
+        List<Guid> seatTypeIds,
+        CancellationToken cancellationToken = default)
     {
         return await _context.SeatTypes
             .Where(st => seatTypeIds.Contains(st.Id))
             .AsNoTracking()
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task AddRangeAsync(IEnumerable<Seat> seats)
+    public async Task AddRangeAsync(
+        IEnumerable<Seat> seats,
+        CancellationToken cancellationToken = default)
     {
-        await _context.Seats.AddRangeAsync(seats);
+        await _context.Seats.AddRangeAsync(
+            seats,
+            cancellationToken);
     }
 
-    public async Task<bool> SaveChangesAsync()
+    public async Task<bool> SaveChangesAsync(
+        CancellationToken cancellationToken = default)
     {
-        return await _context.SaveChangesAsync() > 0;
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
     }
 }
