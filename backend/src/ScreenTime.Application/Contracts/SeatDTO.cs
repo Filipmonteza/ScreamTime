@@ -25,3 +25,7 @@ public record AddSeatsToAuditoriumDto(
     Guid AuditoriumId,
     [Required, MinLength(1)] List<SeatCreateDto> Seats
 );
+
+public record AddSeatsRequestDto(
+    [Required, MinLength(1)] List<SeatCreateDto> Seats
+);
