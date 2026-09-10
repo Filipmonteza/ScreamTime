@@ -8,7 +8,10 @@ public class AuditoriumConfiguration : IEntityTypeConfiguration<Auditorium>
 {
     public void Configure(EntityTypeBuilder<Auditorium> builder)
     {
-        builder.Property(a => a.Name).IsRequired().HasMaxLength(50);
+        builder.Property(a => a.Name)
+            .IsRequired()
+            .HasMaxLength(50)
+            .UseCollation("NOCASE");
 
         builder.HasIndex(a => a.Name)
             .IsUnique()

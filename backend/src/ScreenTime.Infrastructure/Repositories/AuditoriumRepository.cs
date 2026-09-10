@@ -63,7 +63,7 @@ public class AuditoriumRepository : IAuditoriumRepository
             .AnyAsync(
                 a =>
                     a.IsActive &&
-                    a.Name.ToLower() == name.ToLower() &&
+                    a.Name == name &&
                     (!excludeAuditoriumId.HasValue ||
                      a.Id != excludeAuditoriumId.Value),
                 cancellationToken);
