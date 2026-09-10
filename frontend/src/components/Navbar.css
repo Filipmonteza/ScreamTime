@@ -93,6 +93,15 @@ button.navbar-link {
   background: var(--color-surface-muted);
 }
 
+button.navbar-dropdown-item {
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
 @media (min-width: 450px) {
   .navbar-links--admin {
     gap: 36px;
