@@ -1,23 +1,26 @@
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import Form from "../../components/Form";
 import type { Auditorium } from "../../types/auditorium";
+import type { SeatType } from "../../types/seatType";
 import {
   createAuditorium,
   updateAuditorium,
   addSeatsToAuditorium,
 } from "../../api/auditoriumsApi";
+import { getAllSeatTypes } from "../../api/seatsApi";
 
-// TODO: fetch när vi här sätestyper endpoints instället för att hårdkoda
-const STANDARD_SEAT_TYPE_ID = "";
-
-function buildSeatRows(rowCount: number, seatsPerRow: number) {
+function buildSeatRows(
+  rowCount: number,
+  seatsPerRow: number,
+  seatTypeId: string,
+) {
   const rows = [];
   for (let row = 0; row < rowCount; row++) {
     for (let seatNumber = 1; seatNumber <= seatsPerRow; seatNumber++) {
       rows.push({
         rowLabel: String.fromCharCode(65 + row),
         seatNumber,
-        seatTypeId: STANDARD_SEAT_TYPE_ID,
+        seatTypeId,
       });
     }
   }
@@ -33,8 +36,15 @@ type AuditoriumFormProps = {
 function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
   const [name, setName] = useState(auditorium?.name ?? "");
   const [isActive, setIsActive] = useState(auditorium?.isActive ?? true);
-  const [rowCount, setRowCount] = useState(0);
-  const [seatsPerRow, setSeatsPerRow] = useState(0);
+  const [rowCount, setRowCount] = useState("");
+  const [seatsPerRow, setSeatsPerRow] = useState("");
+  const [seatTypes, setSeatTypes] = useState<SeatType[]>([]);
+
+  useEffect(() => {
+    getAllSeatTypes().then(setSeatTypes);
+  }, []);
+
+  const standardSeatTypeId = seatTypes.find((st) => st.name === "Standard")?.id;
 
   function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,10 +55,12 @@ function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
       return;
     }
     createAuditorium({ name }).then((created) => {
-      if (rowCount > 0 && seatsPerRow > 0) {
+      const rows = Number(rowCount);
+      const seats = Number(seatsPerRow);
+      if (rows > 0 && seats > 0 && standardSeatTypeId) {
         addSeatsToAuditorium(
           created.auditoriumId,
-          buildSeatRows(rowCount, seatsPerRow),
+          buildSeatRows(rows, seats, standardSeatTypeId),
         ).then(onSaved);
       } else {
         onSaved();
@@ -81,7 +93,7 @@ function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
             type="number"
             min={0}
             value={rowCount}
-            onChange={(e) => setRowCount(Number(e.target.value))}
+            onChange={(e) => setRowCount(e.target.value)}
           />
         </div>
       )}
@@ -93,7 +105,7 @@ function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
             type="number"
             min={0}
             value={seatsPerRow}
-            onChange={(e) => setSeatsPerRow(Number(e.target.value))}
+            onChange={(e) => setSeatsPerRow(e.target.value)}
           />
         </div>
       )}
