@@ -6,7 +6,6 @@ import SearchBar from "../../components/SearchBar";
 import ListToolbar from "../../components/ListToolbar";
 import usePagination from "../../hooks/usePagination";
 import ListCard from "../../components/ListCard";
-import "./Movies.css";
 
 const ageRatingLabels: Record<number, string> = {
   0: "Barntillåten",
@@ -86,7 +85,7 @@ function Movies() {
       {error && <p>Fel: {error}</p>}
 
       {!loading && (
-        <div className="movie-list">
+        <div className="card-grid">
           {pagedMovies.map((movie) => (
             <ListCard
               key={movie.movieId}
