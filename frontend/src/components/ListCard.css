@@ -1,3 +1,9 @@
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 23px;
+}
+
 .list-card {
   width: 358px;
   min-height: 130px;
@@ -6,6 +12,11 @@
   padding: 16px;
   border-radius: 8px;
   background: var(--color-surface);
+  border: 1px solid transparent;
+}
+
+.list-card--inactive {
+  border-color: var(--color-warning);
 }
 
 .list-card-info {
