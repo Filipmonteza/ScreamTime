@@ -45,3 +45,17 @@ export async function deleteAuditorium(id: string): Promise<void> {
         throw new Error(`Failed to delete auditorium: ${response.status}`)
     }
 }
+
+export async function addSeatsToAuditorium(
+    id: string,
+    seats: { rowLabel: string; seatNumber: number; seatTypeId: string }[],
+): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/auditoriums/${id}/seats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+        body: JSON.stringify({ seats }),
+    })
+    if (!response.ok) {
+        throw new Error(`Failed to add seats: ${response.status}`)
+    }
+}
