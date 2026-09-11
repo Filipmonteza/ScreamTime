@@ -43,6 +43,13 @@ public class SeatRepository : ISeatRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<SeatType>> GetAllSeatTypesAsync(
+    CancellationToken cancellationToken = default) =>
+    await _context.SeatTypes
+        .OrderBy(st => st.Name)
+        .AsNoTracking()
+        .ToListAsync(cancellationToken);
+
     public async Task AddRangeAsync(
         IEnumerable<Seat> seats,
         CancellationToken cancellationToken = default)

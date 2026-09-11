@@ -29,3 +29,9 @@ public record AddSeatsToAuditoriumDto(
 public record AddSeatsRequestDto(
     [Required, MinLength(1)] List<SeatCreateDto> Seats
 );
+
+public record SeatTypeDto(
+    Guid Id, 
+    string Name, 
+    decimal Price
+);
