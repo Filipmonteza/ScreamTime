@@ -9,6 +9,11 @@
   --color-text-input: #121212;
   --accent-color-1: #f7f7f7;
   --accent-color-1-disabled: #f7f7f799;
+  --color-warning: yellow;
+}
+
+html {
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -19,7 +24,10 @@ body {
 }
 
 .page {
+  max-width: 1120px;
+  margin: 0 auto;
   padding: 24px 16px 96px;
+  box-sizing: content-box;
 }
 
 *, *::before, *::after {
@@ -63,6 +71,6 @@ p {
 
 @media (min-width: 950px) {
   .page {
-    padding: 80px 80px 80px;
+    padding: 120px 80px 80px;
   }
 }

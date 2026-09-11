@@ -138,7 +138,7 @@ public class AuditoriumService : IAuditoriumService
     // Note: does not currently check for future showtimes.
     public async Task<bool> DeleteAuditoriumAsync(Guid id)
     {
-        var auditorium = await _auditoriumRepository.GetByIdAsync(id, track: true);
+        var auditorium = await _auditoriumRepository.GetByIdAsync(id, includeInactive: true, track: true);
 
         if (auditorium is null)
             return false;
