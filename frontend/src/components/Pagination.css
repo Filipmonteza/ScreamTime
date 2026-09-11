@@ -1,0 +1,39 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.pagination button {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: none;
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pagination button:disabled {
+  background: var(--color-surface-muted);
+  cursor: default;
+}
+
+.pagination button img {
+  width: 24px;
+  height: 24px;
+}
+
+.page-number {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--color-text);
+}
+
+.page-number.active {
+  background: var(--color-surface-muted);
+}

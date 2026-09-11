@@ -1,0 +1,31 @@
+.list-card {
+  width: 358px;
+  min-height: 130px;
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.list-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.list-card-info h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.list-card-info p {
+  margin: 0;
+}
+
+.list-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
