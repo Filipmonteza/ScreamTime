@@ -6,10 +6,17 @@ interface ListCardProps {
   infoLines: ReactNode[];
   confirming: boolean;
   deleting?: boolean;
+  deleteLabel?: string;
   onEdit: () => void;
   onRequestDelete: () => void;
   onConfirmDelete: () => void;
   onCancelDelete: () => void;
+  isActive?: boolean;
+  confirmingReactivate?: boolean;
+  reactivating?: boolean;
+  onRequestReactivate?: () => void;
+  onConfirmReactivate?: () => void;
+  onCancelReactivate?: () => void;
 }
 
 function ListCard({
@@ -17,13 +24,24 @@ function ListCard({
   infoLines,
   confirming,
   deleting,
+  deleteLabel = "Ta bort",
   onEdit,
   onRequestDelete,
   onConfirmDelete,
   onCancelDelete,
+  isActive = true,
+  confirmingReactivate,
+  reactivating,
+  onRequestReactivate,
+  onConfirmReactivate,
+  onCancelReactivate,
 }: ListCardProps) {
+  const cardClassName = isActive
+    ? "list-card"
+    : "list-card list-card--inactive";
+
   return (
-    <div className="list-card">
+    <div className={cardClassName}>
       <div className="list-card-info">
         <h2>{title}</h2>
         {infoLines.map((line, i) => (
@@ -31,27 +49,33 @@ function ListCard({
         ))}
       </div>
 
-      {confirming ? (
+      {confirming || confirmingReactivate ? (
         <div className="list-card-actions">
           <span>Är du säker?</span>
           <button
             className="btn-pill"
-            onClick={onConfirmDelete}
-            disabled={deleting}
+            onClick={isActive ? onConfirmDelete : onConfirmReactivate}
+            disabled={isActive ? deleting : reactivating}
           >
             Ja
           </button>
-          <button className="btn-pill" onClick={onCancelDelete}>
+          <button
+            className="btn-pill"
+            onClick={isActive ? onCancelDelete : onCancelReactivate}
+          >
             Nej
           </button>
         </div>
       ) : (
         <div className="list-card-actions">
-          <button className="btn-pill" onClick={onEdit}>
+          <button className="btn-pill" onClick={onEdit} disabled={!isActive}>
             Redigera
           </button>
-          <button className="btn-pill" onClick={onRequestDelete}>
-            Ta bort
+          <button
+            className="btn-pill"
+            onClick={isActive ? onRequestDelete : onRequestReactivate}
+          >
+            {isActive ? deleteLabel : "Aktivera"}
           </button>
         </div>
       )}

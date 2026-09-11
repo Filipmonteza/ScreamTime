@@ -18,7 +18,7 @@ function ListToolbar({
 }: ListToolbarProps) {
   return (
     <div className="list-toolbar">
-      <button className="btn-pill" onClick={onAdd}>
+      <button className="btn-pill list-toolbar-add" onClick={onAdd}>
         {addLabel}
       </button>
       <Pagination
