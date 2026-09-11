@@ -29,6 +29,17 @@ public class SeatService : ISeatService
         )).ToList();
     }
 
+    public async Task<List<SeatTypeDto>> GetAllSeatTypesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var seatTypes = await _seatRepository.GetAllSeatTypesAsync(cancellationToken);
+        return seatTypes.Select(st => new SeatTypeDto(
+            st.Id, 
+            st.Name, 
+            st.Price
+            )).ToList();
+    }
+
     public async Task<bool?> AddSeatsToAuditoriumAsync(
         AddSeatsToAuditoriumDto dto)
     {

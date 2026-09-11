@@ -26,4 +26,7 @@ public interface ISeatRepository
 
     Task<bool> SaveChangesAsync(
         CancellationToken cancellationToken = default);
+
+    Task<List<SeatType>> GetAllSeatTypesAsync(
+        CancellationToken cancellationToken = default);
 }

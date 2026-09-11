@@ -18,4 +18,8 @@ public class SeatsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<SeatDto>>> GetAll()
         => Ok(await _seatService.GetAllSeatsAsync());
+
+    [HttpGet("types")]
+    public async Task<ActionResult<List<SeatTypeDto>>> GetAllSeatTypes()
+    => Ok(await _seatService.GetAllSeatTypesAsync());
 }
