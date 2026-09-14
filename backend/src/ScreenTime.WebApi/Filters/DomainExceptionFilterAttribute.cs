@@ -5,13 +5,15 @@ using ScreenTime.Application.Exceptions;
 
 namespace ScreenTime.WebApi.Filters;
 
-// Maps the exceptions BookingService throws onto HTTP status codes, so the
-// booking endpoints answer with 404/403/409 instead of 500.
+// Maps the exceptions the services throw onto HTTP status codes, so the
+// endpoints answer with 400/403/404/409 instead of 500. Used by the booking and
+// screening flows, where an operation can be refused for several unrelated
+// reasons that each need their own message.
 //
-// Scoped to BookingsController on purpose: the other controllers have no error
-// handling at all today, and changing their behaviour belongs in its own
-// change. Lift this to global middleware when that happens.
-public sealed class BookingExceptionFilterAttribute : ExceptionFilterAttribute
+// Applied per controller rather than as global middleware: movies, auditoriums
+// and seats signal failure by returning null or false and map their own
+// outcomes, and moving them onto this filter belongs in its own change.
+public sealed class DomainExceptionFilterAttribute : ExceptionFilterAttribute
 {
     public override void OnException(ExceptionContext context)
     {
