@@ -76,7 +76,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid email or password." });
         }
 
-        // Get user's primary role (first role if multiple exist)
+        // The token carries every role; AuthResponse.Role reports the first one for the frontend.
         var roles = await _userManager.GetRolesAsync(user);
         var primaryRole = roles.FirstOrDefault();
 
@@ -87,7 +87,7 @@ public class AuthController : ControllerBase
             Email = user.Email ?? string.Empty
         };
 
-        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, primaryRole);
+        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, roles);
 
         _logger.LogInformation("User {UserId} logged in successfully", user.Id);
 
@@ -149,7 +149,7 @@ public class AuthController : ControllerBase
             Email = user.Email ?? string.Empty
         };
 
-        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, IdentitySeeder.CustomerRole);
+        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, new[] { IdentitySeeder.CustomerRole });
 
         _logger.LogInformation("New user {UserId} registered successfully", user.Id);
 
