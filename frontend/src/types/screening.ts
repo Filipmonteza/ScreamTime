@@ -7,4 +7,6 @@ export interface Screening {
     startTime: string
     endTime: string
     isCancelled: boolean
+    capacity: number
+    bookedSeats: number
 }

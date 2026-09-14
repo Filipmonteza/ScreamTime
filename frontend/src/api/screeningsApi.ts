@@ -22,16 +22,16 @@ export async function getAllScreenings(
 
     const data = await response.json()
 
-    console.log("Screenings from API:", data)
-
     return data
 }
 
 export async function getScreeningById(id: string): Promise<Screening> {
     const response = await fetch(`${API_BASE_URL}/api/screenings/${id}`)
+
     if (!response.ok) {
         throw new Error(`Failed to fetch screening: ${response.status}`)
     }
+
     return response.json()
 }
 
@@ -45,23 +45,41 @@ export async function createScreening(screening: {
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify(screening),
     })
+
     if (!response.ok) {
+        if (response.status === 409) {
+            throw new Error(
+                'Det finns redan en visning i den valda salongen som överlappar med den här tiden.',
+            )
+        }
+
         throw new Error(`Failed to create screening: ${response.status}`)
     }
+
     return response.json()
 }
 
-export async function updateScreening(id: string, screening: {
-    movieId: string
-    auditoriumId: string
-    startTime: string
-}): Promise<void> {
+export async function updateScreening(
+    id: string,
+    screening: {
+        movieId: string
+        auditoriumId: string
+        startTime: string
+    },
+): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/api/screenings/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
         body: JSON.stringify(screening),
     })
+
     if (!response.ok) {
+        if (response.status === 409) {
+            throw new Error(
+                'Det finns redan en visning i den valda salongen som överlappar med den här tiden.',
+            )
+        }
+
         throw new Error(`Failed to update screening: ${response.status}`)
     }
 }

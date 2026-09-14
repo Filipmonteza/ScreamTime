@@ -27,37 +27,50 @@ public class ScreeningService : IScreeningService
     }
 
     public async Task<List<ScreeningDto>> GetScreeningsAsync(
-        ScreeningFilterDto filter,
-        CancellationToken cancellationToken = default)
+    ScreeningFilterDto filter,
+    CancellationToken cancellationToken = default)
     {
-        var screenings = await _screeningRepository.GetFilteredAsync(
-            filter,
-            cancellationToken);
+        var screenings = await _screeningRepository.GetFilteredAsync(filter, cancellationToken);
 
-        return screenings.Select(MapToDto).ToList();
+        var auditoriumIds = screenings.Select(s => s.AuditoriumId).Distinct().ToList();
+        var screeningIds = screenings.Select(s => s.Id).ToList();
+
+        var capacities = await _auditoriumRepository.GetCapacitiesAsync(auditoriumIds, cancellationToken);
+        var bookedCounts = await _screeningRepository.GetBookedSeatCountsAsync(screeningIds, cancellationToken);
+
+        return screenings
+            .Select(s => MapToDto(
+                s,
+                capacities.GetValueOrDefault(s.AuditoriumId, 0),
+                bookedCounts.GetValueOrDefault(s.Id, 0)))
+            .ToList();
     }
 
     public async Task<ScreeningDto> GetScreeningByIdAsync(
-        Guid id,
-        bool includeCancelled = false,
-        CancellationToken cancellationToken = default)
+    Guid id,
+    bool includeCancelled = false,
+    CancellationToken cancellationToken = default)
     {
         var screening = await _screeningRepository.GetByIdAsync(
-            id,
-            includeCancelled,
-            cancellationToken: cancellationToken);
+            id, includeCancelled, cancellationToken: cancellationToken);
 
         if (screening is null)
-        {
             throw new KeyNotFoundException("Visningen kunde inte hittas.");
-        }
 
-        return MapToDto(screening);
+        var capacities = await _auditoriumRepository.GetCapacitiesAsync(
+            new[] { screening.AuditoriumId }, cancellationToken);
+        var bookedCounts = await _screeningRepository.GetBookedSeatCountsAsync(
+            new[] { screening.Id }, cancellationToken);
+
+        return MapToDto(
+            screening,
+            capacities.GetValueOrDefault(screening.AuditoriumId, 0),
+            bookedCounts.GetValueOrDefault(screening.Id, 0));
     }
 
     public async Task<ScreeningDto> CreateScreeningAsync(
-        CreateScreeningDto dto,
-        CancellationToken cancellationToken = default)
+    CreateScreeningDto dto,
+    CancellationToken cancellationToken = default)
     {
         var movie = await GetSchedulableMovieAsync(dto.MovieId, cancellationToken);
 
@@ -89,7 +102,13 @@ public class ScreeningService : IScreeningService
         await _screeningRepository.AddAsync(screening, cancellationToken);
         await _screeningRepository.SaveChangesAsync(cancellationToken);
 
-        return MapToDto(screening, movie.Title, auditorium.Name);
+        var capacities = await _auditoriumRepository.GetCapacitiesAsync(
+            new[] { auditorium.Id }, cancellationToken);
+
+        return MapToDto(
+            screening, movie.Title, auditorium.Name,
+            capacities.GetValueOrDefault(auditorium.Id, 0),
+            bookedSeats: 0);
     }
 
     public async Task<ScreeningDto> UpdateScreeningAsync(
@@ -157,12 +176,15 @@ public class ScreeningService : IScreeningService
         screening.StartTime = startTime;
         screening.EndTime = endTime;
 
-        _screeningRepository.Update(screening);
-        await _screeningRepository.SaveChangesAsync(cancellationToken);
+        var capacities = await _auditoriumRepository.GetCapacitiesAsync(
+            new[] { auditorium.Id }, cancellationToken);
+        var bookedCounts = await _screeningRepository.GetBookedSeatCountsAsync(
+            new[] { screening.Id }, cancellationToken);
 
-        // The screening was loaded with the film and auditorium it had before this
-        // call, so the new names have to come from the entities read above.
-        return MapToDto(screening, movie.Title, auditorium.Name);
+        return MapToDto(
+            screening, movie.Title, auditorium.Name,
+            capacities.GetValueOrDefault(auditorium.Id, 0),
+            bookedCounts.GetValueOrDefault(screening.Id, 0));
     }
 
     public async Task<ScreeningDto> CancelScreeningAsync(
@@ -208,10 +230,10 @@ public class ScreeningService : IScreeningService
             }
         }
 
-        _screeningRepository.Update(screening);
-        await _screeningRepository.SaveChangesAsync(cancellationToken);
+        var capacities = await _auditoriumRepository.GetCapacitiesAsync(
+            new[] { screening.AuditoriumId }, cancellationToken);
 
-        return MapToDto(screening);
+        return MapToDto(screening, capacities.GetValueOrDefault(screening.AuditoriumId, 0), bookedSeats: 0);
     }
 
     // An unknown or deactivated film cannot be put on the programme. The
@@ -298,24 +320,28 @@ public class ScreeningService : IScreeningService
         }
     }
 
-    private static ScreeningDto MapToDto(Screening screening) =>
-        MapToDto(screening, screening.Movie.Title, screening.Auditorium.Name);
+    private static ScreeningDto MapToDto(Screening screening, int capacity, int bookedSeats) =>
+        MapToDto(screening, screening.Movie.Title, screening.Auditorium.Name, capacity, bookedSeats);
 
     // For the two cases where the screening's own navigation properties cannot
     // be trusted: a screening that was just created carries only its foreign
     // keys, and one that was just updated still holds the film and auditorium it was
     // loaded with.
     private static ScreeningDto MapToDto(
-        Screening screening,
-        string movieTitle,
-        string auditoriumName) =>
-        new(
-            screening.Id,
-            screening.MovieId,
-            movieTitle,
-            screening.AuditoriumId,
-            auditoriumName,
-            screening.StartTime,
-            screening.EndTime,
-            screening.IsCancelled);
+    Screening screening,
+    string movieTitle,
+    string auditoriumName,
+    int capacity,
+    int bookedSeats) =>
+    new(
+        screening.Id,
+        screening.MovieId,
+        movieTitle,
+        screening.AuditoriumId,
+        auditoriumName,
+        screening.StartTime,
+        screening.EndTime,
+        screening.IsCancelled,
+        capacity,
+        bookedSeats);
 }

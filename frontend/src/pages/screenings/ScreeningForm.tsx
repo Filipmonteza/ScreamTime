@@ -18,23 +18,41 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
   const [auditoriums, setAuditoriums] = useState<Auditorium[]>([]);
 
   const [movieId, setMovieId] = useState(screening?.movieId ?? "");
-  const [auditoriumId, setAuditoriumId] = useState(screening?.auditoriumId ?? "");
+  const [auditoriumId, setAuditoriumId] = useState(
+    screening?.auditoriumId ?? "",
+  );
   const [startTime, setStartTime] = useState(
     screening?.startTime.slice(0, 16) ?? "",
   );
+
+  const [error, setError] = useState("");
 
   useEffect(() => {
     getAllMovies().then(setMovies);
     getAllAuditoriums().then(setAuditoriums);
   }, []);
 
-  function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError("");
+
     const dto = { movieId, auditoriumId, startTime };
-    const request = screening
-      ? updateScreening(screening.screeningId, dto)
-      : createScreening(dto);
-    request.then(onSaved);
+
+    try {
+      if (screening) {
+        await updateScreening(screening.screeningId, dto);
+      } else {
+        await createScreening(dto);
+      }
+
+      onSaved();
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Det gick inte att spara visningen.");
+      }
+    }
   }
 
   return (
@@ -44,6 +62,12 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
       onSubmit={handleSubmit}
       onCancel={onClose}
     >
+      {error && (
+        <div className="form-error">
+          {error}
+        </div>
+      )}
+
       <div className="form-field">
         <label className="form-label">Film</label>
         <select
@@ -52,7 +76,10 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
           onChange={(e) => setMovieId(e.target.value)}
           required
         >
-          <option value="" disabled>Välj film</option>
+          <option value="" disabled>
+            Välj film
+          </option>
+
           {movies.map((movie) => (
             <option key={movie.movieId} value={movie.movieId}>
               {movie.title}
@@ -69,9 +96,15 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
           onChange={(e) => setAuditoriumId(e.target.value)}
           required
         >
-          <option value="" disabled>Välj salong</option>
+          <option value="" disabled>
+            Välj salong
+          </option>
+
           {auditoriums.map((auditorium) => (
-            <option key={auditorium.auditoriumId} value={auditorium.auditoriumId}>
+            <option
+              key={auditorium.auditoriumId}
+              value={auditorium.auditoriumId}
+            >
               {auditorium.name}
             </option>
           ))}

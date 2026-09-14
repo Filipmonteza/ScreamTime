@@ -201,12 +201,12 @@ function Screenings() {
               showActions={
                 canManageScreenings && !screening.isCancelled
               }
+              deleteLabel="Avboka"
               infoLines={[
-                `${formatDay(screening.startTime)}, ${formatTime(
-                  screening.startTime,
-                )}`,
+                `${formatDay(screening.startTime)}, ${formatTime(screening.startTime)}`,
                 screening.auditoriumName,
-              ]}
+                `Sålda biljetter: ${screening.bookedSeats}/${screening.capacity}`,
+                ]}
               confirming={
                 canManageScreenings &&
                 confirmingDeleteId === screening.screeningId

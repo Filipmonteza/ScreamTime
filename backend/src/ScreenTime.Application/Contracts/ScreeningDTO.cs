@@ -11,7 +11,9 @@ public record ScreeningDto(
     string AuditoriumName,
     DateTime StartTime,
     DateTime EndTime,
-    bool IsCancelled
+    bool IsCancelled,
+    int Capacity,
+    int BookedSeats
 );
 
 // EndTime is deliberately not accepted from the caller: it follows from the
