@@ -27,8 +27,8 @@ public class ScreeningService : IScreeningService
     }
 
     public async Task<List<ScreeningDto>> GetScreeningsAsync(
-    ScreeningFilterDto filter,
-    CancellationToken cancellationToken = default)
+        ScreeningFilterDto filter,
+        CancellationToken cancellationToken = default)
     {
         var screenings = await _screeningRepository.GetFilteredAsync(filter, cancellationToken);
 
@@ -47,9 +47,9 @@ public class ScreeningService : IScreeningService
     }
 
     public async Task<ScreeningDto> GetScreeningByIdAsync(
-    Guid id,
-    bool includeCancelled = false,
-    CancellationToken cancellationToken = default)
+        Guid id,
+        bool includeCancelled = false,
+        CancellationToken cancellationToken = default)
     {
         var screening = await _screeningRepository.GetByIdAsync(
             id, includeCancelled, cancellationToken: cancellationToken);
@@ -69,8 +69,8 @@ public class ScreeningService : IScreeningService
     }
 
     public async Task<ScreeningDto> CreateScreeningAsync(
-    CreateScreeningDto dto,
-    CancellationToken cancellationToken = default)
+        CreateScreeningDto dto,
+        CancellationToken cancellationToken = default)
     {
         var movie = await GetSchedulableMovieAsync(dto.MovieId, cancellationToken);
 
@@ -176,6 +176,9 @@ public class ScreeningService : IScreeningService
         screening.StartTime = startTime;
         screening.EndTime = endTime;
 
+        _screeningRepository.Update(screening);
+        await _screeningRepository.SaveChangesAsync(cancellationToken);
+
         var capacities = await _auditoriumRepository.GetCapacitiesAsync(
             new[] { auditorium.Id }, cancellationToken);
         var bookedCounts = await _screeningRepository.GetBookedSeatCountsAsync(
@@ -229,6 +232,9 @@ public class ScreeningService : IScreeningService
                 ticket.Release(cancelledAt);
             }
         }
+
+        _screeningRepository.Update(screening);
+        await _screeningRepository.SaveChangesAsync(cancellationToken);
 
         var capacities = await _auditoriumRepository.GetCapacitiesAsync(
             new[] { screening.AuditoriumId }, cancellationToken);
@@ -328,20 +334,20 @@ public class ScreeningService : IScreeningService
     // keys, and one that was just updated still holds the film and auditorium it was
     // loaded with.
     private static ScreeningDto MapToDto(
-    Screening screening,
-    string movieTitle,
-    string auditoriumName,
-    int capacity,
-    int bookedSeats) =>
-    new(
-        screening.Id,
-        screening.MovieId,
-        movieTitle,
-        screening.AuditoriumId,
-        auditoriumName,
-        screening.StartTime,
-        screening.EndTime,
-        screening.IsCancelled,
-        capacity,
-        bookedSeats);
+        Screening screening,
+        string movieTitle,
+        string auditoriumName,
+        int capacity,
+        int bookedSeats) =>
+        new(
+            screening.Id,
+            screening.MovieId,
+            movieTitle,
+            screening.AuditoriumId,
+            auditoriumName,
+            screening.StartTime,
+            screening.EndTime,
+            screening.IsCancelled,
+            capacity,
+            bookedSeats);
 }
