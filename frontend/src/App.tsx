@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import MovieDetail from "./pages/movieDetail/MovieDetail";
+import SeatSelection from "./pages/seatSelection/SeatSelection";
 import Movies from "./pages/movies/Movies";
 import Auditoriums from "./pages/auditoriums/Auditoriums";
 import Bookings from "./pages/bookings/Bookings";
@@ -25,6 +26,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/movieDetail/:id" element={<MovieDetail />} />
+        <Route path="/booking/:screeningId" element={<SeatSelection />} />
         <Route path="/movies" element={<ProtectedRoute roles={["Admin", "Staff"]}><Movies /></ProtectedRoute>} />
         <Route path="/auditoriums" element={<ProtectedRoute roles={["Admin", "Staff"]}><Auditoriums /></ProtectedRoute>} />
         <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
