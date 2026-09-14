@@ -192,40 +192,46 @@ function Screenings() {
         <div className="card-grid">
           {pagedScreenings.map((screening) => (
             <ListCard
-                key={screening.screeningId}
-                title={screening.movieTitle}
-                showActions={canManageScreenings}
-                infoLines={[
-                    `${formatDay(screening.startTime)}, ${formatTime(
-                    screening.startTime,
-                    )}`,
-                    screening.auditoriumName,
-                ]}
-                confirming={
-                    canManageScreenings &&
-                    confirmingDeleteId === screening.screeningId
+              key={screening.screeningId}
+              title={screening.movieTitle}
+              statusLabel={
+                screening.isCancelled ? "AVBOKAD" : undefined
+              }
+              inactiveStyle={screening.isCancelled}
+              showActions={
+                canManageScreenings && !screening.isCancelled
+              }
+              infoLines={[
+                `${formatDay(screening.startTime)}, ${formatTime(
+                  screening.startTime,
+                )}`,
+                screening.auditoriumName,
+              ]}
+              confirming={
+                canManageScreenings &&
+                confirmingDeleteId === screening.screeningId
+              }
+              deleting={
+                canManageScreenings &&
+                deletingId === screening.screeningId
+              }
+              onEdit={() => {
+                if (canManageScreenings) {
+                  setEditingScreening(screening);
                 }
-                deleting={
-                    canManageScreenings &&
-                    deletingId === screening.screeningId
+              }}
+              onRequestDelete={() => {
+                if (canManageScreenings) {
+                  setConfirmingDeleteId(screening.screeningId);
                 }
-                onEdit={() => {
-                    if (canManageScreenings) {
-                    setEditingScreening(screening);
-                    }
-                }}
-                onRequestDelete={() => {
-                    if (canManageScreenings) {
-                    setConfirmingDeleteId(screening.screeningId);
-                    }
-                }}
-                onConfirmDelete={() => {
-                    if (canManageScreenings) {
-                    handleCancel(screening.screeningId);
-                    }
-                }}
-                onCancelDelete={() => setConfirmingDeleteId(null)}
-                />
+              }}
+              onConfirmDelete={() => {
+                if (canManageScreenings) {
+                  handleCancel(screening.screeningId);
+                }
+              }}
+              onCancelDelete={() => setConfirmingDeleteId(null)}
+            />
           ))}
         </div>
       )}

@@ -7,6 +7,8 @@ interface ListCardProps {
   confirming: boolean;
   deleting?: boolean;
   deleteLabel?: string;
+  statusLabel?: string;
+  inactiveStyle?: boolean;
   showActions?: boolean;
   onEdit: () => void;
   onRequestDelete: () => void;
@@ -26,6 +28,8 @@ function ListCard({
   confirming,
   deleting,
   deleteLabel = "Ta bort",
+  statusLabel,
+  inactiveStyle = false,
   showActions = true,
   onEdit,
   onRequestDelete,
@@ -38,14 +42,19 @@ function ListCard({
   onConfirmReactivate,
   onCancelReactivate,
 }: ListCardProps) {
-  const cardClassName = isActive
-    ? "list-card"
-    : "list-card list-card--inactive";
+  const cardClassName = inactiveStyle
+    ? "list-card list-card--inactive"
+    : "list-card";
 
   return (
     <div className={cardClassName}>
       <div className="list-card-info">
         <h2>{title}</h2>
+
+        {statusLabel && (
+          <span className="list-card-status">{statusLabel}</span>
+        )}
+
         {infoLines.map((line, i) => (
           <p key={i}>{line}</p>
         ))}
@@ -56,6 +65,7 @@ function ListCard({
           {confirming || confirmingReactivate ? (
             <div className="list-card-actions">
               <span>Är du säker?</span>
+
               <button
                 className="btn-pill"
                 onClick={
@@ -65,6 +75,7 @@ function ListCard({
               >
                 Ja
               </button>
+
               <button
                 className="btn-pill"
                 onClick={

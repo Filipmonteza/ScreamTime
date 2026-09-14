@@ -27,7 +27,6 @@ public class ScreeningsController : ControllerBase
     // rather than bound as one object so they show up individually in Swagger:
     // GET /api/screenings?genreId=...&date=2026-09-20&auditoriumId=...
     [HttpGet]
-    [AllowAnonymous]
     public async Task<ActionResult<List<ScreeningDto>>> GetAll(
         CancellationToken cancellationToken,
         Guid? movieId = null,
@@ -55,7 +54,6 @@ public class ScreeningsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [AllowAnonymous]
     public async Task<ActionResult<ScreeningDto>> GetById(
         Guid id,
         CancellationToken cancellationToken,
