@@ -8,27 +8,29 @@ using ScreenTime.Infrastructure.Data;
 namespace ScreenTime.Infrastructure.Repositories;
 
 // EF Core implementation of IBookingRepository.
-public class BookingRepository : IBookingRepository
+public class BookingRepository : Repository<Booking>, IBookingRepository
 {
-    private readonly ScreenTimeDbContext _context;
-
-    public BookingRepository(ScreenTimeDbContext context)
+    public BookingRepository(ScreenTimeDbContext context) : base(context)
     {
-        _context = context;
     }
 
-    // Tracked: CancelBookingAsync mutates the booking and releases its tickets.
-    public async Task<Booking?> GetByIdAsync(
-        Guid bookingId,
-        CancellationToken cancellationToken = default) =>
-        await BookingsWithDetails()
-            .FirstOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
+    // The graph BookingService reads off a Booking. Tracked only when the caller
+    // asked for it - CancelBookingAsync mutates the booking and its tickets.
+    protected override IQueryable<Booking> Query(bool track = false)
+    {
+        var bookings = Entities
+            .Include(b => b.Screening).ThenInclude(s => s.Movie)
+            .Include(b => b.Screening).ThenInclude(s => s.Auditorium)
+            .Include(b => b.Tickets).ThenInclude(t => t.Seat)
+                .ThenInclude(s => s.SeatType);
+
+        return track ? bookings : bookings.AsNoTracking();
+    }
 
     public async Task<IReadOnlyList<Booking>> GetByUserIdAsync(
         Guid userId,
         CancellationToken cancellationToken = default) =>
-        await BookingsWithDetails()
-            .AsNoTracking()
+        await Query()
             .Where(b => b.UserId == userId)
             .ToListAsync(cancellationToken);
 
@@ -47,17 +49,12 @@ public class BookingRepository : IBookingRepository
         return !anyOccupied;
     }
 
-    public async Task AddAsync(
-        Booking booking,
-        CancellationToken cancellationToken = default) =>
-        await _context.Bookings.AddAsync(booking, cancellationToken);
-
-    public async Task SaveChangesAsync(
+    public override async Task<bool> SaveChangesAsync(
         CancellationToken cancellationToken = default)
     {
         try
         {
-            await _context.SaveChangesAsync(cancellationToken);
+            return await base.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException exception) when (IsSeatAlreadyTaken(exception))
         {
@@ -71,7 +68,7 @@ public class BookingRepository : IBookingRepository
     public async Task<Screening?> GetScreeningAsync(
         Guid screeningId,
         CancellationToken cancellationToken = default) =>
-        await _context.Screenings
+        await Context.Screenings
             .Include(s => s.Movie)
             .Include(s => s.Auditorium)
             .AsNoTracking()
@@ -92,7 +89,7 @@ public class BookingRepository : IBookingRepository
     public async Task<bool> BookingReferenceExistsAsync(
         string bookingReference,
         CancellationToken cancellationToken = default) =>
-        await _context.Bookings.AnyAsync(
+        await Entities.AnyAsync(
             b => b.BookingReference == bookingReference,
             cancellationToken);
 
@@ -111,23 +108,15 @@ public class BookingRepository : IBookingRepository
             .Select(t => t.SeatId)
             .ToListAsync(cancellationToken);
 
-    // The graph BookingService reads off a Booking.
-    private IQueryable<Booking> BookingsWithDetails() =>
-        _context.Bookings
-            .Include(b => b.Screening).ThenInclude(s => s.Movie)
-            .Include(b => b.Screening).ThenInclude(s => s.Auditorium)
-            .Include(b => b.Tickets).ThenInclude(t => t.Seat)
-                .ThenInclude(s => s.SeatType);
-
     // SeatType carries the price, which every seat DTO needs.
     private IQueryable<Seat> SeatsWithType() =>
-        _context.Seats
+        Context.Seats
             .Include(s => s.SeatType)
             .AsNoTracking();
 
     // A released ticket is history, not an occupied seat.
     private IQueryable<Ticket> ActiveTickets() =>
-        _context.Tickets.Where(t => t.ReleasedAt == null);
+        Context.Tickets.Where(t => t.ReleasedAt == null);
 
     // SQLite reports a violated unique index as extended result code 2067. The
     // only unique index on Tickets is the one-active-ticket-per-seat guard, so
