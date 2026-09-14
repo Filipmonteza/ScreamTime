@@ -20,7 +20,7 @@ public class JwtTokenService : IJwtTokenService
         _jwtSettings = jwtSettings.Value;
     }
 
-    public Task<(string Token, DateTime Expiration)> GenerateTokenAsync(UserTokenInfo user, string? role = null)
+    public Task<(string Token, DateTime Expiration)> GenerateTokenAsync(UserTokenInfo user, IEnumerable<string> roles)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -35,11 +35,8 @@ public class JwtTokenService : IJwtTokenService
             new(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
-        // Add role claim if provided
-        if (!string.IsNullOrEmpty(role))
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+        // One claim per role, so [Authorize(Roles = "Admin,Staff")] matches on any of them.
+        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,

@@ -53,7 +53,7 @@ public class AccountController : ControllerBase
         // Reissue the token: it carries the old email as a claim.
         var roles = await _userManager.GetRolesAsync(user);
         var tokenInfo = new UserTokenInfo { Id = user.Id, Email = user.Email ?? string.Empty };
-        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, roles.FirstOrDefault());
+        var (token, expiration) = await _jwtTokenService.GenerateTokenAsync(tokenInfo, roles);
 
         return Ok(new AuthResponse
         {
