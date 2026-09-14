@@ -1,19 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ScreenTime.Application.Interfaces;
 using ScreenTime.Domain.Entities;
 using ScreenTime.Infrastructure.Data;
 
 namespace ScreenTime.Infrastructure.Repositories;
 
-public class GenreRepository : IGenreRepository
+public class GenreRepository : Repository<Genre>, IGenreRepository
 {
-    private readonly ScreenTimeDbContext _context;
-
-    public GenreRepository(ScreenTimeDbContext context)
+    public GenreRepository(ScreenTimeDbContext context) : base(context)
     {
-        _context = context;
     }
 
-    public async Task<List<Genre>> GetAllAsync() =>
-        await _context.Genres.OrderBy(g => g.Name).ToListAsync();
+    public override async Task<List<Genre>> GetAllAsync(
+        CancellationToken cancellationToken = default) =>
+        await Query()
+            .OrderBy(g => g.Name)
+            .ToListAsync(cancellationToken);
 }

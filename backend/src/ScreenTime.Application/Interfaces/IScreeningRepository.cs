@@ -1,13 +1,9 @@
-﻿using ScreenTime.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ScreenTime.Domain.Entities;
 
 namespace ScreenTime.Application.Interfaces;
 
-public interface IScreeningRepository
+// Reads only until the screening flow is built; GetAllAsync leaves out
+// cancelled screenings.
+public interface IScreeningRepository : IRepository<Screening>
 {
-    Task<List<Screening>> GetAllAsync();
 }
