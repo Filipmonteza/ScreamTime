@@ -1,8 +1,8 @@
-﻿using ScreenTime.Domain.Entities;
+using ScreenTime.Domain.Entities;
 
 namespace ScreenTime.Application.Interfaces;
 
-public interface IGenreRepository
+// Genres are read-only for now, so the inherited operations are all of it.
+public interface IGenreRepository : IRepository<Genre>
 {
-    Task<List<Genre>> GetAllAsync();
 }

@@ -1,30 +1,25 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ScreenTime.Application.Interfaces;
 using ScreenTime.Domain.Entities;
 using ScreenTime.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ScreenTime.Infrastructure.Repositories;
 
-
-public class ScreeningRepository : IScreeningRepository
+public class ScreeningRepository : Repository<Screening>, IScreeningRepository
 {
-    private readonly ScreenTimeDbContext _context;
-
-    public ScreeningRepository(ScreenTimeDbContext context)
+    public ScreeningRepository(ScreenTimeDbContext context) : base(context)
     {
-        _context = context;
     }
 
-    public async Task<List<Screening>> GetAllAsync() =>
-    await _context.Screenings
-        .Include(s => s.Movie)
-        .Include(s => s.Auditorium)
-        .Where(s => !s.IsCancelled)
-        .AsNoTracking()
-        .ToListAsync();
+    // A screening is only meaningful together with its movie and its auditorium.
+    protected override IQueryable<Screening> Query(bool track = false) =>
+        base.Query(track)
+            .Include(s => s.Movie)
+            .Include(s => s.Auditorium);
+
+    public override async Task<List<Screening>> GetAllAsync(
+        CancellationToken cancellationToken = default) =>
+        await Query()
+            .Where(s => !s.IsCancelled)
+            .ToListAsync(cancellationToken);
 }

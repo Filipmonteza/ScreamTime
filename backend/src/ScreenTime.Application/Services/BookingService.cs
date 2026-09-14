@@ -370,7 +370,7 @@ public sealed class BookingService : IBookingService
 
         var booking = await _bookingRepository.GetByIdAsync(
             bookingId,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (booking is null)
         {
@@ -430,7 +430,8 @@ public sealed class BookingService : IBookingService
 
         var booking = await _bookingRepository.GetByIdAsync(
             bookingId,
-            cancellationToken);
+            track: true,
+            cancellationToken: cancellationToken);
 
         if (booking is null)
         {
