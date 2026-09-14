@@ -7,7 +7,7 @@ import { getPosterForMovie } from "../utils/posterMap";
 import SearchBar from "../components/SearchBar";
 import Pagination from "../components/Pagination";
 import usePagination from "../hooks/usePagination";
-import iconChevronDown from "./../assets/icons/Icon_Chevron_Down.svg";
+import FilterSelect from "../components/FilterSelect";
 
 /* TODO: dayOptions och auditoriumOptions är hårdkodade platshållare, så detta måste vi lösa. */
 const dayOptions = ["Måndag", "Tisdag"];
@@ -106,70 +106,33 @@ function Home() {
             />
             <div className="toolbar">
               <div className="filter-row">
-                <div className="filter-select-wrapper">
-                  <span className="filter-label">{dayFilter || "Dag"}</span>
-                  <img
-                    src={iconChevronDown}
-                    alt=""
-                    className="filter-chevron"
-                  />
-                  <select
-                    className="filter-select"
-                    value={dayFilter}
-                    onChange={(e) => setDayFilter(e.target.value)}
-                  >
-                    <option value="">Dag</option>
-                    {dayOptions.map((day) => (
-                      <option key={day} value={day}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="filter-select-wrapper">
-                  <span className="filter-label">{genreFilter || "Genre"}</span>
-                  <img
-                    src={iconChevronDown}
-                    alt=""
-                    className="filter-chevron"
-                  />
-                  <select
-                    className="filter-select"
-                    value={genreFilter}
-                    onChange={(e) => setGenreFilter(e.target.value)}
-                  >
-                    <option value="">Genre</option>
-                    {genreOptions.map((genre) => (
-                      <option key={genre} value={genre}>
-                        {genre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="filter-select-wrapper">
-                  <span className="filter-label">
-                    {auditoriumFilter || "Salong"}
-                  </span>
-                  <img
-                    src={iconChevronDown}
-                    alt=""
-                    className="filter-chevron"
-                  />
-                  <select
-                    className="filter-select"
-                    value={auditoriumFilter}
-                    onChange={(e) => setAuditoriumFilter(e.target.value)}
-                  >
-                    <option value="">Salong</option>
-                    {auditoriumOptions.map((room) => (
-                      <option key={room} value={room}>
-                        {room}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FilterSelect
+                  value={dayFilter}
+                  onChange={setDayFilter}
+                  options={dayOptions.map((day) => ({
+                    value: day,
+                    label: day,
+                  }))}
+                  placeholder="Dag"
+                />
+                <FilterSelect
+                  value={genreFilter}
+                  onChange={setGenreFilter}
+                  options={genreOptions.map((genre) => ({
+                    value: genre,
+                    label: genre,
+                  }))}
+                  placeholder="Alla genrer"
+                />
+                <FilterSelect
+                  value={auditoriumFilter}
+                  onChange={setAuditoriumFilter}
+                  options={auditoriumOptions.map((room) => ({
+                    value: room,
+                    label: room,
+                  }))}
+                  placeholder="Salong"
+                />
               </div>
 
               <Pagination

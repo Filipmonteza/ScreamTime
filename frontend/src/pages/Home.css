@@ -66,41 +66,6 @@
   flex-wrap: wrap;
 }
 
-.filter-row {
-  display: flex;
-  gap: 8px;
-}
-
-.filter-select-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--color-surface);
-  border-radius: 8px;
-  padding: 8px 16px;
-}
-
-.filter-label {
-  font-size: 1rem;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.filter-select {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  border: none;
-  cursor: pointer;
-}
-
-.filter-chevron {
-  width: 16px;
-  height: 16px;
-  pointer-events: none;
-}
-
 /* PAGINATED MOVIE LIST*/
 .movie-list {
   display: flex;

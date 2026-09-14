@@ -1,9 +1,16 @@
+.movie-detail {
+  position: relative;
+}
+
 .movie-detail-back {
   background: none;
   border: none;
   padding: 0;
   margin-bottom: 24px;
   cursor: pointer;
+  position: absolute;
+  top: 24px;
+  left: 16px;
 }
 
 .movie-detail-back-icon {
@@ -30,6 +37,7 @@
 
 .movie-detail-content {
   display: flex;
+  flex-direction: column;
   gap: 40px;
 }
 
@@ -40,6 +48,7 @@
   border-radius: 4px;
   background: var(--color-surface);
   object-fit: cover;
+  align-self: center;
 }
 
 .movie-detail-info {
@@ -54,4 +63,63 @@
 
 .movie-detail-description {
   max-width: 640px;
+}
+
+.movie-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.movie-detail-tickets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.movie-detail-tickets h3 {
+  margin: 0;
+}
+
+.movie-detail-tickets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.movie-detail-date-heading {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.movie-detail-showtime {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.movie-detail-showtime-time {
+  width: 48px;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.movie-detail-showtime-info {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 950px) {
+  .movie-detail-content {
+    flex-direction: row;
+  }
+
+  .movie-detail-poster {
+    align-self: auto;
+  }
+
+  .movie-detail-back {
+    position: static;
+    margin-bottom: 24px;
+  }
 }
