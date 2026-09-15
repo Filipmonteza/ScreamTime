@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import ListToolbar from "../../components/ListToolbar";
 import ListCard from "../../components/ListCard";
 import Form from "../../components/Form";
@@ -23,19 +23,34 @@ function Staff() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
-  function loadUsers() {
-    setLoading(true);
+  function loadUsers(showLoading = true) {
+    if (showLoading) setLoading(true);
     getAllAdminUsers()
       .then((data) => {
         setUsers(data.map((u) => ({ id: u.id as unknown as string, email: u.email, roles: u.roles })));
         setError(null);
       })
-      .catch((err) => setError(err.message))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
   }
 
   useEffect(() => {
-    loadUsers();
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getAllAdminUsers();
+        if (cancelled) return;
+        setUsers(data.map((u) => ({ id: u.id as unknown as string, email: u.email, roles: u.roles })));
+        setError(null);
+      } catch (err: unknown) {
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function handleDelete(id: string) {
@@ -46,9 +61,9 @@ function Staff() {
         setConfirmingDeleteId(null);
         loadUsers();
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setConfirmingDeleteId(null);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : String(err));
       })
       .finally(() => setDeletingId(null));
   }
@@ -79,7 +94,7 @@ function Staff() {
 
       {!loading && (
         <div className="card-grid">
-          {pagedItems.map((user: any) => (
+          {pagedItems.map((user: AdminUser) => (
             <ListCard
               key={user.id}
               title={user.email}
@@ -119,14 +134,14 @@ function Staff() {
   );
 }
 
-function CreateStaffForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  function CreateStaffForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("Staff");
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: any) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (password !== confirmPassword) {
       setError("Lösenorden matchar inte");
@@ -135,7 +150,7 @@ function CreateStaffForm({ onClose, onSaved }: { onClose: () => void; onSaved: (
     setError(null);
     createAdminUser(email, password, [role])
       .then(onSaved)
-      .catch((err) => setError(err.message));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
   }
 
   return (
@@ -167,14 +182,14 @@ function CreateStaffForm({ onClose, onSaved }: { onClose: () => void; onSaved: (
   );
 }
 
-function EditStaffForm({ user, onClose, onSaved }: { user: AdminUser; onClose: () => void; onSaved: () => void }) {
+  function EditStaffForm({ user, onClose, onSaved }: { user: AdminUser; onClose: () => void; onSaved: () => void }) {
   const [email, setEmail] = useState(user.email);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState(user.roles.includes("Admin") ? "Admin" : "Staff");
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: any) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (password && password !== confirmPassword) {
       setError("Lösenorden matchar inte");
@@ -195,8 +210,8 @@ function EditStaffForm({ user, onClose, onSaved }: { user: AdminUser; onClose: (
         await updateAdminUserRoles(user.id, [role]);
 
         onSaved();
-      } catch (err: any) {
-        setError(err.message ?? String(err));
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : String(err));
       }
     })();
   }
