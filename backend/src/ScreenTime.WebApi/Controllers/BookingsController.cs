@@ -10,7 +10,7 @@ namespace ScreenTime.WebApi.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-[BookingExceptionFilter]
+[DomainExceptionFilter]
 public class BookingsController : ControllerBase
 {
     // No roles are seeded yet, so these match nobody today and every caller is

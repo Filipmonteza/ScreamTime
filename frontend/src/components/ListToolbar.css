@@ -1,0 +1,12 @@
+.list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 24px 0;
+}
+
+.list-toolbar-add {
+  width: 100%;
+  max-width: 358px;
+}

@@ -106,6 +106,7 @@ public class MovieService : IMovieService
         movie.RuntimeMinutes,
         movie.Description,
         movie.IsActive,
-        movie.Genres.Select(g => g.Name).ToList()
+        movie.Genres.Select(g => g.Name).ToList(),
+        movie.Poster
     );
 }

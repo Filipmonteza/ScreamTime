@@ -1,0 +1,155 @@
+.navbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 90px;
+  display: flex;
+  align-items: flex-start;
+  background: var(--color-surface);
+  z-index: 100;
+}
+
+.navbar-logo {
+  display: none;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.navbar-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 16px;
+  font-size: 12px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.navbar-links--customer {
+  gap: 36px;
+}
+
+.navbar-links--admin {
+  gap: 14px;
+}
+
+.navbar-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* NAVBAR DROPDOWN */
+.navbar-dropdown {
+  position: relative;
+}
+
+button.navbar-link {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.navbar-dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-radius: 8px;
+  padding: 8px;
+  min-width: 160px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  gap: 4px;
+}
+
+.navbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.navbar-dropdown-item:hover,
+.navbar-dropdown-item.active {
+  background: var(--color-surface-muted);
+}
+
+button.navbar-dropdown-item {
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+@media (min-width: 450px) {
+  .navbar-links--admin {
+    gap: 36px;
+  }
+}
+
+/* FOR DESKTOP */
+@media (min-width: 950px) {
+  .navbar {
+    top: 0;
+    bottom: auto;
+    height: 80px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 80px;
+  }
+
+  .navbar-logo {
+    display: block;
+  }
+
+  .navbar-links {
+    width: auto;
+    justify-content: flex-start;
+    gap: 32px;
+  }
+
+  .navbar-link {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding-top: 0;
+    font-size: 1rem;
+  }
+
+  .navbar-links--customer,
+  .navbar-links--admin {
+    gap: 32px;
+  }
+
+  /* NAVBAR DROPDOWN */
+  .navbar-dropdown-menu {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 8px;
+    left: 0;
+    transform: none;
+  }
+}

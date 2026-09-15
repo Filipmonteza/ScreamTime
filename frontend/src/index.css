@@ -9,19 +9,33 @@
   --color-text-input: #121212;
   --accent-color-1: #f7f7f7;
   --accent-color-1-disabled: #f7f7f799;
+  --color-warning: yellow;
+  --color-seat-standard: #f7f7f7;
+  --color-seat-vip: #ffdb59;
+  --color-seat-unavailable: #545454;
+}
+
+html {
+  scrollbar-gutter: stable;
 }
 
 body {
+  margin: 0;
   font-family: "Open Sans", sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
 }
 
 .page {
-  padding: 80px 80px 80px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 16px 96px;
+  box-sizing: content-box;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -36,7 +50,14 @@ h2 {
   font-weight: 700;
   font-size: 1.8rem;
   line-height: 120%;
-  margin: 0
+  margin: 0;
+}
+
+h3 {
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 120%;
+  margin: 0;
 }
 
 p {
@@ -47,15 +68,21 @@ p {
 
 /* BUTTONS */
 .btn-pill {
-    display: inline-block;
-    padding: 12px 18px;
-    border-radius: 999px;
-    border: none;
-    font-size: 1rem;
-    color: var(--color-text-input);
-    background: var(--accent-color-1);
+  display: inline-block;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: none;
+  font-size: 1rem;
+  color: var(--color-text-input);
+  background: var(--accent-color-1);
 }
 
 .btn-pill:disabled {
-    background: var(--accent-color-1-disabled);
+  background: var(--accent-color-1-disabled);
+}
+
+@media (min-width: 950px) {
+  .page {
+    padding: 120px 80px 80px;
+  }
 }

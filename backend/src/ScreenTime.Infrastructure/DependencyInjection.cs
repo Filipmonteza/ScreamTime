@@ -35,6 +35,10 @@ public static class DependencyInjection
 
         services.AddScoped<IScreeningRepository, ScreeningRepository>();
         services.AddScoped<IScreeningService, ScreeningService>();
+        
+        services.AddScoped<IAuditoriumRepository, AuditoriumRepository>();
+        services.AddScoped<IAuditoriumService, AuditoriumService>();
+
 
         // Configure JWT settings
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));

@@ -6,10 +6,10 @@ namespace ScreenTime.Application.Contracts.Authentication;
 public interface IJwtTokenService
 {
     /// <summary>
-    /// Generates a JWT token for the given user and role.
+    /// Generates a JWT token for the given user, with one role claim per role.
     /// </summary>
     /// <param name="user">The authenticated user's token data.</param>
-    /// <param name="role">The user's primary role (if assigned).</param>
+    /// <param name="roles">Every role the user holds. May be empty.</param>
     /// <returns>Token string and expiration timestamp.</returns>
-    Task<(string Token, DateTime Expiration)> GenerateTokenAsync(UserTokenInfo user, string? role = null);
+    Task<(string Token, DateTime Expiration)> GenerateTokenAsync(UserTokenInfo user, IEnumerable<string> roles);
 }

@@ -1,0 +1,42 @@
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 23px;
+}
+
+.list-card {
+  width: 358px;
+  min-height: 130px;
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid transparent;
+}
+
+.list-card--inactive {
+  border-color: var(--color-warning);
+}
+
+.list-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.list-card-info h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.list-card-info p {
+  margin: 0;
+}
+
+.list-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

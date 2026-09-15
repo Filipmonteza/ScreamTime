@@ -6,4 +6,5 @@ export interface Movie {
     isActive: boolean
     genres: string[]
     runtimeMinutes: number
+    poster: string | null
 }
