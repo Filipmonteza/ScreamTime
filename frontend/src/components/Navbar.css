@@ -7,6 +7,7 @@
   display: flex;
   align-items: flex-start;
   background: var(--color-surface);
+  z-index: 100;
 }
 
 .navbar-logo {

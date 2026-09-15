@@ -2,17 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Movie } from "../types/movie";
 import { getAllMovies } from "../api/moviesApi";
+import type { Screening } from "../types/screening";
+import { getAllScreenings } from "../api/screeningApi";
 import "./Home.css";
 import { getPosterForMovie } from "../utils/posterMap";
 import SearchBar from "../components/SearchBar";
 import Pagination from "../components/Pagination";
 import usePagination from "../hooks/usePagination";
-import iconChevronDown from "./../assets/icons/Icon_Chevron_Down.svg";
+import FilterSelect from "../components/FilterSelect";
+import {
+  dateKeyFromIso,
+  nextDays,
+  formatDateOptionLabel,
+} from "../utils/dateOptions";
 
-/* TODO: dayOptions och auditoriumOptions är hårdkodade platshållare, så detta måste vi lösa. */
-const dayOptions = ["Måndag", "Tisdag"];
-const auditoriumOptions = ["Salong 1", "Salong 2"];
 const PAGE_SIZE = 5;
+const dayOptions = nextDays(5);
 
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr];
@@ -32,6 +37,8 @@ function Home() {
   const [dayFilter, setDayFilter] = useState("");
   const [genreFilter, setGenreFilter] = useState("");
   const [auditoriumFilter, setAuditoriumFilter] = useState("");
+  const [screeningsError, setScreeningsError] = useState<string | null>(null);
+  const [screenings, setScreenings] = useState<Screening[]>([]);
 
   useEffect(() => {
     getAllMovies()
@@ -48,9 +55,34 @@ function Home() {
     return movies.filter((movie) => {
       const matchesQuery = !q || movie.title.toLowerCase().includes(q);
       const matchesGenre = !genreFilter || movie.genres.includes(genreFilter);
-      return matchesQuery && matchesGenre;
+      const matchesDay =
+        !dayFilter ||
+        screenings.some(
+          (s) =>
+            s.movieId === movie.movieId &&
+            dateKeyFromIso(s.startTime) === dayFilter,
+        );
+      const matchesAuditorium =
+        !auditoriumFilter ||
+        screenings.some(
+          (s) =>
+            s.movieId === movie.movieId &&
+            s.auditoriumName === auditoriumFilter,
+        );
+      return matchesQuery && matchesGenre && matchesDay && matchesAuditorium;
     });
-  }, [movies, query, genreFilter]);
+  }, [movies, screenings, query, genreFilter, dayFilter, auditoriumFilter]);
+
+  useEffect(() => {
+    getAllScreenings()
+      .then(setScreenings)
+      .catch((err) => setScreeningsError(err.message));
+  }, []);
+  const auditoriumOptions = useMemo(() => {
+    const set = new Set<string>();
+    screenings.forEach((s) => set.add(s.auditoriumName));
+    return Array.from(set).sort();
+  }, [screenings]);
 
   const genreOptions = useMemo(() => {
     const set = new Set<string>();
@@ -58,7 +90,7 @@ function Home() {
     return Array.from(set).sort();
   }, [movies]);
 
-  const filterKey = `${query}__${genreFilter}`;
+  const filterKey = `${query}__${genreFilter}__${dayFilter}__${auditoriumFilter}`;
   const {
     page,
     setPage,
@@ -99,6 +131,7 @@ function Home() {
           </div>
           <div className="find-section">
             <h2>Hitta film</h2>
+            {screeningsError && <p>Fel: {screeningsError}</p>}
             <SearchBar
               value={query}
               onChange={setQuery}
@@ -106,72 +139,34 @@ function Home() {
             />
             <div className="toolbar">
               <div className="filter-row">
-                <div className="filter-select-wrapper">
-                  <span className="filter-label">{dayFilter || "Dag"}</span>
-                  <img
-                    src={iconChevronDown}
-                    alt=""
-                    className="filter-chevron"
-                  />
-                  <select
-                    className="filter-select"
-                    value={dayFilter}
-                    onChange={(e) => setDayFilter(e.target.value)}
-                  >
-                    <option value="">Dag</option>
-                    {dayOptions.map((day) => (
-                      <option key={day} value={day}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="filter-select-wrapper">
-                  <span className="filter-label">{genreFilter || "Genre"}</span>
-                  <img
-                    src={iconChevronDown}
-                    alt=""
-                    className="filter-chevron"
-                  />
-                  <select
-                    className="filter-select"
-                    value={genreFilter}
-                    onChange={(e) => setGenreFilter(e.target.value)}
-                  >
-                    <option value="">Genre</option>
-                    {genreOptions.map((genre) => (
-                      <option key={genre} value={genre}>
-                        {genre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="filter-select-wrapper">
-                  <span className="filter-label">
-                    {auditoriumFilter || "Salong"}
-                  </span>
-                  <img
-                    src={iconChevronDown}
-                    alt=""
-                    className="filter-chevron"
-                  />
-                  <select
-                    className="filter-select"
-                    value={auditoriumFilter}
-                    onChange={(e) => setAuditoriumFilter(e.target.value)}
-                  >
-                    <option value="">Salong</option>
-                    {auditoriumOptions.map((room) => (
-                      <option key={room} value={room}>
-                        {room}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FilterSelect
+                  value={dayFilter}
+                  onChange={setDayFilter}
+                  options={dayOptions.map((day, index) => ({
+                    value: day,
+                    label: formatDateOptionLabel(day, index),
+                  }))}
+                  placeholder="Dag"
+                />
+                <FilterSelect
+                  value={genreFilter}
+                  onChange={setGenreFilter}
+                  options={genreOptions.map((genre) => ({
+                    value: genre,
+                    label: genre,
+                  }))}
+                  placeholder="Alla genrer"
+                />
+                <FilterSelect
+                  value={auditoriumFilter}
+                  onChange={setAuditoriumFilter}
+                  options={auditoriumOptions.map((room) => ({
+                    value: room,
+                    label: room,
+                  }))}
+                  placeholder="Salong"
+                />
               </div>
-
               <Pagination
                 page={page}
                 totalPages={totalPages}
