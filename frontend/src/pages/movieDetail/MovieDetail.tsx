@@ -171,7 +171,7 @@ function MovieDetail() {
                         </h3>
                         {screenings.map((screening) => (
                           <div
-                            key={screening.id}
+                            key={screening.screeningId}
                             className="movie-detail-showtime"
                           >
                             <span className="movie-detail-showtime-time">
@@ -190,7 +190,7 @@ function MovieDetail() {
                             <button
                               className="btn-pill"
                               onClick={() =>
-                                navigate(`/booking/${screening.id}`)
+                                navigate(`/booking/${screening.screeningId}`)
                               }
                             >
                               Biljetter

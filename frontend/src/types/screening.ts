@@ -1,5 +1,5 @@
 export interface Screening {
-    id: string
+    screeningId: string
     movieTitle: string
     auditoriumName: string
     startTime: string
