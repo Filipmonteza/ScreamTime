@@ -127,4 +127,17 @@ public class ScreeningRepository : Repository<Screening>, IScreeningRepository
         Context.Bookings.Where(b =>
             b.ScreeningId == screeningId &&
             b.Status != BookingStatus.Cancelled);
+
+    public async Task<Dictionary<Guid, int>> GetBookedSeatCountsAsync(
+    IEnumerable<Guid> screeningIds,
+    CancellationToken cancellationToken = default)
+    {
+        return await Context.Tickets
+            .Where(t => screeningIds.Contains(t.ScreeningId) && t.ReleasedAt == null)
+            .Select(t => new { t.ScreeningId, t.SeatId })
+            .Distinct()
+            .GroupBy(x => x.ScreeningId)
+            .Select(g => new { ScreeningId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ScreeningId, x => x.Count, cancellationToken);
+    }
 }

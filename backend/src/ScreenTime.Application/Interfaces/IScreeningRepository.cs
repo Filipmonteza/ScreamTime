@@ -43,4 +43,9 @@ public interface IScreeningRepository : IRepository<Screening>
     Task<List<Booking>> GetActiveBookingsAsync(
         Guid screeningId,
         CancellationToken cancellationToken = default);
+
+    // Distinct seats currently holding an active ticket for each screening.
+    Task<Dictionary<Guid, int>> GetBookedSeatCountsAsync(
+        IEnumerable<Guid> screeningIds,
+        CancellationToken cancellationToken = default);
 }
