@@ -10,6 +10,9 @@
   --accent-color-1: #f7f7f7;
   --accent-color-1-disabled: #f7f7f799;
   --color-warning: yellow;
+  --color-seat-standard: #f7f7f7;
+  --color-seat-vip: #ffdb59;
+  --color-seat-unavailable: #545454;
 }
 
 html {
@@ -30,7 +33,9 @@ body {
   box-sizing: content-box;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -45,14 +50,14 @@ h2 {
   font-weight: 700;
   font-size: 1.8rem;
   line-height: 120%;
-  margin: 0
+  margin: 0;
 }
 
 h3 {
   font-weight: 600;
   font-size: 1.5rem;
   line-height: 120%;
-  margin: 0
+  margin: 0;
 }
 
 p {
@@ -63,17 +68,17 @@ p {
 
 /* BUTTONS */
 .btn-pill {
-    display: inline-block;
-    padding: 12px 18px;
-    border-radius: 999px;
-    border: none;
-    font-size: 1rem;
-    color: var(--color-text-input);
-    background: var(--accent-color-1);
+  display: inline-block;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: none;
+  font-size: 1rem;
+  color: var(--color-text-input);
+  background: var(--accent-color-1);
 }
 
 .btn-pill:disabled {
-    background: var(--accent-color-1-disabled);
+  background: var(--accent-color-1-disabled);
 }
 
 @media (min-width: 950px) {
