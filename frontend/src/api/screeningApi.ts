@@ -3,8 +3,10 @@ import { getAuthHeader } from './authHeader'
 
 const API_BASE_URL = 'http://localhost:5267'
 
-export async function getAllScreenings(): Promise<Screening[]> {
-    const response = await fetch(`${API_BASE_URL}/api/screenings`, {
+export async function getAllScreenings(params?: { movieId?: string }): Promise<Screening[]> {
+    const url = new URL(`${API_BASE_URL}/api/screenings`)
+    if (params?.movieId) url.searchParams.set('movieId', params.movieId)
+    const response = await fetch(url, {
         headers: { ...getAuthHeader() },
     })
     if (!response.ok) {
