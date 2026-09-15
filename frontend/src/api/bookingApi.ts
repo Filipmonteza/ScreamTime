@@ -27,7 +27,10 @@ export async function createBooking(
         body: JSON.stringify({ screeningId, seatIds }),
     })
     if (!response.ok) {
-        throw new Error(`Failed to create booking: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        const error = new Error(data?.detail ?? `Failed to create booking: ${response.status}`) as Error & { status: number }
+        error.status = response.status
+        throw error
     }
     return response.json()
 }
@@ -58,6 +61,9 @@ export async function cancelBooking(bookingId: string): Promise<void> {
         headers: { ...getAuthHeader() },
     })
     if (!response.ok) {
-        throw new Error(`Failed to cancel booking: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        const error = new Error(data?.detail ?? `Failed to cancel booking: ${response.status}`) as Error & { status: number }
+        error.status = response.status
+        throw error
     }
 }
