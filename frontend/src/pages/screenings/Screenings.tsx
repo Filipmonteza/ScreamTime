@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Screening } from "../../types/screening";
 import { getAllScreenings, cancelScreening } from "../../api/screeningsApi";
 import ScreeningForm from "./ScreeningForm";
@@ -44,7 +44,7 @@ function Screenings() {
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  function loadScreenings() {
+  const loadScreenings = useCallback(() => {
     getAllScreenings(canManageScreenings)
       .then((data) => {
         setError(null);
@@ -52,11 +52,11 @@ function Screenings() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }
+  }, [canManageScreenings]);
 
   useEffect(() => {
     loadScreenings();
-  }, [canManageScreenings]);
+  }, [loadScreenings]);
 
   function handleCancel(id: string) {
     setError(null);
