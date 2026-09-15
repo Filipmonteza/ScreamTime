@@ -29,7 +29,7 @@ function ListCard({
   deleting,
   deleteLabel = "Ta bort",
   statusLabel,
-  inactiveStyle = false,
+  inactiveStyle,
   showActions = true,
   onEdit,
   onRequestDelete,
@@ -42,7 +42,9 @@ function ListCard({
   onConfirmReactivate,
   onCancelReactivate,
 }: ListCardProps) {
-  const cardClassName = inactiveStyle
+  const isDimmed = inactiveStyle ?? !isActive;
+
+  const cardClassName = isDimmed
     ? "list-card list-card--inactive"
     : "list-card";
 
