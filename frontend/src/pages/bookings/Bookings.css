@@ -1,0 +1,26 @@
+.bookings {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.bookings > h1 {
+  margin: 0;
+}
+
+.booking-section h2 {
+  margin: 0 0 16px;
+}
+
+.booking-card {
+  width: 358px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  padding: 16px;
+}
+
+.booking-card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 23px;
+}
