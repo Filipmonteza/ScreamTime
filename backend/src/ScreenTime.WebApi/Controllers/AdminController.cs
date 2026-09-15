@@ -37,11 +37,93 @@ public class AdminController : ControllerBase
 
         foreach (var user in userEntities)
         {
-            var roles = await _userManager.GetRolesAsync(user);
-            results.Add(new AdminUserDto(user.Id, user.Email ?? string.Empty, roles));
+            var roles = (await _userManager.GetRolesAsync(user)).ToList();
+            if (roles.Contains(IdentitySeeder.AdminRole) || roles.Contains(IdentitySeeder.StaffRole))
+            {
+                results.Add(new AdminUserDto(user.Id, user.Email ?? string.Empty, roles));
+            }
         }
 
         return Ok(results);
+    }
+
+    [HttpPost("users")]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+            return BadRequest(new { error = "Email and password are required." });
+
+        var existing = await _userManager.FindByEmailAsync(dto.Email);
+        if (existing is not null) return BadRequest(new { error = "A user with this email already exists." });
+
+        var user = new ApplicationUser
+        {
+            UserName = dto.Email,
+            Email = dto.Email,
+            EmailConfirmed = true
+        };
+
+        var createResult = await _userManager.CreateAsync(user, dto.Password);
+        if (!createResult.Succeeded) return BadRequest(new { errors = createResult.Errors.Select(e => e.Description) });
+
+        var roles = dto.Roles?.Where(r => !string.IsNullOrWhiteSpace(r)).Select(r => r.Trim()).Distinct().ToList() ?? new List<string>();
+        foreach (var role in roles)
+        {
+            if (!await _roleManager.RoleExistsAsync(role))
+            {
+                await _userManager.DeleteAsync(user);
+                return BadRequest(new { error = $"Role '{role}' does not exist." });
+            }
+        }
+
+        if (roles.Any())
+        {
+            var addRoles = await _userManager.AddToRolesAsync(user, roles);
+            if (!addRoles.Succeeded)
+            {
+                await _userManager.DeleteAsync(user);
+                return BadRequest(new { errors = addRoles.Errors.Select(e => e.Description) });
+            }
+        }
+
+        return CreatedAtAction(nameof(GetUsers), null);
+    }
+
+    [HttpPut("users/{id:guid}")]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(id.ToString());
+        if (user is null) return NotFound();
+
+        if (!string.IsNullOrWhiteSpace(dto.NewEmail) && dto.NewEmail != user.Email)
+        {
+            var setEmailResult = await _userManager.SetEmailAsync(user, dto.NewEmail);
+            if (!setEmailResult.Succeeded) return BadRequest(new { errors = setEmailResult.Errors.Select(e => e.Description) });
+
+            var setUserNameResult = await _userManager.SetUserNameAsync(user, dto.NewEmail);
+            if (!setUserNameResult.Succeeded) return BadRequest(new { errors = setUserNameResult.Errors.Select(e => e.Description) });
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.NewPassword))
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetResult = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
+            if (!resetResult.Succeeded) return BadRequest(new { errors = resetResult.Errors.Select(e => e.Description) });
+        }
+
+        return NoContent();
+    }
+
+    [HttpDelete("users/{id:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        var user = await _userManager.FindByIdAsync(id.ToString());
+        if (user is null) return NotFound();
+
+        var del = await _userManager.DeleteAsync(user);
+        if (!del.Succeeded) return BadRequest(new { errors = del.Errors.Select(e => e.Description) });
+
+        return NoContent();
     }
 
     [HttpPost("users/{id:guid}/roles")]

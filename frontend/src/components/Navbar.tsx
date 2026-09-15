@@ -152,7 +152,19 @@ const loggedOutItems: NavItem[] = [
 ];
 
 function getNavItems(role: Role): NavEntry[] {
-  if (role === "Admin" || role === "Staff") return adminItems;
+  if (role === "Admin") return adminItems;
+  if (role === "Staff") {
+    // Staff should see most admin items but not the staff management page
+    return adminItems.map((entry) => {
+      if (isDropdown(entry)) {
+        return {
+          ...entry,
+          children: entry.children.filter((child) => child.to !== "/staff"),
+        };
+      }
+      return entry;
+    });
+  }
   if (role === "Customer") return customerItems;
   return loggedOutItems;
 }
