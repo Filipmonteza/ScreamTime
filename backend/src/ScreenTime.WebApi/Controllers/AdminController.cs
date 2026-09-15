@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using ScreenTime.Application.Contracts;
 using ScreenTime.Infrastructure.Identity;
 
@@ -121,6 +122,13 @@ public class AdminController : ControllerBase
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user is null) return NotFound();
 
+        // Prevent admins from deleting their own account
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (currentUserId == user.Id)
+        {
+            return BadRequest(new { error = "Admins cannot delete their own account." });
+        }
+
         // Deactivate the user by locking them out indefinitely instead of deleting
         var lockoutResult = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
         if (!lockoutResult.Succeeded) return BadRequest(new { errors = lockoutResult.Errors.Select(e => e.Description) });
@@ -145,6 +153,13 @@ public class AdminController : ControllerBase
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user is null) return NotFound();
+
+        // Prevent admins from changing their own roles
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (currentUserId == user.Id)
+        {
+            return BadRequest(new { error = "Admins cannot change their own roles." });
+        }
 
         // Validate roles
         var desired = dto.Roles?.Where(r => !string.IsNullOrWhiteSpace(r)).Select(r => r.Trim()).Distinct().ToList() ?? new List<string>();
