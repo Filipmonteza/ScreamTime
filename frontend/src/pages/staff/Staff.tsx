@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, useCallback, type FormEvent } from "react";
+import "./Staff.css";
 import ListToolbar from "../../components/ListToolbar";
 import ListCard from "../../components/ListCard";
 import Form from "../../components/Form";
@@ -26,16 +27,20 @@ function Staff() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
-  function loadUsers(showLoading = true) {
+  const loadUsers = useCallback(async (showLoading = true, shouldUpdate: () => boolean = () => true): Promise<void> => {
     if (showLoading) setLoading(true);
-    getAllAdminUsers()
-      .then((data) => {
-        setUsers(data.map((u) => ({ id: u.id as unknown as string, email: u.email, roles: u.roles, isActive: u.isActive })));
-        setError(null);
-      })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
-      .finally(() => setLoading(false));
-  }
+    try {
+      const data: AdminUser[] = await getAllAdminUsers();
+      if (!shouldUpdate()) return;
+      setUsers(data.map((u: AdminUser) => ({ id: u.id, email: u.email, roles: u.roles, isActive: u.isActive })));
+      setError(null);
+    } catch (err: unknown) {
+      if (!shouldUpdate()) return;
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      if (shouldUpdate()) setLoading(false);
+    }
+  }, []);
 
   function handleReactivate(id: string) {
     setError(null);
@@ -55,16 +60,7 @@ function Staff() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const data = await getAllAdminUsers();
-        if (cancelled) return;
-        setUsers(data.map((u) => ({ id: u.id as unknown as string, email: u.email, roles: u.roles, isActive: u.isActive })));
-        setError(null);
-      } catch (err: unknown) {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      await loadUsers(true, () => !cancelled);
     })();
     return () => {
       cancelled = true;
@@ -240,33 +236,33 @@ function Staff() {
     })();
   }
 
-  return (
-    <Form title="Redigera personal" submitLabel="Spara" onSubmit={handleSubmit} onCancel={onClose}>
-      {error && <p className="form-error">{error}</p>}
-      <div className="form-field">
-        <label className="form-label">E-post</label>
-        <input className="form-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </div>
+    return (
+      <Form title="Redigera personal" submitLabel="Spara" onSubmit={handleSubmit} onCancel={onClose}>
+        {error && <p className="form-error">{error}</p>}
+        <div className="form-field">
+          <label className="form-label">E-post</label>
+          <input className="form-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </div>
 
-      <div className="form-field">
-        <label className="form-label">Nytt lösenord (lämna tomt för att behålla)</label>
-        <input className="form-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      </div>
+        <div className="form-field">
+          <label className="form-label">Nytt lösenord (lämna tomt för att behålla)</label>
+          <input className="form-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
 
-      <div className="form-field">
-        <label className="form-label">Bekräfta lösenord</label>
-        <input className="form-input" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-      </div>
+        <div className="form-field">
+          <label className="form-label">Bekräfta lösenord</label>
+          <input className="form-input" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+        </div>
 
-      <div className="form-field">
-        <label className="form-label">Roll</label>
-        <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="Staff">Staff</option>
-          <option value="Admin">Admin</option>
-        </select>
-      </div>
-    </Form>
-  );
+        <div className="form-field">
+          <label className="form-label">Roll</label>
+          <select className="form-input" value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="Staff">Staff</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+      </Form>
+    );
 }
 
 export default Staff;

@@ -12,7 +12,6 @@ export async function getAllAdminUsers(): Promise<AdminUser[]> {
     headers: jsonHeaders(),
   });
   if (!response.ok) {
-    if (response.status === 401) throw new Error("Failed to load users: 401");
     throw new Error(`Failed to load users: ${response.status}`);
   }
   return response.json();
@@ -30,7 +29,6 @@ export async function createAdminUser(
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
-    if (response.status === 401) throw new Error(data?.error ?? "Failed to create user: 401");
     throw new Error(data?.error ?? `Failed to create user: ${response.status}`);
   }
 }
@@ -43,7 +41,6 @@ export async function updateAdminUser(id: string, newEmail?: string, newPassword
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
-    if (response.status === 401) throw new Error(data?.error ?? `Failed to update user: 401`);
     throw new Error(data?.errors?.[0] ?? data?.error ?? `Failed to update user: ${response.status}`);
   }
 }
@@ -56,7 +53,6 @@ export async function updateAdminUserRoles(id: string, roles: string[]) {
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
-    if (response.status === 401) throw new Error(data?.error ?? `Failed to update roles: 401`);
     throw new Error(data?.error ?? `Failed to update roles: ${response.status}`);
   }
 }
@@ -67,7 +63,6 @@ export async function deleteAdminUser(id: string) {
     headers: getAuthHeader(),
   });
   if (!response.ok) {
-    if (response.status === 401) throw new Error(`Failed to delete user: 401`);
     throw new Error(`Failed to delete user: ${response.status}`);
   }
 }

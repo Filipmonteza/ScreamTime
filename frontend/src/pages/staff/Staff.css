@@ -1,0 +1,33 @@
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 23px;
+}
+
+.page.staff .list-card {
+  padding: 12px;
+}
+
+.page.staff .list-card-info h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.page.staff .list-card-info p {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.page.staff .list-card-actions {
+  gap: 8px;
+}
+
+.page.staff .list-card-actions .btn-pill {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

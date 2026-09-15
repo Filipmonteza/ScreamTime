@@ -10,6 +10,7 @@ namespace ScreenTime.WebApi.Controllers;
 
 /// <summary>
 /// Admin-only user administration: list accounts and assign roles.
+/// Note: GetUsers() returns only users in the Admin or Staff roles (i.e. staff accounts), not all users.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -88,7 +89,8 @@ public class AdminController : ControllerBase
             }
         }
 
-        return CreatedAtAction(nameof(GetUsers), null);
+        var createdDto = new AdminUserDto(user.Id, user.Email ?? string.Empty, roles, true);
+        return CreatedAtAction(nameof(GetUsers), null, createdDto);
     }
 
     [HttpPut("users/{id:guid}")]
