@@ -5,63 +5,42 @@ using ScreenTime.Infrastructure.Data;
 
 namespace ScreenTime.Infrastructure.Repositories;
 
-public class SeatRepository : ISeatRepository
+public class SeatRepository : Repository<Seat>, ISeatRepository
 {
-    private readonly ScreenTimeDbContext _context;
-
-    public SeatRepository(ScreenTimeDbContext context)
+    public SeatRepository(ScreenTimeDbContext context) : base(context)
     {
-        _context = context;
     }
 
-    public async Task<List<Seat>> GetAllAsync(
+    // SeatType carries the price, which every seat DTO needs.
+    protected override IQueryable<Seat> Query(bool track = false) =>
+        base.Query(track).Include(s => s.SeatType);
+
+    // The cross-auditorium listing is the only read that also names the auditorium.
+    public override async Task<List<Seat>> GetAllAsync(
         CancellationToken cancellationToken = default) =>
-        await _context.Seats
+        await Query()
             .Include(s => s.Auditorium)
-            .Include(s => s.SeatType)
-            .AsNoTracking()
             .ToListAsync(cancellationToken);
 
     public async Task<List<Seat>> GetByAuditoriumIdAsync(
         Guid auditoriumId,
-        CancellationToken cancellationToken = default)
-    {
-        return await _context.Seats
+        CancellationToken cancellationToken = default) =>
+        await Query()
             .Where(s => s.AuditoriumId == auditoriumId)
-            .Include(s => s.SeatType)
-            .AsNoTracking()
             .ToListAsync(cancellationToken);
-    }
 
     public async Task<List<SeatType>> GetSeatTypesByIdsAsync(
         List<Guid> seatTypeIds,
-        CancellationToken cancellationToken = default)
-    {
-        return await _context.SeatTypes
+        CancellationToken cancellationToken = default) =>
+        await Context.SeatTypes
             .Where(st => seatTypeIds.Contains(st.Id))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
-    }
 
     public async Task<List<SeatType>> GetAllSeatTypesAsync(
-    CancellationToken cancellationToken = default) =>
-    await _context.SeatTypes
-        .OrderBy(st => st.Name)
-        .AsNoTracking()
-        .ToListAsync(cancellationToken);
-
-    public async Task AddRangeAsync(
-        IEnumerable<Seat> seats,
-        CancellationToken cancellationToken = default)
-    {
-        await _context.Seats.AddRangeAsync(
-            seats,
-            cancellationToken);
-    }
-
-    public async Task<bool> SaveChangesAsync(
-        CancellationToken cancellationToken = default)
-    {
-        return await _context.SaveChangesAsync(cancellationToken) > 0;
-    }
+        CancellationToken cancellationToken = default) =>
+        await Context.SeatTypes
+            .OrderBy(st => st.Name)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
 }

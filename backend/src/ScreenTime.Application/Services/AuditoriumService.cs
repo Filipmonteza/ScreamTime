@@ -76,7 +76,7 @@ public class AuditoriumService : IAuditoriumService
     {
         var auditorium = await _auditoriumRepository.GetByIdAsync(
             id,
-            includeInactive);
+            includeInactive: includeInactive);
 
         if (auditorium is null)
             return null;

@@ -1,46 +1,46 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ScreenTime.Application.Interfaces;
 using ScreenTime.Domain.Entities;
 using ScreenTime.Infrastructure.Data;
 
 namespace ScreenTime.Infrastructure.Repositories;
 
-public class AuditoriumRepository : IAuditoriumRepository
+public class AuditoriumRepository : Repository<Auditorium>, IAuditoriumRepository
 {
-    private readonly ScreenTimeDbContext _context;
-
-    public AuditoriumRepository(ScreenTimeDbContext context)
+    public AuditoriumRepository(ScreenTimeDbContext context) : base(context)
     {
-        _context = context;
     }
+
+    public override async Task<List<Auditorium>> GetAllAsync(
+        CancellationToken cancellationToken = default) =>
+        await GetAllAsync(includeInactive: false, cancellationToken);
 
     public async Task<List<Auditorium>> GetAllAsync(
-        bool includeInactive = false,
+        bool includeInactive,
         CancellationToken cancellationToken = default) =>
-        await _context.Auditoriums
+        await Query()
             .Where(a => includeInactive || a.IsActive)
-            .AsNoTracking()
             .ToListAsync(cancellationToken);
+
+    public override async Task<Auditorium?> GetByIdAsync(
+        Guid id,
+        bool track = false,
+        CancellationToken cancellationToken = default) =>
+        await GetByIdAsync(id, includeInactive: false, track, cancellationToken);
+
     public async Task<Auditorium?> GetByIdAsync(
         Guid id,
-        bool includeInactive = false,
+        bool includeInactive,
         bool track = false,
-        CancellationToken cancellationToken = default)
-    {
-        var query = track
-            ? _context.Auditoriums
-            : _context.Auditoriums.AsNoTracking();
-
-        return await query
+        CancellationToken cancellationToken = default) =>
+        await Query(track)
             .Where(a => a.Id == id && (includeInactive || a.IsActive))
             .FirstOrDefaultAsync(cancellationToken);
-    }
 
     public async Task<Dictionary<Guid, int>> GetCapacitiesAsync(
         IEnumerable<Guid> auditoriumIds,
-        CancellationToken cancellationToken = default)
-    {
-        return await _context.Seats
+        CancellationToken cancellationToken = default) =>
+        await Context.Seats
             .Where(s => auditoriumIds.Contains(s.AuditoriumId))
             .GroupBy(s => s.AuditoriumId)
             .Select(g => new
@@ -52,14 +52,12 @@ public class AuditoriumRepository : IAuditoriumRepository
                 x => x.AuditoriumId,
                 x => x.Count,
                 cancellationToken);
-    }
 
     public async Task<bool> AuditoriumNameExistsAsync(
         string name,
         Guid? excludeAuditoriumId = null,
-        CancellationToken cancellationToken = default)
-    {
-        return await _context.Auditoriums
+        CancellationToken cancellationToken = default) =>
+        await Entities
             .AnyAsync(
                 a =>
                     a.IsActive &&
@@ -67,25 +65,4 @@ public class AuditoriumRepository : IAuditoriumRepository
                     (!excludeAuditoriumId.HasValue ||
                      a.Id != excludeAuditoriumId.Value),
                 cancellationToken);
-    }
-
-    public async Task AddAsync(
-        Auditorium auditorium,
-        CancellationToken cancellationToken = default)
-    {
-        await _context.Auditoriums.AddAsync(
-            auditorium,
-            cancellationToken);
-    }
-
-    public void Update(Auditorium auditorium)
-    {
-        _context.Auditoriums.Update(auditorium);
-    }
-
-    public async Task<bool> SaveChangesAsync(
-        CancellationToken cancellationToken = default)
-    {
-        return await _context.SaveChangesAsync(cancellationToken) > 0;
-    }
 }
