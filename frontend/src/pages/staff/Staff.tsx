@@ -10,6 +10,7 @@ import {
   updateAdminUser,
   updateAdminUserRoles,
   deleteAdminUser,
+  reactivateAdminUser,
 } from "../../api/adminApi";
 import type { AdminUser } from "../../types/admin";
 
@@ -20,6 +21,8 @@ function Staff() {
   const [query, setQuery] = useState("");
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmingReactivateId, setConfirmingReactivateId] = useState<string | null>(null);
+  const [reactivatingId, setReactivatingId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
@@ -27,11 +30,26 @@ function Staff() {
     if (showLoading) setLoading(true);
     getAllAdminUsers()
       .then((data) => {
-        setUsers(data.map((u) => ({ id: u.id as unknown as string, email: u.email, roles: u.roles })));
+        setUsers(data.map((u) => ({ id: u.id as unknown as string, email: u.email, roles: u.roles, isActive: u.isActive })));
         setError(null);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
+  }
+
+  function handleReactivate(id: string) {
+    setError(null);
+    setReactivatingId(id);
+    reactivateAdminUser(id)
+      .then(() => {
+        setConfirmingReactivateId(null);
+        loadUsers();
+      })
+      .catch((err: unknown) => {
+        setConfirmingReactivateId(null);
+        setError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => setReactivatingId(null));
   }
 
   useEffect(() => {
@@ -40,7 +58,7 @@ function Staff() {
       try {
         const data = await getAllAdminUsers();
         if (cancelled) return;
-        setUsers(data.map((u) => ({ id: u.id as unknown as string, email: u.email, roles: u.roles })));
+        setUsers(data.map((u) => ({ id: u.id as unknown as string, email: u.email, roles: u.roles, isActive: u.isActive })));
         setError(null);
       } catch (err: unknown) {
         if (!cancelled) setError(err instanceof Error ? err.message : String(err));
@@ -101,10 +119,16 @@ function Staff() {
               infoLines={[user.roles.join(", ")]}
               confirming={confirmingDeleteId === user.id}
               deleting={deletingId === user.id}
+              isActive={user.isActive}
+              confirmingReactivate={confirmingReactivateId === user.id}
+              reactivating={reactivatingId === user.id}
               onEdit={() => setEditingUser(user)}
               onRequestDelete={() => setConfirmingDeleteId(user.id)}
               onConfirmDelete={() => handleDelete(user.id)}
               onCancelDelete={() => setConfirmingDeleteId(null)}
+              onRequestReactivate={() => setConfirmingReactivateId(user.id)}
+              onConfirmReactivate={() => handleReactivate(user.id)}
+              onCancelReactivate={() => setConfirmingReactivateId(null)}
             />
           ))}
         </div>

@@ -40,7 +40,8 @@ public class AdminController : ControllerBase
             var roles = (await _userManager.GetRolesAsync(user)).ToList();
             if (roles.Contains(IdentitySeeder.AdminRole) || roles.Contains(IdentitySeeder.StaffRole))
             {
-                results.Add(new AdminUserDto(user.Id, user.Email ?? string.Empty, roles));
+                var isActive = !(user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow);
+                results.Add(new AdminUserDto(user.Id, user.Email ?? string.Empty, roles, isActive));
             }
         }
 
@@ -120,8 +121,21 @@ public class AdminController : ControllerBase
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user is null) return NotFound();
 
-        var del = await _userManager.DeleteAsync(user);
-        if (!del.Succeeded) return BadRequest(new { errors = del.Errors.Select(e => e.Description) });
+        // Deactivate the user by locking them out indefinitely instead of deleting
+        var lockoutResult = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+        if (!lockoutResult.Succeeded) return BadRequest(new { errors = lockoutResult.Errors.Select(e => e.Description) });
+
+        return NoContent();
+    }
+
+    [HttpPost("users/{id:guid}/reactivate")]
+    public async Task<IActionResult> ReactivateUser(Guid id)
+    {
+        var user = await _userManager.FindByIdAsync(id.ToString());
+        if (user is null) return NotFound();
+
+        var result = await _userManager.SetLockoutEndDateAsync(user, null);
+        if (!result.Succeeded) return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
 
         return NoContent();
     }

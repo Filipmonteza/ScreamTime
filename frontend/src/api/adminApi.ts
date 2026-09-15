@@ -71,3 +71,13 @@ export async function deleteAdminUser(id: string) {
     throw new Error(`Failed to delete user: ${response.status}`);
   }
 }
+
+export async function reactivateAdminUser(id: string) {
+  const response = await fetch(`${API_BASE_URL}/api/admin/users/${id}/reactivate`, {
+    method: "POST",
+    headers: getAuthHeader(),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to reactivate user: ${response.status}`);
+  }
+}
