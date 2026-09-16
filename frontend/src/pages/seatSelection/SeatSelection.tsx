@@ -145,20 +145,29 @@ function SeatSelection() {
               {vipCount} VIP, {standardCount} standard
             </p>
             <div className="seat-selection-legend">
+              {standardCount > 0 && (
+                <div className="seat-selection-legend-item">
+                  <span className="seat-selection-legend-swatch seat-selection-legend-swatch-standard" />
+                  Standard
+                  <br />
+                  {standardPrice} kr
+                </div>
+              )}
+              {vipCount > 0 && (
+                <div className="seat-selection-legend-item">
+                  <span className="seat-selection-legend-swatch seat-selection-legend-swatch-vip" />
+                  VIP
+                  <br />
+                  {vipPrice} kr
+                </div>
+              )}
               <div className="seat-selection-legend-item">
-                <span className="seat-selection-legend-swatch seat-selection-legend-swatch-standard" />
-                Standard
-                <br />
-                {standardPrice} kr
-              </div>
-              <div className="seat-selection-legend-item">
-                <span className="seat-selection-legend-swatch seat-selection-legend-swatch-vip" />
-                VIP
-                <br />
-                {vipPrice} kr
-              </div>
-              <div className="seat-selection-legend-item">
-                <span className="seat-selection-legend-swatch seat-selection-legend-swatch-unavailable"><img src={iconSeatUnavailable} alt="" className="seat-selection-legend-icon" />
+                <span className="seat-selection-legend-swatch seat-selection-legend-swatch-unavailable">
+                  <img
+                    src={iconSeatUnavailable}
+                    alt=""
+                    className="seat-selection-legend-icon"
+                  />
                 </span>
                 Upptagen
               </div>
