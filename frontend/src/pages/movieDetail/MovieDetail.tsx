@@ -4,7 +4,7 @@ import type { Movie } from "../../types/movie";
 import { getMovieById } from "../../api/moviesApi";
 import "./MovieDetail.css";
 import type { Screening } from "../../types/screening";
-import { getAllScreenings } from "../../api/screeningApi";
+import { getAllScreenings } from "../../api/screeningsApi";
 import { getPosterForMovie } from "../../utils/posterMap";
 import FilterSelect from "../../components/FilterSelect";
 import iconArrowBack from "../../assets/icons/Icon_Arrow_Back.svg";

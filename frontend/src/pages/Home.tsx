@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import type { Movie } from "../types/movie";
 import { getAllMovies } from "../api/moviesApi";
 import type { Screening } from "../types/screening";
-import { getAllScreenings } from "../api/screeningApi";
+import { getAllScreenings } from "../api/screeningsApi";
 import "./Home.css";
 import { getPosterForMovie } from "../utils/posterMap";
 import SearchBar from "../components/SearchBar";

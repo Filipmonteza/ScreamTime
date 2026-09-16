@@ -45,7 +45,7 @@ function Screenings() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadScreenings = useCallback(() => {
-    getAllScreenings(canManageScreenings)
+    getAllScreenings({ includeCancelled: canManageScreenings })
       .then((data) => {
         setError(null);
         setScreenings(data);
