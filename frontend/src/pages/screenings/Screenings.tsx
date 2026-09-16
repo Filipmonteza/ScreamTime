@@ -9,6 +9,7 @@ import ListCard from "../../components/ListCard";
 import "./Screenings.css";
 import iconChevronDown from "../../assets/icons/Icon_Chevron_Down.svg";
 import { useAuth } from "../../context/useAuth";
+import { useNavigate } from "react-router-dom";
 
 function formatDay(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("sv-SE", {
@@ -24,6 +25,7 @@ function formatTime(dateStr: string): string {
 }
 
 function Screenings() {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const canManageScreenings =
@@ -196,6 +198,19 @@ function Screenings() {
               title={screening.movieTitle}
               statusLabel={
                 screening.isCancelled ? "AVBOKAD" : undefined
+              }
+              primaryActionLabel={
+                canManageScreenings || screening.isCancelled
+                    ? undefined
+                    : screening.bookedSeats >= screening.capacity
+                        ? "Fullbokad"
+                        : "Boka"
+              }
+              primaryActionDisabled={
+                  screening.bookedSeats >= screening.capacity
+              }
+              onPrimaryAction={() =>
+                  navigate(`/booking/${screening.screeningId}`)
               }
               inactiveStyle={screening.isCancelled}
               showActions={
