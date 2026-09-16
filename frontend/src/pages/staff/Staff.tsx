@@ -29,17 +29,14 @@ function Staff() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
-  async function loadUsers(showLoading = true): Promise<void> {
-    if (showLoading) setLoading(true);
-    try {
-      const data = await getAllAdminUsers();
-      setUsers(data);
-      setError(null);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
+  function loadUsers() {
+    getAllAdminUsers()
+      .then((data) => {
+        setError(null);
+        setUsers(data);
+      })
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
+      .finally(() => setLoading(false));
   }
 
   function handleReactivate(id: string) {
@@ -58,27 +55,7 @@ function Staff() {
   }
 
   useEffect(() => {
-    let cancelled = false;
-
-    getAllAdminUsers()
-      .then((data) => {
-        if (cancelled) return;
-
-        setUsers(data);
-        setError(null);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-
-        setError(err instanceof Error ? err.message : String(err));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    loadUsers();
   }, []);
 
   function handleDelete(id: string) {
