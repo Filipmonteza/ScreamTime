@@ -18,6 +18,10 @@ export function dateKeyFromIso(iso: string): string {
     return iso.slice(0, 10);
 }
 
+export function todayKey(): string {
+    return formatDateKey(new Date());
+}
+
 export function nextDays(count: number): string[] {
     const today = new Date();
     return Array.from({ length: count }, (_, i) => {

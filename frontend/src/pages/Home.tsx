@@ -1,23 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { Movie } from "../types/movie";
 import { getAllMovies } from "../api/moviesApi";
 import type { Screening } from "../types/screening";
 import { getAllScreenings } from "../api/screeningsApi";
 import "./Home.css";
-import { getPosterForMovie } from "../utils/posterMap";
-import SearchBar from "../components/SearchBar";
-import Pagination from "../components/Pagination";
-import usePagination from "../hooks/usePagination";
-import FilterSelect from "../components/FilterSelect";
-import {
-  dateKeyFromIso,
-  nextDays,
-  formatDateOptionLabel,
-} from "../utils/dateOptions";
-
-const PAGE_SIZE = 5;
-const dayOptions = nextDays(5);
+import MovieCard from "../components/MovieCard";
+import { todayKey } from "../utils/dateOptions";
 
 function shuffle<T>(arr: T[]): T[] {
   const copy = [...arr];
@@ -28,75 +17,63 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
+function formatTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString("sv-SE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+type AuditoriumProgramme = {
+  auditoriumId: string;
+  name: string;
+  screenings: Screening[];
+};
+
 function Home() {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const navigate = useNavigate();
   const [tipMovies, setTipMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [dayFilter, setDayFilter] = useState("");
-  const [genreFilter, setGenreFilter] = useState("");
-  const [auditoriumFilter, setAuditoriumFilter] = useState("");
+  const [todaysScreenings, setTodaysScreenings] = useState<Screening[]>([]);
+  const [screeningsLoading, setScreeningsLoading] = useState(true);
   const [screeningsError, setScreeningsError] = useState<string | null>(null);
-  const [screenings, setScreenings] = useState<Screening[]>([]);
 
   useEffect(() => {
     getAllMovies()
-      .then((data) => {
-        setMovies(data);
-        setTipMovies(shuffle(data).slice(0, 6));
-      })
+      .then((data) => setTipMovies(shuffle(data).slice(0, 6)))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredMovies = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return movies.filter((movie) => {
-      const matchesQuery = !q || movie.title.toLowerCase().includes(q);
-      const matchesGenre = !genreFilter || movie.genres.includes(genreFilter);
-      const matchesDay =
-        !dayFilter ||
-        screenings.some(
-          (s) =>
-            s.movieId === movie.movieId &&
-            dateKeyFromIso(s.startTime) === dayFilter,
-        );
-      const matchesAuditorium =
-        !auditoriumFilter ||
-        screenings.some(
-          (s) =>
-            s.movieId === movie.movieId &&
-            s.auditoriumName === auditoriumFilter,
-        );
-      return matchesQuery && matchesGenre && matchesDay && matchesAuditorium;
-    });
-  }, [movies, screenings, query, genreFilter, dayFilter, auditoriumFilter]);
-
   useEffect(() => {
-    getAllScreenings()
-      .then(setScreenings)
-      .catch((err) => setScreeningsError(err.message));
+    getAllScreenings({ date: todayKey() })
+      .then(setTodaysScreenings)
+      .catch((err) => setScreeningsError(err.message))
+      .finally(() => setScreeningsLoading(false));
   }, []);
-  const auditoriumOptions = useMemo(() => {
-    const set = new Set<string>();
-    screenings.forEach((s) => set.add(s.auditoriumName));
-    return Array.from(set).sort();
-  }, [screenings]);
 
-  const genreOptions = useMemo(() => {
-    const set = new Set<string>();
-    movies.forEach((movie) => movie.genres.forEach((genre) => set.add(genre)));
-    return Array.from(set).sort();
-  }, [movies]);
-
-  const filterKey = `${query}__${genreFilter}__${dayFilter}__${auditoriumFilter}`;
-  const {
-    page,
-    setPage,
-    totalPages,
-    pagedItems: pagedMovies,
-  } = usePagination(filteredMovies, PAGE_SIZE, filterKey);
+  // One group per auditorium, in name order; the API already returns each
+  // auditorium's screenings in start-time order. Screenings that have already
+  // started are dropped the same way MovieDetail does it.
+  const programme = useMemo<AuditoriumProgramme[]>(() => {
+    const now = new Date();
+    const groups = new Map<string, AuditoriumProgramme>();
+    todaysScreenings
+      .filter((s) => new Date(s.startTime) > now)
+      .forEach((s) => {
+        const group = groups.get(s.auditoriumId) ?? {
+          auditoriumId: s.auditoriumId,
+          name: s.auditoriumName,
+          screenings: [],
+        };
+        group.screenings.push(s);
+        groups.set(s.auditoriumId, group);
+      });
+    return [...groups.values()].sort((a, b) =>
+      a.name.localeCompare(b.name, "sv"),
+    );
+  }, [todaysScreenings]);
 
   return (
     <div className="page home">
@@ -110,94 +87,68 @@ function Home() {
             {tipMovies.length > 0 && (
               <div className="movie-row">
                 {tipMovies.map((movie) => (
-                  <Link
-                    to={`/movieDetail/${movie.movieId}`}
-                    className="movie-card"
-                    key={movie.movieId}
-                  >
-                    <img
-                      className="movie-card-poster"
-                      src={getPosterForMovie(movie)}
-                      alt={movie.title}
-                    />
-                    <p className="title-movie-card">{movie.title}</p>
-                    <p className="genre-movie-card">
-                      {movie.genres.join(", ")}
-                    </p>
-                  </Link>
+                  <MovieCard key={movie.movieId} movie={movie} />
                 ))}
               </div>
             )}
           </div>
-          <div className="find-section">
-            <h2>Hitta film</h2>
+          <div className="today-section">
+            <h2>Dagens visningar</h2>
+            {screeningsLoading && <p>Laddar...</p>}
             {screeningsError && <p>Fel: {screeningsError}</p>}
-            <SearchBar
-              value={query}
-              onChange={setQuery}
-              placeholder="Sök efter film..."
-            />
-            <div className="toolbar">
-              <div className="filter-row">
-                <FilterSelect
-                  value={dayFilter}
-                  onChange={setDayFilter}
-                  options={dayOptions.map((day, index) => ({
-                    value: day,
-                    label: formatDateOptionLabel(day, index),
-                  }))}
-                  placeholder="Dag"
-                />
-                <FilterSelect
-                  value={genreFilter}
-                  onChange={setGenreFilter}
-                  options={genreOptions.map((genre) => ({
-                    value: genre,
-                    label: genre,
-                  }))}
-                  placeholder="Alla genrer"
-                />
-                <FilterSelect
-                  value={auditoriumFilter}
-                  onChange={setAuditoriumFilter}
-                  options={auditoriumOptions.map((room) => ({
-                    value: room,
-                    label: room,
-                  }))}
-                  placeholder="Salong"
-                />
-              </div>
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-              />
-            </div>
-            <div>
-              {pagedMovies.length === 0 && <p>Inga filmer kunde hittas</p>}
 
-              {pagedMovies.length > 0 && (
-                <div className="movie-list">
-                  {pagedMovies.map((movie) => (
-                    <Link
-                      to={`/movieDetail/${movie.movieId}`}
-                      className="movie-card"
-                      key={movie.movieId}
-                    >
-                      <img
-                        className="movie-card-poster"
-                        src={getPosterForMovie(movie)}
-                        alt={movie.title}
-                      />
-                      <p className="title-movie-card">{movie.title}</p>
-                      <p className="genre-movie-card">
-                        {movie.genres.join(", ")}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            {!screeningsLoading && !screeningsError && programme.length === 0 && (
+              <p>Inga visningar idag</p>
+            )}
+
+            {programme.length > 0 && (
+              <div className="today-auditoriums">
+                {programme.map((auditorium) => (
+                  <div
+                    className="today-auditorium"
+                    key={auditorium.auditoriumId}
+                  >
+                    <h3>{auditorium.name}</h3>
+                    <div className="today-showtimes">
+                      {auditorium.screenings.map((screening) => {
+                        const seatsLeft =
+                          screening.capacity - screening.bookedSeats;
+                        return (
+                          <div
+                            className="today-showtime"
+                            key={screening.screeningId}
+                          >
+                            <span className="today-showtime-time">
+                              {formatTime(screening.startTime)}
+                            </span>
+                            <div className="today-showtime-info">
+                              <Link
+                                to={`/movieDetail/${screening.movieId}`}
+                                className="today-showtime-title"
+                              >
+                                {screening.movieTitle}
+                              </Link>
+                              <span className="today-showtime-seats">
+                                {seatsLeft} platser kvar
+                              </span>
+                            </div>
+                            <button
+                              className="btn-pill"
+                              disabled={seatsLeft <= 0}
+                              onClick={() =>
+                                navigate(`/booking/${screening.screeningId}`)
+                              }
+                            >
+                              {seatsLeft <= 0 ? "Fullbokad" : "Biljetter"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </>
       )}
