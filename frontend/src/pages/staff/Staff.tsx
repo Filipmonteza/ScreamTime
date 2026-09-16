@@ -58,8 +58,27 @@ function Staff() {
   }
 
   useEffect(() => {
-    // loading is already true from the initial state
-    void loadUsers(false);
+    let cancelled = false;
+
+    getAllAdminUsers()
+      .then((data) => {
+        if (cancelled) return;
+
+        setUsers(data);
+        setError(null);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+
+        setError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function handleDelete(id: string) {
