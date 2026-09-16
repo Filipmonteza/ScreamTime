@@ -3,26 +3,24 @@ import { getAuthHeader } from './authHeader'
 
 const API_BASE_URL = 'http://localhost:5267'
 
-export async function getAllScreenings(
-    includeCancelled = false,
-): Promise<Screening[]> {
+export async function getAllScreenings(params?: {
+    movieId?: string
+    includeCancelled?: boolean
+}): Promise<Screening[]> {
     const url = new URL(`${API_BASE_URL}/api/screenings`)
 
-    if (includeCancelled) {
-        url.searchParams.set('includeCancelled', 'true')
-    }
+    if (params?.movieId) url.searchParams.set('movieId', params.movieId)
+    if (params?.includeCancelled) url.searchParams.set('includeCancelled', 'true')
 
     const response = await fetch(url.toString(), {
-        headers: includeCancelled ? { ...getAuthHeader() } : undefined,
+        headers: params?.includeCancelled ? { ...getAuthHeader() } : undefined,
     })
 
     if (!response.ok) {
         throw new Error(`Failed to fetch screenings: ${response.status}`)
     }
 
-    const data = await response.json()
-
-    return data
+    return response.json()
 }
 
 export async function getScreeningById(id: string): Promise<Screening> {
