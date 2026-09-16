@@ -50,6 +50,12 @@ const customerItems: NavEntry[] = [
     iconFill: iconHomeFill,
   },
   {
+    to: "/all-movies",
+    label: "Alla filmer",
+    iconDefault: iconMoviesDefault,
+    iconFill: iconMoviesFill,
+  },
+  {
   to: "/screenings",
   label: "Visningar",
   iconDefault: iconScreeningsDefault,
@@ -142,6 +148,12 @@ const loggedOutItems: NavItem[] = [
     label: "Hem",
     iconDefault: iconHomeDefault,
     iconFill: iconHomeFill,
+  },
+  {
+    to: "/all-movies",
+    label: "Alla filmer",
+    iconDefault: iconMoviesDefault,
+    iconFill: iconMoviesFill,
   },
   {
   to: "/screenings",

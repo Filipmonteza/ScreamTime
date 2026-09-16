@@ -1,0 +1,33 @@
+.all-movies {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.all-movies h1 {
+  margin: 0;
+}
+
+/* FILTER */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* PAGINATED MOVIE LIST*/
+.movie-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.movie-list .movie-card-poster {
+  width: 201px;
+  height: 302px;
+}
+
+.movie-list .movie-card {
+  width: 201px;
+}
