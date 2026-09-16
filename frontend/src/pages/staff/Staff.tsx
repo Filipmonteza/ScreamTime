@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import "./Staff.css";
 import ListToolbar from "../../components/ListToolbar";
 import ListCard from "../../components/ListCard";
@@ -14,8 +14,10 @@ import {
   reactivateAdminUser,
 } from "../../api/adminApi";
 import type { AdminUser } from "../../types/admin";
+import { useAuth } from "../../context/useAuth";
 
 function Staff() {
+  const { user: current } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,20 +29,18 @@ function Staff() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
-  const loadUsers = useCallback(async (showLoading = true, shouldUpdate: () => boolean = () => true): Promise<void> => {
+  async function loadUsers(showLoading = true): Promise<void> {
     if (showLoading) setLoading(true);
     try {
-      const data: AdminUser[] = await getAllAdminUsers();
-      if (!shouldUpdate()) return;
-      setUsers(data.map((u: AdminUser) => ({ id: u.id, email: u.email, roles: u.roles, isActive: u.isActive })));
+      const data = await getAllAdminUsers();
+      setUsers(data);
       setError(null);
     } catch (err: unknown) {
-      if (!shouldUpdate()) return;
       setError(err instanceof Error ? err.message : String(err));
     } finally {
-      if (shouldUpdate()) setLoading(false);
+      setLoading(false);
     }
-  }, []);
+  }
 
   function handleReactivate(id: string) {
     setError(null);
@@ -58,13 +58,7 @@ function Staff() {
   }
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      await loadUsers(true, () => !cancelled);
-    })();
-    return () => {
-      cancelled = true;
-    };
+    void loadUsers(true);
   }, []);
 
   function handleDelete(id: string) {
@@ -108,25 +102,29 @@ function Staff() {
 
       {!loading && (
         <div className="card-grid">
-          {pagedItems.map((user: AdminUser) => (
-            <ListCard
-              key={user.id}
-              title={user.email}
-              infoLines={[user.roles.join(", ")]}
-              confirming={confirmingDeleteId === user.id}
-              deleting={deletingId === user.id}
-              isActive={user.isActive}
-              confirmingReactivate={confirmingReactivateId === user.id}
-              reactivating={reactivatingId === user.id}
-              onEdit={() => setEditingUser(user)}
-              onRequestDelete={() => setConfirmingDeleteId(user.id)}
-              onConfirmDelete={() => handleDelete(user.id)}
-              onCancelDelete={() => setConfirmingDeleteId(null)}
-              onRequestReactivate={() => setConfirmingReactivateId(user.id)}
-              onConfirmReactivate={() => handleReactivate(user.id)}
-              onCancelReactivate={() => setConfirmingReactivateId(null)}
-            />
-          ))}
+          {pagedItems.map((user: AdminUser) => {
+            const isCurrent = current?.userId === user.id;
+            return (
+              <ListCard
+                key={user.id}
+                title={user.email}
+                infoLines={[user.roles.join(", ")]}
+                confirming={confirmingDeleteId === user.id}
+                deleting={deletingId === user.id}
+                isActive={user.isActive}
+                confirmingReactivate={confirmingReactivateId === user.id}
+                reactivating={reactivatingId === user.id}
+                showActions={!isCurrent}
+                onEdit={isCurrent ? undefined! : () => setEditingUser(user)}
+                onRequestDelete={isCurrent ? undefined! : () => setConfirmingDeleteId(user.id)}
+                onConfirmDelete={isCurrent ? undefined! : () => handleDelete(user.id)}
+                onCancelDelete={() => setConfirmingDeleteId(null)}
+                onRequestReactivate={() => setConfirmingReactivateId(user.id)}
+                onConfirmReactivate={() => handleReactivate(user.id)}
+                onCancelReactivate={() => setConfirmingReactivateId(null)}
+              />
+            );
+          })}
         </div>
       )}
 

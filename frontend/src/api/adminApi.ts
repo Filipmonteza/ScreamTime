@@ -29,7 +29,7 @@ export async function createAdminUser(
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
-    throw new Error(data?.error ?? `Failed to create user: ${response.status}`);
+    throw new Error(data?.errors?.[0] ?? data?.error ?? `Failed to create user: ${response.status}`);
   }
 }
 
@@ -53,7 +53,7 @@ export async function updateAdminUserRoles(id: string, roles: string[]) {
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
-    throw new Error(data?.error ?? `Failed to update roles: ${response.status}`);
+    throw new Error(data?.errors?.[0] ?? data?.error ?? `Failed to update roles: ${response.status}`);
   }
 }
 
