@@ -58,7 +58,8 @@ function Staff() {
   }
 
   useEffect(() => {
-    void loadUsers(true);
+    // loading is already true from the initial state
+    void loadUsers(false);
   }, []);
 
   function handleDelete(id: string) {
