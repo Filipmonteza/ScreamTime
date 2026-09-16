@@ -157,6 +157,11 @@ function SeatSelection() {
                 <br />
                 {vipPrice} kr
               </div>
+              <div className="seat-selection-legend-item">
+                <span className="seat-selection-legend-swatch seat-selection-legend-swatch-unavailable"><img src={iconSeatUnavailable} alt="" className="seat-selection-legend-icon" />
+                </span>
+                Upptagen
+              </div>
             </div>
 
             <div className="seat-selection-screen" />
