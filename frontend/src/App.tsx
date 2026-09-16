@@ -31,7 +31,7 @@ function App() {
         <Route path="/auditoriums" element={<ProtectedRoute roles={["Admin", "Staff"]}><Auditoriums /></ProtectedRoute>} />
         <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
         <Route path="/screenings" element={<Screenings />} />
-        <Route path="/staff" element={<ProtectedRoute roles={["Admin", "Staff"]}><Staff /></ProtectedRoute>} />
+        <Route path="/staff" element={<ProtectedRoute roles={["Admin"]}><Staff /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
       </Routes>
     </>
