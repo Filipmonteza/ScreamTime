@@ -12,9 +12,10 @@ public static class SeedData
 {
     private const int CleaningMinutes = 20;
 
-    // Four hours apart, which is wider than the longest film plus cleaning,
-    // so no two screenings in the same auditorium can overlap.
-    private static readonly int[] StartHours = [12, 16, 20];
+    // Four hours apart, which leaves room for a film a good deal longer than
+    // anything currently seeded, so no two screenings in the same auditorium
+    // can overlap.
+    private static readonly int[] StartHours = [10, 14, 18, 22];
 
     public static async Task SeedAsync(ScreenTimeDbContext db)
     {
@@ -136,23 +137,38 @@ public static class SeedData
         // Lilla salongen: 5 rows of 8, all standard. 40 seats.
         db.Seats.AddRange(BuildSeats(lilla, "ABCDE", seatsPerRow: 8, vipRows: ""));
 
-        // Two weeks of programme starting tomorrow.
-        var firstDay = DateTime.Today.AddDays(1);
+        // Two weeks of programme starting today, so a fresh database has
+        // something on the home page's "Dagens visningar" straight away. The
+        // programme endpoint hides slots that have already passed.
+        var firstDay = DateTime.Today;
+
+        // Even-indexed films play in Stora, odd in Lilla: five films each.
+        var programmes = new[]
+        {
+            (Auditorium: stora, Movies: movies.Where((_, i) => i % 2 == 0).ToArray()),
+            (Auditorium: lilla, Movies: movies.Where((_, i) => i % 2 == 1).ToArray()),
+        };
+
         for (var day = 0; day < 14; day++)
         {
-            for (var i = 0; i < movies.Length; i++)
+            foreach (var (auditorium, films) in programmes)
             {
-                var movie = movies[i];
-                var start = firstDay.AddDays(day).AddHours(StartHours[(day + i) % StartHours.Length]);
-
-                db.Screenings.Add(new Screening
+                // Four slots for five films: rotating by day means each film
+                // sits out one day in five and never shares a slot with another.
+                for (var slot = 0; slot < StartHours.Length; slot++)
                 {
-                    Movie = movie,
-                    Auditorium = i % 2 == 0 ? stora : lilla,
-                    StartTime = start,
-                    EndTime = start.AddMinutes(movie.RuntimeMinutes + CleaningMinutes),
-                    IsCancelled = false
-                });
+                    var movie = films[(day + slot) % films.Length];
+                    var start = firstDay.AddDays(day).AddHours(StartHours[slot]);
+
+                    db.Screenings.Add(new Screening
+                    {
+                        Movie = movie,
+                        Auditorium = auditorium,
+                        StartTime = start,
+                        EndTime = start.AddMinutes(movie.RuntimeMinutes + CleaningMinutes),
+                        IsCancelled = false
+                    });
+                }
             }
         }
 
