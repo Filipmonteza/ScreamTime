@@ -20,6 +20,9 @@ interface ListCardProps {
   onRequestReactivate?: () => void;
   onConfirmReactivate?: () => void;
   onCancelReactivate?: () => void;
+  primaryActionLabel?: string;
+  onPrimaryAction?: () => void;
+  primaryActionDisabled?: boolean;
 }
 
 function ListCard({
@@ -41,9 +44,11 @@ function ListCard({
   onRequestReactivate,
   onConfirmReactivate,
   onCancelReactivate,
+  primaryActionLabel,
+  onPrimaryAction,
+  primaryActionDisabled = false,
 }: ListCardProps) {
   const isDimmed = inactiveStyle ?? !isActive;
-
   const cardClassName = isDimmed
     ? "list-card list-card--inactive"
     : "list-card";
@@ -108,6 +113,18 @@ function ListCard({
             </div>
           )}
         </>
+      )}
+      {primaryActionLabel && onPrimaryAction && (
+          <div className="list-card-actions">
+            <button
+                type="button"
+                className="btn-pill"
+                onClick={onPrimaryAction}
+                disabled={primaryActionDisabled}
+            >
+              {primaryActionLabel}
+            </button>
+          </div>
       )}
     </div>
   );
