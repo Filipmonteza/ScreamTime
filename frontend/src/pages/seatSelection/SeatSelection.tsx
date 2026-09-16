@@ -140,7 +140,7 @@ function SeatSelection() {
       {!loading && !error && seatMap && (
         <div className="seat-selection-content">
           <div className="seat-selection-card">
-            <h1>{seatMap.auditoriumName}</h1>
+            <h2>{seatMap.auditoriumName}</h2>
             <p>
               {vipCount} VIP, {standardCount} standard
             </p>
