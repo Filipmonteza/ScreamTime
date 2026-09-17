@@ -6,6 +6,7 @@ import { formatDateTimeLabel } from "../../utils/dateOptions";
 import SearchBar from "../../components/SearchBar";
 import Pagination from "../../components/Pagination";
 import "./AdminBookings.css";
+import { BookingStatus } from "../../types/booking";
 
 function AdminBookings() {
   const [search, setSearch] = useState("");
@@ -88,7 +89,7 @@ function AdminBookings() {
         <>
           <div className="booking-card-grid">
             {result.items.map((booking) => {
-              const isCancelled = booking.status === 2;
+              const isCancelled = booking.status === BookingStatus.Cancelled;
 
               return (
                 <div key={booking.bookingId} className="booking-card">
