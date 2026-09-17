@@ -2,6 +2,7 @@ import { useAuth } from "./context/useAuth";
 import { Routes, Route } from "react-router-dom";
 import Navbar, { type Role } from "./components/Navbar";
 import Home from "./pages/Home";
+import AllMovies from "./pages/allMovies/AllMovies";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import MovieDetail from "./pages/movieDetail/MovieDetail";
@@ -23,6 +24,7 @@ function App() {
       <Navbar role={role} />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/all-movies" element={<AllMovies />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/movieDetail/:id" element={<MovieDetail />} />

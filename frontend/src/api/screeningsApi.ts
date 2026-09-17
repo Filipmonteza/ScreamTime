@@ -5,11 +5,13 @@ const API_BASE_URL = 'http://localhost:5267'
 
 export async function getAllScreenings(params?: {
     movieId?: string
+    date?: string
     includeCancelled?: boolean
 }): Promise<Screening[]> {
     const url = new URL(`${API_BASE_URL}/api/screenings`)
 
     if (params?.movieId) url.searchParams.set('movieId', params.movieId)
+    if (params?.date) url.searchParams.set('date', params.date)
     if (params?.includeCancelled) url.searchParams.set('includeCancelled', 'true')
 
     const response = await fetch(url.toString(), {

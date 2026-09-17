@@ -1,0 +1,27 @@
+.movie-card {
+  flex-shrink: 0;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.movie-card-poster {
+  width: 269px;
+  height: 404px;
+  border-radius: 4px;
+  background: var(--color-surface);
+  object-fit: cover;
+}
+
+.title-movie-card {
+  font-weight: 600;
+  font-size: 16px;
+  margin: 10px 0 0;
+}
+
+.genre-movie-card {
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 4px 0 0;
+}
