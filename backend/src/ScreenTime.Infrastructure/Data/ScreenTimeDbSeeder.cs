@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ScreenTime.Domain.Common;
 using ScreenTime.Domain.Entities;
 using ScreenTime.Domain.Enums;
 
@@ -139,8 +140,9 @@ public static class SeedData
 
         // Two weeks of programme starting today, so a fresh database has
         // something on the home page's "Dagens visningar" straight away. The
-        // programme endpoint hides slots that have already passed.
-        var firstDay = DateTime.Today;
+        // programme endpoint hides slots that have already passed. "Today" and
+        // the start hours are on the cinema's clock; what is stored is UTC.
+        var firstDay = CinemaClock.Today;
 
         // Even-indexed films play in Stora, odd in Lilla: five films each.
         var programmes = new[]
@@ -158,7 +160,8 @@ public static class SeedData
                 for (var slot = 0; slot < StartHours.Length; slot++)
                 {
                     var movie = films[(day + slot) % films.Length];
-                    var start = firstDay.AddDays(day).AddHours(StartHours[slot]);
+                    var start = CinemaClock.FromCinemaTime(
+                        firstDay.AddDays(day).ToDateTime(new TimeOnly(StartHours[slot], 0)));
 
                     db.Screenings.Add(new Screening
                     {

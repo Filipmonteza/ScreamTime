@@ -70,7 +70,7 @@ public sealed class BookingService : IBookingService
         }
 
         // Prevents booking a screening that has already started
-        if (screening.StartTime <= DateTime.Now)
+        if (screening.StartTime <= DateTime.UtcNow)
         {
             throw new InvalidOperationException(
                 "Det går inte att boka en visning som redan har börjat.");
@@ -260,7 +260,7 @@ public sealed class BookingService : IBookingService
             cancellationToken);
 
         // Gets the current time
-        var currentTime = DateTime.Now;
+        var currentTime = DateTime.UtcNow;
 
         return bookings
             // Makes sure the booking belongs to the user
@@ -299,7 +299,7 @@ public sealed class BookingService : IBookingService
             userId,
             cancellationToken);
 
-        var currentTime = DateTime.Now;
+        var currentTime = DateTime.UtcNow;
 
         return bookings
             // Only return the customer's bookings
@@ -345,7 +345,7 @@ public sealed class BookingService : IBookingService
                 "Visningen är avbokad.");
         }
 
-        if (screening.StartTime <= DateTime.Now)
+        if (screening.StartTime <= DateTime.UtcNow)
         {
             throw new InvalidOperationException(
                 "Visningen har redan börjat.");
@@ -494,7 +494,7 @@ public sealed class BookingService : IBookingService
         var cancellationDeadline =
             booking.Screening.StartTime.AddMinutes(-15);
 
-        if (DateTime.Now >= cancellationDeadline)
+        if (cancelledAt >= cancellationDeadline)
         {
             throw new InvalidOperationException(
                 "Bokningen kan inte avbokas senare än 15 minuter före visningen.");
