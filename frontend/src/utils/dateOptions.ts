@@ -1,3 +1,7 @@
+function capitalize(word: string): string {
+    return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 function formatDateKey(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -49,7 +53,7 @@ export function formatWeekdayLabel(dateStr: string): string {
     const weekday = new Date(dateStr).toLocaleDateString("sv-SE", {
         weekday: "long",
     });
-    return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    return capitalize(weekday);
 }
 
 export function formatDateOptionLabel(dateStr: string, index: number): string {
@@ -61,6 +65,28 @@ export function formatDateOptionLabel(dateStr: string, index: number): string {
         day: "numeric",
         month: "long",
     });
-    const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-    return `${capitalizedWeekday} ${dayMonth}`;
+    return `${capitalize(weekday)} ${dayMonth}`;
+}
+
+function relativeDayLabel(dateKey: string): string | null {
+    const [today, tomorrow] = nextDays(2);
+    if (dateKey === today) return "Idag";
+    if (dateKey === tomorrow) return "Imorgon";
+    return null;
+}
+
+// A calendar day as the programme labels it: "Idag", "Imorgon", then
+// "Fredag 19 september".
+export function formatDayLabel(dateKey: string): string {
+    return relativeDayLabel(dateKey) ?? formatDateOptionLabel(dateKey, 2);
+}
+
+// The same day squeezed into a chip: "Idag", "Imorgon", then "Fre 19".
+export function formatShortDayLabel(dateKey: string): string {
+    const relative = relativeDayLabel(dateKey);
+    if (relative) return relative;
+    const date = new Date(dateKey);
+    const weekday = date.toLocaleDateString("sv-SE", { weekday: "short" });
+    const dayOfMonth = date.toLocaleDateString("sv-SE", { day: "numeric" });
+    return `${capitalize(weekday)} ${dayOfMonth}`;
 }
