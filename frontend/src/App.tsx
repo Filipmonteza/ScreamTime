@@ -14,6 +14,8 @@ import Screenings from "./pages/screenings/Screenings";
 import Staff from "./pages/staff/Staff";
 import Account from "./pages/account/Account";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminBookings from "./pages/adminbookings/AdminBookings";
+
 
 function App() {
   const { user } = useAuth();
@@ -32,6 +34,7 @@ function App() {
         <Route path="/movies" element={<ProtectedRoute roles={["Admin", "Staff"]}><Movies /></ProtectedRoute>} />
         <Route path="/auditoriums" element={<ProtectedRoute roles={["Admin", "Staff"]}><Auditoriums /></ProtectedRoute>} />
         <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+        <Route path="/adminbookings" element={<ProtectedRoute roles={["Admin", "Staff"]}><AdminBookings /></ProtectedRoute>} />
         <Route path="/screenings" element={<Screenings />} />
         <Route path="/staff" element={<ProtectedRoute roles={["Admin"]}><Staff /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />

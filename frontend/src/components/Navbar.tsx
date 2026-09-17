@@ -63,7 +63,7 @@ const customerItems: NavEntry[] = [
   },
   {
     to: "/bookings",
-    label: "Bokningar",
+    label: "Mina Bokningar",
     iconDefault: iconBookingsDefault,
     iconFill: iconBookingsFill,
   },
@@ -107,6 +107,12 @@ const adminItems: NavEntry[] = [
     label: "Visningar",
     iconDefault: iconScreeningsDefault,
     iconFill: iconScreeningsFill,
+  },
+  {
+    to: "/adminbookings",
+    label: "Bokningar",
+    iconDefault: iconBookingsDefault,
+    iconFill: iconBookingsFill,
   },
   {
     to: "/auditoriums",
