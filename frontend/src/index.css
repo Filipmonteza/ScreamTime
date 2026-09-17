@@ -10,6 +10,9 @@
   --accent-color-1: #f7f7f7;
   --accent-color-1-disabled: #f7f7f799;
   --color-warning: yellow;
+  --color-error-message: #FF7575;
+  --color-warning-message: #FFD863;
+  --color-success-message: #A8FF83;
   --color-seat-standard: #f7f7f7;
   --color-seat-vip: #ffdb59;
   --color-seat-unavailable: #545454;
