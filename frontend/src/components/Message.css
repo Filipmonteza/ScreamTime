@@ -1,0 +1,31 @@
+.message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border-radius: 5px;
+  color: var(--color-text-input);
+}
+
+.message-success {
+  background: var(--color-success-message);
+}
+
+.message-warning {
+  background: var(--color-warning-message);
+}
+
+.message-error {
+  background: var(--color-error-message);
+}
+
+.message-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.message-text {
+  font-size:0.75rem;
+  line-height: 120%;
+}
