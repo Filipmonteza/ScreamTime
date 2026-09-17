@@ -6,6 +6,7 @@ import "../auth/Auth.css";
 import "./Account.css";
 
 function Account() {
+    const { user, updateAuth, logout, token } = useAuth()
   const { user, updateAuth } = useAuth();
 
   const [editingEmail, setEditingEmail] = useState(false);
@@ -19,10 +20,59 @@ function Account() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
+    const [editingPassword, setEditingPassword] = useState(false)
+    const [currentPassword, setCurrentPassword] = useState("")
+    const [newPassword, setNewPassword] = useState("")
+    const [passwordError, setPasswordError] = useState<string | null>(null)
+    const [passwordSuccess, setPasswordSuccess] = useState(false)
+    const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false)
+    const [deactivateError, setDeactivateError] = useState<string | null>(null)
+
+    if (!user) {
+        return <div className="page auth-page">Du måste vara inloggad.</div>
+    }
   if (!user) {
     return <div className="page auth-page">Du måste vara inloggad.</div>;
   }
 
+    async function handleDeactivate() {
+        setDeactivateError(null)
+        try {
+            const API_BASE = 'http://localhost:5267'
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+            if (token) headers['Authorization'] = `Bearer ${token}`
+
+            const resp = await fetch(`${API_BASE}/api/account/deactivate`, {
+                method: 'POST',
+                headers,
+            })
+
+            if (!resp.ok) {
+                const data = await resp.json().catch(() => null)
+                throw new Error(data?.error ?? `Failed to deactivate account: ${resp.status}`)
+            }
+
+            // Clear client auth state and redirect to home
+            await logout()
+            window.location.href = "/"
+        } catch (err) {
+            setDeactivateError(err instanceof Error ? err.message : "Något gick fel.")
+        }
+    }
+
+    async function handleEmailSubmit(e: React.FormEvent) {
+        e.preventDefault()
+        setEmailError(null)
+        try {
+            const result = await updateEmail(newEmail, emailPassword)
+            updateAuth(result)
+            setEditingEmail(false)
+            setNewEmail("")
+            setEmailPassword("")
+        } catch (err) {
+            setEmailError(err instanceof Error ? err.message : "Något gick fel.")
+        }
+    }
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     setEmailError(null);
@@ -140,6 +190,63 @@ function Account() {
           <Message type="success">Lösenord uppdaterat.</Message>
         )}
 
+                {editingPassword && (
+                    <form onSubmit={handlePasswordSubmit}>
+                        <div className="auth-field">
+                            <label className="auth-label" htmlFor="currentPassword">Nuvarande lösenord</label>
+                            <input
+                                className="auth-input"
+                                type="password"
+                                id="currentPassword"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="auth-field">
+                            <label className="auth-label" htmlFor="newPassword">Nytt lösenord</label>
+                            <input
+                                className="auth-input"
+                                type="password"
+                                id="newPassword"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                required
+                                minLength={8}
+                            />
+                        </div>
+                        {passwordError && <p className="account-error">{passwordError}</p>}
+                        <div className="auth-button-row">
+                            <button type="submit" className="btn-pill">Spara</button>
+                            <button type="button" className="btn-pill" onClick={() => setEditingPassword(false)}>
+                                Avbryt
+                            </button>
+                        </div>
+                    </form>
+                )}
+                <hr className="account-divider" />
+
+                <div className="auth-button-row">
+                    <button type="button" className="btn-pill btn-danger" onClick={() => setShowDeactivateConfirm(true)}>
+                        Avaktivera konto
+                    </button>
+                </div>
+
+                {showDeactivateConfirm && (
+                    <div className="deactivate-modal">
+                        <div className="deactivate-modal-content">
+                            <p>Är du säker på att du vill avaktivera ditt konto? Detta loggar ut dig och du kan inte logga in igen.</p>
+                            {deactivateError && <p className="account-error">{deactivateError}</p>}
+                            <div className="auth-button-row">
+                                <button type="button" className="btn-pill btn-danger" onClick={handleDeactivate}>Ja, avaktivera</button>
+                                <button type="button" className="btn-pill" onClick={() => setShowDeactivateConfirm(false)}>Avbryt</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    )
         {editingPassword && (
           <form onSubmit={handlePasswordSubmit}>
             <div className="auth-field">

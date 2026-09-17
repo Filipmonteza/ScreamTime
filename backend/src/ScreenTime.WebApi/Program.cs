@@ -8,6 +8,7 @@ using ScreenTime.Infrastructure;
 using ScreenTime.Infrastructure.Data;
 using ScreenTime.Infrastructure.Identity;
 using System.Text;
+using System.Security.Claims;
 
 const string FrontendCorsPolicy = "Frontend";
 
@@ -90,6 +91,33 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         ClockSkew = TimeSpan.Zero // Remove default 5 minute tolerance
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                context.Fail("Missing user id claim.");
+                return;
+            }
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                context.Fail("User not found.");
+                return;
+            }
+
+            if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow)
+            {
+                context.Fail("User account is deactivated.");
+                return;
+            }
+        }
     };
 });
 
