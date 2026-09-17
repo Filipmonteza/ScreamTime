@@ -20,14 +20,15 @@ public class MovieService : IMovieService
         return movies.Select(MapToDto).ToList();
     }
 
-    public async Task<MovieDto?> GetMovieByIdAsync(Guid id)
+    public async Task<MovieDto> GetMovieByIdAsync(Guid id)
     {
-        var movie = await _movieRepository.GetByIdAsync(id);
+        var movie = await _movieRepository.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException("Filmen hittades inte.");
 
-        return movie is null ? null : MapToDto(movie);
+        return MapToDto(movie);
     }
 
-    public async Task<MovieDto?> CreateMovieAsync(CreateMovieDto dto)
+    public async Task<MovieDto> CreateMovieAsync(CreateMovieDto dto)
     {
         // Remove duplicate genre IDs
         var genreIds = dto.GenreIds.Distinct().ToList();
@@ -37,7 +38,7 @@ public class MovieService : IMovieService
 
         // Make sure all requested genres exist
         if (genres.Count != genreIds.Count)
-            return null;
+            throw new ArgumentException("En eller flera GenreIds finns inte.");
 
         var movie = new Movie
         {
@@ -56,12 +57,12 @@ public class MovieService : IMovieService
         return MapToDto(movie);
     }
 
-    public async Task<bool?> UpdateMovieAsync(Guid id, UpdateMovieDto dto)
+    public async Task UpdateMovieAsync(Guid id, UpdateMovieDto dto)
     {
         var movie = await _movieRepository.GetByIdAsync(id, includeInactive: true, track: true);
 
         if (movie is null)
-            return false;
+            throw new KeyNotFoundException("Filmen hittades inte.");
 
         // Remove duplicate genre IDs
         var genreIds = dto.GenreIds.Distinct().ToList();
@@ -71,7 +72,7 @@ public class MovieService : IMovieService
 
         // Make sure all requested genres exist
         if (genres.Count != genreIds.Count)
-            return null;
+            throw new ArgumentException("En eller flera GenreIds finns inte.");
 
         movie.Title = dto.Title;
         movie.AgeRating = dto.AgeRating;
@@ -82,21 +83,21 @@ public class MovieService : IMovieService
 
         _movieRepository.Update(movie);
 
-        return await _movieRepository.SaveChangesAsync();
+        await _movieRepository.SaveChangesAsync();
     }
 
-    public async Task<bool> DeleteMovieAsync(Guid id)
+    public async Task DeleteMovieAsync(Guid id)
     {
         var movie = await _movieRepository.GetByIdAsync(id, track: true);
 
         if (movie is null)
-            return false;
+            throw new KeyNotFoundException("Filmen hittades inte.");
 
         movie.IsActive = false; // Soft delete
 
         _movieRepository.Update(movie);
 
-        return await _movieRepository.SaveChangesAsync();
+        await _movieRepository.SaveChangesAsync();
     }
 
     private static MovieDto MapToDto(Movie movie) => new(

@@ -14,7 +14,8 @@ export async function getAllMovies(): Promise<Movie[]> {
 export async function getMovieById(id: string): Promise<Movie> {
     const response = await fetch(`${API_BASE_URL}/api/movies/${id}`)
     if (!response.ok) {
-        throw new Error(`Failed to fetch movie: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.detail ?? `Failed to fetch movie: ${response.status}`)
     }
     return response.json()
 }
@@ -32,7 +33,8 @@ export async function createMovie(movie: {
         body: JSON.stringify(movie),
     })
     if (!response.ok) {
-        throw new Error(`Failed to create movie: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.detail ?? `Failed to create movie: ${response.status}`)
     }
     return response.json()
 }
@@ -51,7 +53,8 @@ export async function updateMovie(id: string, movie: {
         body: JSON.stringify(movie),
     })
     if (!response.ok) {
-        throw new Error(`Failed to update movie: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.detail ?? `Failed to update movie: ${response.status}`)
     }
 }
 
@@ -61,6 +64,7 @@ export async function deleteMovie(id: string): Promise<void> {
         headers: { ...getAuthHeader() },
     })
     if (!response.ok) {
-        throw new Error(`Failed to delete movie: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.detail ?? `Failed to delete movie: ${response.status}`)
     }
 }
