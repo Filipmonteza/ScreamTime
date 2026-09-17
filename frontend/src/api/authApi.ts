@@ -23,7 +23,7 @@ export async function register(email: string, password: string, confirmPassword:
     })
     if (!response.ok) {
         const data = await response.json().catch(() => null)
-        throw new Error(data?.errors?.[0]?.description ?? `Failed to register: ${response.status}`)
+        throw new Error(data?.message ?? data?.errors?.[0]?.description ?? `Failed to register: ${response.status}`)
     }
     return response.json()
 }
