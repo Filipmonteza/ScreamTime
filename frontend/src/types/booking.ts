@@ -37,4 +37,31 @@ export const BookingStatus = {
     Cancelled: 2,
 } as const;
 
+// --- Admin/staff search (GET /api/bookings/search) ---
+
+export interface BookingSearchSeat {
+    rowLabel: string
+    seatNumber: number
+    price: number
+}
+
+export interface BookingSearchItem {
+    bookingId: string
+    bookingReference: string
+    customerEmail: string
+    movieTitle: string
+    auditoriumName: string
+    screeningStartTime: string
+    seats: BookingSearchSeat[]
+    status: BookingStatus
+}
+
+export interface PagedBookingResult {
+    items: BookingSearchItem[]
+    totalCount: number
+    page: number
+    pageSize: number
+    totalPages: number
+}
+
 export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];

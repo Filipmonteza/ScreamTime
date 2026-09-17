@@ -57,4 +57,15 @@ public interface IBookingRepository : IRepository<Booking>
         Guid screeningId,
         CancellationToken cancellationToken = default
     );
+
+    // Filtered by BookingReference substring or an exact UserId (resolved from
+    // an email by BookingService, since Application cannot look up Identity
+    // users directly). Paginated in the query itself.
+    Task<(List<Booking> Items, int TotalCount)> SearchAsync(
+        string search,
+        Guid? matchedUserId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default
+     );
 }

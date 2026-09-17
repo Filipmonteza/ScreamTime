@@ -59,7 +59,7 @@ public class ScreeningRepository : Repository<Screening>, IScreeningRepository
         {
             // The same clock BookingService measures against, so "still
             // bookable" means the same thing on both sides.
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             query = query.Where(s => s.StartTime > now);
         }
 

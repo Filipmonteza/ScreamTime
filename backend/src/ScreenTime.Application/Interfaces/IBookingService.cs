@@ -43,5 +43,9 @@ public interface IBookingService
         Guid screeningId,
         CancellationToken cancellationToken = default
     );
-   
+
+    Task<PagedResult<BookingSummaryDto>> SearchBookingsAsync(
+        BookingSearchDto dto,
+        CancellationToken cancellationToken = default
+    );
 }

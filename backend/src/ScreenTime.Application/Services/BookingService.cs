@@ -17,10 +17,17 @@ public sealed class BookingService : IBookingService
     // Repository used to get and save booking data
     private readonly IBookingRepository _bookingRepository;
 
-    // Gets the booking repository through dependency injection
-    public BookingService(IBookingRepository bookingRepository)
+    // Resolves customer emails for admin/staff search, since Application
+    // cannot reference ApplicationUser (Infrastructure/Identity) directly.
+    private readonly IUserLookupService _userLookupService;
+
+    // Gets the booking repository and user lookup service through dependency injection
+    public BookingService(
+        IBookingRepository bookingRepository,
+        IUserLookupService userLookupService)
     {
         _bookingRepository = bookingRepository;
+        _userLookupService = userLookupService;
     }
 
     // Creates a new booking and returns a booking confirmation
@@ -63,7 +70,7 @@ public sealed class BookingService : IBookingService
         }
 
         // Prevents booking a screening that has already started
-        if (screening.StartTime <= DateTime.UtcNow)
+        if (screening.StartTime <= DateTime.Now)
         {
             throw new InvalidOperationException(
                 "Det går inte att boka en visning som redan har börjat.");
@@ -156,7 +163,7 @@ public sealed class BookingService : IBookingService
             booking.TotalAmount,
             booking.CreatedAt);
     }
-    
+
     // Converts a Booking entity to a BookingListItemDto
     private static BookingListItemDto MapToBookingListItemDto(
         Booking booking)
@@ -192,7 +199,7 @@ public sealed class BookingService : IBookingService
             seats,
             booking.TotalAmount);
     }
-    
+
     // Converts a Booking entity to a BookingDto
     private static BookingDto MapToBookingDto(Booking booking)
     {
@@ -205,6 +212,35 @@ public sealed class BookingService : IBookingService
             booking.CancelledAt,
             booking.TotalAmount,
             booking.Tickets.Count);
+    }
+
+    // Converts a Booking entity to a BookingSummaryDto for admin/staff search,
+    // with the customer's email resolved separately since Booking only holds
+    // a UserId, not a navigation property to ApplicationUser.
+    private static BookingSummaryDto MapToBookingSummaryDto(
+        Booking booking,
+        string customerEmail)
+    {
+        // Gets and sorts the active seats sold on this booking
+        var seats = booking.Tickets
+            .Where(ticket => ticket.IsActive)
+            .OrderBy(ticket => ticket.Seat.RowLabel)
+            .ThenBy(ticket => ticket.Seat.SeatNumber)
+            .Select(ticket => new BookingSeatDto(
+                ticket.Seat.RowLabel,
+                ticket.Seat.SeatNumber,
+                ticket.Price))
+            .ToList();
+
+        return new BookingSummaryDto(
+            booking.Id,
+            booking.BookingReference,
+            customerEmail,
+            booking.Screening.Movie.Title,
+            booking.Screening.Auditorium.Name,
+            booking.Screening.StartTime,
+            seats,
+            booking.Status);
     }
 
     // Gets all current bookings for a user
@@ -224,7 +260,7 @@ public sealed class BookingService : IBookingService
             cancellationToken);
 
         // Gets the current time
-        var currentTime = DateTime.UtcNow;
+        var currentTime = DateTime.Now;
 
         return bookings
             // Makes sure the booking belongs to the user
@@ -263,7 +299,7 @@ public sealed class BookingService : IBookingService
             userId,
             cancellationToken);
 
-        var currentTime = DateTime.UtcNow;
+        var currentTime = DateTime.Now;
 
         return bookings
             // Only return the customer's bookings
@@ -309,7 +345,7 @@ public sealed class BookingService : IBookingService
                 "Visningen är avbokad.");
         }
 
-        if (screening.StartTime <= DateTime.UtcNow)
+        if (screening.StartTime <= DateTime.Now)
         {
             throw new InvalidOperationException(
                 "Visningen har redan börjat.");
@@ -458,7 +494,7 @@ public sealed class BookingService : IBookingService
         var cancellationDeadline =
             booking.Screening.StartTime.AddMinutes(-15);
 
-        if (cancelledAt >= cancellationDeadline)
+        if (DateTime.Now >= cancellationDeadline)
         {
             throw new InvalidOperationException(
                 "Bokningen kan inte avbokas senare än 15 minuter före visningen.");
@@ -475,6 +511,51 @@ public sealed class BookingService : IBookingService
         await _bookingRepository.SaveChangesAsync(cancellationToken);
 
         return MapToBookingDto(booking);
+    }
+
+    // Admin/staff search: finds bookings by a BookingReference substring or
+    // an exact customer email, paginated in the database query itself so a
+    // growing Bookings table is never loaded in full.
+    public async Task<PagedResult<BookingSummaryDto>> SearchBookingsAsync(
+        BookingSearchDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        // Tries to resolve the search term as an exact email match, so a
+        // booking can be found by customer email as well as by reference.
+        var matchedUserId = await _userLookupService.FindUserIdByEmailAsync(
+            dto.Search,
+            cancellationToken);
+
+        // Runs the filtered, paginated query against the database.
+        var (bookings, totalCount) = await _bookingRepository.SearchAsync(
+            dto.Search,
+            matchedUserId,
+            dto.Page,
+            dto.PageSize,
+            cancellationToken);
+
+        // Looks up every customer email needed for this page in one batch,
+        // rather than one lookup per booking.
+        var userIds = bookings
+            .Select(booking => booking.UserId)
+            .Distinct();
+
+        var emailsByUserId = await _userLookupService.GetEmailsByUserIdsAsync(
+            userIds,
+            cancellationToken);
+
+        // Converts each booking to a BookingSummaryDto with its resolved email.
+        var items = bookings
+            .Select(booking => MapToBookingSummaryDto(
+                booking,
+                emailsByUserId.GetValueOrDefault(booking.UserId, string.Empty)))
+            .ToList();
+
+        return new PagedResult<BookingSummaryDto>(
+            items,
+            totalCount,
+            dto.Page,
+            dto.PageSize);
     }
 
     // Validates that the booking request contains valid information

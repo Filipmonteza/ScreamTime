@@ -41,7 +41,7 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
         screenings.Should().NotBeEmpty();
         screenings.Should().OnlyContain(s => !s.IsCancelled);
         screenings.Should().BeInAscendingOrder(s => s.StartTime);
-        screenings.Should().OnlyContain(s => s.StartTime > DateTime.UtcNow);
+        screenings.Should().OnlyContain(s => s.StartTime > DateTime.Now);
     }
 
     [Fact]
@@ -492,6 +492,66 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
             "/api/bookings/history");
 
         history.Should().Contain(b => b.BookingId == booking.BookingId);
+    }
+
+    [Fact]
+    public async Task CancelBooking_MoreThan15MinutesBeforeTheScreening_IsAllowed()
+    {
+        var admin = await CreateAdminClientAsync();
+        var customer = await CreateCustomerClientAsync();
+
+        var movie = await GetFirstMovieAsync(admin);
+        var auditorium = await GetAuditoriumAsync(admin, index: 1);
+
+        // Half an hour out: fifteen minutes on the right side of the deadline.
+        var screening = await CreateScreeningAsync(
+            admin,
+            movie.MovieId,
+            auditorium.AuditoriumId,
+            DateTime.Now.AddMinutes(30));
+
+        var booking = await BookTwoSeatsAsync(customer, screening.ScreeningId);
+
+        var cancelled = await customer.PostAsync(
+            $"/api/bookings/{booking.BookingId}/cancel",
+            content: null);
+
+        cancelled.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var reloaded = await customer.GetFromJsonAsync<BookingConfirmationDto>(
+            $"/api/bookings/{booking.BookingId}");
+
+        reloaded!.Status.Should().Be(BookingStatus.Cancelled);
+    }
+
+    [Fact]
+    public async Task CancelBooking_LessThan15MinutesBeforeTheScreening_IsRefused()
+    {
+        var admin = await CreateAdminClientAsync();
+        var customer = await CreateCustomerClientAsync();
+
+        var movie = await GetFirstMovieAsync(admin);
+        var auditorium = await GetAuditoriumAsync(admin, index: 0);
+        
+        var screening = await CreateScreeningAsync(
+            admin,
+            movie.MovieId,
+            auditorium.AuditoriumId,
+            DateTime.Now.AddMinutes(10));
+
+        var booking = await BookTwoSeatsAsync(customer, screening.ScreeningId);
+
+        var cancelled = await customer.PostAsync(
+            $"/api/bookings/{booking.BookingId}/cancel",
+            content: null);
+
+        cancelled.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        // The booking and its seats are untouched.
+        var reloaded = await customer.GetFromJsonAsync<BookingConfirmationDto>(
+            $"/api/bookings/{booking.BookingId}");
+
+        reloaded!.Status.Should().Be(BookingStatus.Paid);
     }
 
     [Fact]
