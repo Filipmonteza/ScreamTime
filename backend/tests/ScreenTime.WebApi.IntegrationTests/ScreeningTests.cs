@@ -501,7 +501,7 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
         var customer = await CreateCustomerClientAsync();
 
         var movie = await GetFirstMovieAsync(admin);
-        var auditorium = await GetAuditoriumAsync(admin, index: 1);
+        var auditorium = await CreateEmptyAuditoriumAsync(admin, "Avbokning tillåten");
 
         // Half an hour out: fifteen minutes on the right side of the deadline.
         var screening = await CreateScreeningAsync(
@@ -531,8 +531,8 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
         var customer = await CreateCustomerClientAsync();
 
         var movie = await GetFirstMovieAsync(admin);
-        var auditorium = await GetAuditoriumAsync(admin, index: 0);
-        
+        var auditorium = await CreateEmptyAuditoriumAsync(admin, "Avbokning nekad");
+
         var screening = await CreateScreeningAsync(
             admin,
             movie.MovieId,
@@ -663,6 +663,40 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
             "/api/auditoriums");
 
         return auditoriums![index];
+    }
+
+    // The seeded auditoriums are booked at 10, 14, 18 and 22 for the next two
+    // weeks, so a screening that has to start within the next half hour will
+    // collide with the programme for most of the day. Tests that need one get a
+    // auditirum of their own instead.
+    private static async Task<AuditoriumDto> CreateEmptyAuditoriumAsync(
+        HttpClient client,
+        string name)
+    {
+        var created = await client.PostAsJsonAsync(
+            "/api/auditoriums",
+            new AuditoriumCreateDto(name));
+
+        created.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var auditorium = (await created.Content.ReadFromJsonAsync<AuditoriumDto>())!;
+
+        var seatTypes = await client.GetFromJsonAsync<List<SeatTypeDto>>(
+            "/api/seats/types");
+
+        var seatTypeId = seatTypes!.First().Id;
+
+        var seated = await client.PostAsJsonAsync(
+            $"/api/auditoriums/{auditorium.AuditoriumId}/seats",
+            new AddSeatsRequestDto(
+            [
+                new SeatCreateDto("A", 1, seatTypeId),
+                new SeatCreateDto("A", 2, seatTypeId),
+            ]));
+
+        seated.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        return auditorium;
     }
 
     private Task<HttpClient> CreateAdminClientAsync() =>
