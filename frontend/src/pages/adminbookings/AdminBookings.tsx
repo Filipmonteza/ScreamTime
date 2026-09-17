@@ -23,8 +23,6 @@ function AdminBookings() {
       return;
     }
 
-    setLoading(true);
-
     searchBookings(search, page)
       .then((data) => {
         setError(null);
@@ -37,14 +35,21 @@ function AdminBookings() {
   }, [search, page, isSearchable]);
 
   function handleSearchChange(value: string) {
+    const searchable = value.trim().length >= 2;
+
     setSearch(value);
     setPage(1);
     setError(null);
+    setLoading(searchable);
 
-    if (value.trim().length < 2) {
+    if (!searchable) {
       setResult(null);
-      setLoading(false);
     }
+  }
+
+  function handlePageChange(nextPage: number) {
+    setLoading(true);
+    setPage(nextPage);
   }
 
   function handleCancel(bookingId: string) {
@@ -147,7 +152,7 @@ function AdminBookings() {
           <Pagination
             page={result.page}
             totalPages={result.totalPages}
-            onPageChange={setPage}
+            onPageChange={handlePageChange}
           />
         </>
       )}
