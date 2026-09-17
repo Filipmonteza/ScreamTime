@@ -11,7 +11,7 @@ export async function updateEmail(newEmail: string, currentPassword: string): Pr
     })
     if (!response.ok) {
         const data = await response.json().catch(() => null)
-        throw new Error(data?.errors?.[0]?.description ?? `Failed to update email: ${response.status}`)
+        throw new Error(data?.detail ?? `Failed to update email: ${response.status}`)
     }
     return response.json()
 }
@@ -24,6 +24,6 @@ export async function updatePassword(currentPassword: string, newPassword: strin
     })
     if (!response.ok) {
         const data = await response.json().catch(() => null)
-        throw new Error(data?.errors?.[0]?.description ?? `Failed to update password: ${response.status}`)
+        throw new Error(data?.detail ?? `Failed to update password: ${response.status}`)
     }
 }
