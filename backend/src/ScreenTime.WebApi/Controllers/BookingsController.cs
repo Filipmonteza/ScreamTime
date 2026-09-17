@@ -1,9 +1,10 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ScreenTime.Application.Contracts;
 using ScreenTime.Application.Interfaces;
+using ScreenTime.Infrastructure.Identity;
 using ScreenTime.WebApi.Filters;
+using System.Security.Claims;
 
 namespace ScreenTime.WebApi.Controllers;
 
@@ -103,4 +104,11 @@ public class BookingsController : ControllerBase
             : throw new UnauthorizedAccessException(
                 "Token saknar ett giltigt användar-ID.");
     }
+
+    [HttpGet("search")]
+    [Authorize(Roles = $"{IdentitySeeder.AdminRole},{IdentitySeeder.StaffRole}")]
+    public async Task<ActionResult<PagedResult<BookingSummaryDto>>> Search(
+        [FromQuery] BookingSearchDto dto,
+        CancellationToken cancellationToken)
+        => Ok(await _bookingService.SearchBookingsAsync(dto, cancellationToken));
 }

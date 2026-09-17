@@ -1,6 +1,7 @@
 import type { ScreeningSeatMap } from '../types/seatMap'
 import { getAuthHeader } from './authHeader'
 import type { BookingConfirmation, BookingListItem } from '../types/booking'
+import type { PagedBookingResult } from '../types/booking'
 
 const API_BASE_URL = 'http://localhost:5267'
 
@@ -67,3 +68,23 @@ export async function cancelBooking(bookingId: string): Promise<void> {
         throw error
     }
 }
+
+export async function searchBookings(
+    search: string,
+    page = 1,
+    pageSize = 12,
+): Promise<PagedBookingResult> {
+    const url = new URL(`${API_BASE_URL}/api/bookings/search`)
+    url.searchParams.set('search', search)
+    url.searchParams.set('page', String(page))
+    url.searchParams.set('pageSize', String(pageSize))
+
+    const response = await fetch(url.toString(), {
+        headers: { ...getAuthHeader() },
+    })
+    if (!response.ok) {
+        throw new Error(`Failed to search bookings: ${response.status}`)
+    }
+    return response.json()
+}
+

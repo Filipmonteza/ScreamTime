@@ -2,11 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ScreenTime.Application.Contracts.Authentication;
-using ScreenTime.Infrastructure.Authentication;
 using ScreenTime.Application.Interfaces;
 using ScreenTime.Application.Services;
+using ScreenTime.Infrastructure.Authentication;
 using ScreenTime.Infrastructure.Data;
 using ScreenTime.Infrastructure.Repositories;
+using ScreenTime.Infrastructure.Services;
 
 namespace ScreenTime.Infrastructure;
 
@@ -39,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditoriumRepository, AuditoriumRepository>();
         services.AddScoped<IAuditoriumService, AuditoriumService>();
 
+        services.AddScoped<IUserLookupService, UserLookupService>();
 
         // Configure JWT settings
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
