@@ -19,18 +19,18 @@ public class AuditoriumService : IAuditoriumService
     }
 
     // Create a new auditorium when name is valid, unique and within allowed limits.
-    public async Task<AuditoriumDto?> CreateAuditoriumAsync(AuditoriumCreateDto dto)
+    public async Task<AuditoriumDto> CreateAuditoriumAsync(AuditoriumCreateDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
-            return null;
+            throw new ArgumentException("Salongsnamn krävs.");
 
         var name = dto.Name.Trim();
 
         if (name.Length > 50)
-            return null;
+            throw new ArgumentException("Namnet får max vara 50 tecken.");
 
         if (await _auditoriumRepository.AuditoriumNameExistsAsync(name))
-            return null;
+            throw new ArgumentException("Det finns redan en salong med det namnet.");
 
         var auditorium = new Auditorium
         {
@@ -40,9 +40,7 @@ public class AuditoriumService : IAuditoriumService
         };
 
         await _auditoriumRepository.AddAsync(auditorium);
-
-        if (!await _auditoriumRepository.SaveChangesAsync())
-            return null;
+        await _auditoriumRepository.SaveChangesAsync();
 
         return new AuditoriumDto(
             auditorium.Id,
@@ -70,16 +68,13 @@ public class AuditoriumService : IAuditoriumService
     }
 
     // Fetch full auditorium details including ordered seat map.
-    public async Task<AuditoriumDetailsDto?> GetAuditoriumByIdAsync(
+    public async Task<AuditoriumDetailsDto> GetAuditoriumByIdAsync(
         Guid id,
         bool includeInactive = false)
     {
         var auditorium = await _auditoriumRepository.GetByIdAsync(
             id,
-            includeInactive: includeInactive);
-
-        if (auditorium is null)
-            return null;
+            includeInactive: includeInactive) ?? throw new KeyNotFoundException("Salongen hittades inte.");
 
         var seats = await _seatRepository.GetByAuditoriumIdAsync(
             auditorium.Id);
@@ -105,15 +100,15 @@ public class AuditoriumService : IAuditoriumService
     }
 
     // Update auditorium name and active status when validation and uniqueness checks pass.
-    public async Task<bool?> UpdateAuditoriumAsync(Guid id, AuditoriumUpdateDto dto)
+    public async Task UpdateAuditoriumAsync(Guid id, AuditoriumUpdateDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
-            return null;
+            throw new ArgumentException("Salongsnamn krävs.");
 
         var name = dto.Name.Trim();
 
         if (name.Length > 50)
-            return null;
+            throw new ArgumentException("Namnet får max vara 50 tecken.");
 
         var auditorium = await _auditoriumRepository.GetByIdAsync(
             id,
@@ -121,32 +116,32 @@ public class AuditoriumService : IAuditoriumService
             track: true);
 
         if (auditorium is null)
-            return false;
+            throw new KeyNotFoundException("Salongen hittades inte.");
 
         if (await _auditoriumRepository.AuditoriumNameExistsAsync(name, auditorium.Id))
-            return null;
+            throw new ArgumentException("Det finns redan en salong med det namnet.");
 
         auditorium.Name = name;
         auditorium.IsActive = dto.IsActive;
 
         _auditoriumRepository.Update(auditorium);
 
-        return await _auditoriumRepository.SaveChangesAsync();
+        await _auditoriumRepository.SaveChangesAsync();
     }
 
     // Soft-delete an auditorium by marking it inactive.
     // Note: does not currently check for future showtimes.
-    public async Task<bool> DeleteAuditoriumAsync(Guid id)
+    public async Task DeleteAuditoriumAsync(Guid id)
     {
         var auditorium = await _auditoriumRepository.GetByIdAsync(id, includeInactive: true, track: true);
 
         if (auditorium is null)
-            return false;
+            throw new KeyNotFoundException("Salongen hittades inte.");
 
         auditorium.IsActive = false;
 
         _auditoriumRepository.Update(auditorium);
 
-        return await _auditoriumRepository.SaveChangesAsync();
+        await _auditoriumRepository.SaveChangesAsync();
     }
 }

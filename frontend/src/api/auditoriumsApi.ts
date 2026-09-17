@@ -20,7 +20,8 @@ export async function createAuditorium(auditorium: { name: string }): Promise<Au
         body: JSON.stringify(auditorium),
     })
     if (!response.ok) {
-        throw new Error(`Failed to create auditorium: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.detail ?? `Failed to create auditorium: ${response.status}`)
     }
     return response.json()
 }
@@ -32,7 +33,8 @@ export async function updateAuditorium(id: string, auditorium: { name: string; i
         body: JSON.stringify(auditorium),
     })
     if (!response.ok) {
-        throw new Error(`Failed to update auditorium: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.detail ?? `Failed to update auditorium: ${response.status}`)
     }
 }
 
@@ -42,7 +44,8 @@ export async function deleteAuditorium(id: string): Promise<void> {
         headers: { ...getAuthHeader() },
     })
     if (!response.ok) {
-        throw new Error(`Failed to delete auditorium: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.detail ?? `Failed to delete auditorium: ${response.status}`)
     }
 }
 
@@ -56,6 +59,7 @@ export async function addSeatsToAuditorium(
         body: JSON.stringify({ seats }),
     })
     if (!response.ok) {
-        throw new Error(`Failed to add seats: ${response.status}`)
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.detail ?? `Failed to add seats: ${response.status}`)
     }
 }
