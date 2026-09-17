@@ -96,6 +96,18 @@
   background: var(--color-seat-vip);
 }
 
+.seat-selection-legend-swatch-unavailable {
+  background: var(--color-seat-unavailable);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seat-selection-legend-icon {
+  width: 20px;
+  height: 20px;
+}
+
 .seat-selection-screen {
   width: 280px;
   height: 12px;
