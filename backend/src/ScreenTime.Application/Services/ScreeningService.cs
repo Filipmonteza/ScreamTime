@@ -133,7 +133,7 @@ public class ScreeningService : IScreeningService
                 "En avbokad visning kan inte ändras.");
         }
 
-        if (screening.StartTime <= DateTime.UtcNow)
+        if (screening.StartTime <= DateTime.Now)
         {
             throw new InvalidOperationException(
                 "En visning som redan har börjat kan inte ändras.");
@@ -290,7 +290,7 @@ public class ScreeningService : IScreeningService
         DateTime startTime,
         Movie movie)
     {
-        if (startTime <= DateTime.UtcNow)
+        if (startTime <= DateTime.Now)
         {
             throw new ArgumentException(
                 "En visning måste börja i framtiden.",
