@@ -6,6 +6,7 @@ import type { Auditorium } from "../../types/auditorium";
 import { getAllMovies } from "../../api/moviesApi";
 import { getAllAuditoriums } from "../../api/auditoriumsApi";
 import { createScreening, updateScreening } from "../../api/screeningsApi";
+import { toDateTimeLocalValue } from "../../utils/dateOptions";
 
 type ScreeningFormProps = {
   screening?: Screening;
@@ -22,7 +23,7 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
     screening?.auditoriumId ?? "",
   );
   const [startTime, setStartTime] = useState(
-    screening?.startTime.slice(0, 16) ?? "",
+    screening ? toDateTimeLocalValue(screening.startTime) : "",
   );
 
   const [error, setError] = useState("");
@@ -36,7 +37,12 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
     e.preventDefault();
     setError("");
 
-    const dto = { movieId, auditoriumId, startTime };
+    // The input gives local wall-clock time; the API takes UTC.
+    const dto = {
+      movieId,
+      auditoriumId,
+      startTime: new Date(startTime).toISOString(),
+    };
 
     try {
       if (screening) {
