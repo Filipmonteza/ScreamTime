@@ -16,16 +16,15 @@ function AdminBookings() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
+  const isSearchable = search.trim().length >= 2;
+
   useEffect(() => {
-    // Under 2 tecken: ingen sökning alls, matchar backendens MinLength(2)
-    // och undviker ett anrop per bokstav.
-    if (search.trim().length < 2) {
-      setResult(null);
-      setError(null);
+    if (!isSearchable) {
       return;
     }
 
     setLoading(true);
+
     searchBookings(search, page)
       .then((data) => {
         setError(null);
@@ -35,10 +34,22 @@ function AdminBookings() {
         setError(err instanceof Error ? err.message : String(err)),
       )
       .finally(() => setLoading(false));
-  }, [search, page]);
+  }, [search, page, isSearchable]);
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    setPage(1);
+    setError(null);
+
+    if (value.trim().length < 2) {
+      setResult(null);
+      setLoading(false);
+    }
+  }
 
   function handleCancel(bookingId: string) {
     setCancellingId(bookingId);
+
     cancelBooking(bookingId)
       .then(() => {
         setConfirmingId(null);
@@ -57,17 +68,14 @@ function AdminBookings() {
 
       <SearchBar
         value={search}
-        onChange={(value) => {
-          setSearch(value);
-          setPage(1);
-        }}
+        onChange={handleSearchChange}
         placeholder="Sök bokningsnummer eller email"
       />
 
-      {loading && <p>Söker...</p>}
-      {error && <p>Fel: {error}</p>}
+      {isSearchable && loading && <p>Söker...</p>}
+      {isSearchable && error && <p>Fel: {error}</p>}
 
-      {!loading && search.trim().length >= 2 && result?.items.length === 0 && (
+      {!loading && isSearchable && result?.items.length === 0 && (
         <p>Inga bokningar matchade sökningen.</p>
       )}
 
@@ -115,9 +123,11 @@ function AdminBookings() {
                   </div>
 
                   <p>{booking.customerEmail}</p>
+
                   <p>
                     <strong>{booking.movieTitle}</strong>
                   </p>
+
                   <p>
                     {formatDateTimeLabel(booking.screeningStartTime)},{" "}
                     {booking.auditoriumName}
