@@ -1,6 +1,7 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import Message from "../../components/Message";
 import "./Auth.css";
 
 function Register() {
@@ -15,7 +16,7 @@ function Register() {
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
-      setError("Lösenorden måste matcha");
+      setError("Lösenorden måste matcha.");
       return;
     }
     try {
@@ -23,7 +24,7 @@ function Register() {
       navigate("/");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Kunde inte registrera kontot",
+        err instanceof Error ? err.message : "Kunde inte registrera kontot.",
       );
     }
   }
@@ -69,7 +70,7 @@ function Register() {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </div>
-        {error && <p className="auth-error">{error}</p>}
+        {error && <Message type="error">{error}</Message>}
         <div className="auth-button-row">
           <button type="submit" className="btn-pill">
             Registrera
