@@ -2,6 +2,7 @@ import { useEffect, useState, type SubmitEvent } from "react";
 import Form from "../../components/Form";
 import type { Auditorium } from "../../types/auditorium";
 import type { SeatType } from "../../types/seatType";
+import Message from "../../components/Message";
 import {
   createAuditorium,
   updateAuditorium,
@@ -39,6 +40,7 @@ function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
   const [rowCount, setRowCount] = useState("");
   const [seatsPerRow, setSeatsPerRow] = useState("");
   const [seatTypes, setSeatTypes] = useState<SeatType[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getAllSeatTypes().then(setSeatTypes);
@@ -48,24 +50,31 @@ function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
 
   function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
     if (auditorium) {
-      updateAuditorium(auditorium.auditoriumId, { name, isActive }).then(
-        onSaved,
-      );
+      updateAuditorium(auditorium.auditoriumId, { name, isActive })
+        .then(onSaved)
+        .catch((err) =>
+          setError(err instanceof Error ? err.message : "Något gick fel."),
+        );
       return;
     }
-    createAuditorium({ name }).then((created) => {
-      const rows = Number(rowCount);
-      const seats = Number(seatsPerRow);
-      if (rows > 0 && seats > 0 && standardSeatTypeId) {
-        addSeatsToAuditorium(
-          created.auditoriumId,
-          buildSeatRows(rows, seats, standardSeatTypeId),
-        ).then(onSaved);
-      } else {
-        onSaved();
-      }
-    });
+    createAuditorium({ name })
+      .then((created) => {
+        const rows = Number(rowCount);
+        const seats = Number(seatsPerRow);
+        if (rows > 0 && seats > 0 && standardSeatTypeId) {
+          return addSeatsToAuditorium(
+            created.auditoriumId,
+            buildSeatRows(rows, seats, standardSeatTypeId),
+          ).then(onSaved);
+        } else {
+          onSaved();
+        }
+      })
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "Något gick fel."),
+      );
   }
 
   return (
@@ -85,6 +94,7 @@ function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
           required
         />
       </div>
+      {error && <Message type="error">{error}</Message>}
       {!auditorium && (
         <div className="form-field">
           <label className="form-label">Antal rader</label>
