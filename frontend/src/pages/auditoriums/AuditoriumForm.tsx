@@ -64,10 +64,15 @@ function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
         const rows = Number(rowCount);
         const seats = Number(seatsPerRow);
         if (rows > 0 && seats > 0 && standardSeatTypeId) {
-          return addSeatsToAuditorium(
+          addSeatsToAuditorium(
             created.auditoriumId,
             buildSeatRows(rows, seats, standardSeatTypeId),
-          ).then(onSaved);
+          )
+            .then(onSaved)
+            .catch((err) => {
+              onSaved();
+              setError(err instanceof Error ? err.message : "Något gick fel.");
+            });
         } else {
           onSaved();
         }
