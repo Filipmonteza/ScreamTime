@@ -32,9 +32,17 @@ type AuditoriumFormProps = {
   auditorium?: Auditorium;
   onClose: () => void;
   onSaved: () => void;
+  // Reload the list without closing the form, so a failure after the
+  // auditorium was already created can still be shown to the user.
+  onRefresh: () => void;
 };
 
-function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
+function AuditoriumForm({
+  auditorium,
+  onClose,
+  onSaved,
+  onRefresh,
+}: AuditoriumFormProps) {
   const [name, setName] = useState(auditorium?.name ?? "");
   const [isActive, setIsActive] = useState(auditorium?.isActive ?? true);
   const [rowCount, setRowCount] = useState("");
@@ -70,8 +78,19 @@ function AuditoriumForm({ auditorium, onClose, onSaved }: AuditoriumFormProps) {
           )
             .then(onSaved)
             .catch((err) => {
-              onSaved();
-              setError(err instanceof Error ? err.message : "Något gick fel.");
+              // The auditorium exists even though the seats failed: refresh the
+              // list behind the form, but keep the form up to carry the error.
+              onRefresh();
+              // Some messages come from the API already punctuated, others are
+              // built from a status code, so normalise before joining them.
+              const reason = err instanceof Error ? err.message.trim() : "";
+              const detail = reason
+                ? ` ${reason.endsWith(".") ? reason : `${reason}.`}`
+                : "";
+              setError(
+                `Salongen skapades men sätena kunde inte läggas till.${detail}` +
+                  " Ta bort salongen och försök igen.",
+              );
             });
         } else {
           onSaved();
