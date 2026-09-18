@@ -43,6 +43,13 @@ public class AuditoriumsController : ControllerBase
         Guid id,
         bool includeInactive = false)
     {
+        if (includeInactive &&
+            !User.IsInRole(IdentitySeeder.AdminRole) &&
+            !User.IsInRole(IdentitySeeder.StaffRole))
+        {
+            return Forbid();
+        }
+
         return Ok(await _auditoriumService.GetAuditoriumByIdAsync(id, includeInactive));
     }
 
