@@ -26,9 +26,6 @@ public class AuditoriumService : IAuditoriumService
 
         var name = dto.Name.Trim();
 
-        if (name.Length > 50)
-            throw new ArgumentException("Namnet får max vara 50 tecken.");
-
         if (await _auditoriumRepository.AuditoriumNameExistsAsync(name))
             throw new ArgumentException("Det finns redan en salong med det namnet.");
 
@@ -106,9 +103,6 @@ public class AuditoriumService : IAuditoriumService
             throw new ArgumentException("Salongsnamn krävs.");
 
         var name = dto.Name.Trim();
-
-        if (name.Length > 50)
-            throw new ArgumentException("Namnet får max vara 50 tecken.");
 
         var auditorium = await _auditoriumRepository.GetByIdAsync(
             id,
