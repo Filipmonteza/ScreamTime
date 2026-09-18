@@ -4,7 +4,8 @@ namespace ScreenTime.Application.Interfaces;
 
 public interface IAuditoriumService
 {
-    // Create a new auditorium and return its DTO, or null if validation fails.
+    // Create a new auditorium and return its DTO. Throws ArgumentException if
+    // the name is missing or already taken.
     Task<AuditoriumDto> CreateAuditoriumAsync(AuditoriumCreateDto dto);
 
     // Retrieve all auditoriums, optionally including inactive ones for admin views.
@@ -13,7 +14,8 @@ public interface IAuditoriumService
     // Fetch detailed auditorium information, with optional access to inactive records.
     Task<AuditoriumDetailsDto> GetAuditoriumByIdAsync(Guid id, bool includeInactive = false);
 
-    // Update an auditorium and return true, false, or null depending on outcome and validation.
+    // Update an auditorium's name and active flag. Throws KeyNotFoundException
+    // if it does not exist, ArgumentException if the name is missing or taken.
     Task UpdateAuditoriumAsync(Guid id, AuditoriumUpdateDto dto);
 
     // Soft-delete an auditorium by marking it as inactive.
