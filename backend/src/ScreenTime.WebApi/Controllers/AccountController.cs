@@ -45,12 +45,12 @@ public class AccountController : ControllerBase
 
         var setEmailResult = await _userManager.SetEmailAsync(user, dto.NewEmail);
         if (!setEmailResult.Succeeded)
-            throw new ArgumentException(setEmailResult.Errors.First().Description);
+            throw new ArgumentException(string.Join(" ", setEmailResult.Errors.Select(e => e.Description)));
 
         // UserName mirrors Email throughout the app (see AuthController.Register).
         var setUserNameResult = await _userManager.SetUserNameAsync(user, dto.NewEmail);
         if (!setUserNameResult.Succeeded)
-            throw new ArgumentException(setUserNameResult.Errors.First().Description);
+            throw new ArgumentException(string.Join(" ", setUserNameResult.Errors.Select(e => e.Description)));
 
         // Reissue the token: it carries the old email as a claim.
         var roles = await _userManager.GetRolesAsync(user);
@@ -75,7 +75,7 @@ public class AccountController : ControllerBase
 
         var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
         if (!result.Succeeded)
-            throw new ArgumentException(result.Errors.First().Description);
+            throw new ArgumentException(string.Join(" ", result.Errors.Select(e => e.Description)));
 
         return NoContent();
     }
