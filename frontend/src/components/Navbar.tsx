@@ -228,7 +228,7 @@ function Navbar({ role }: NavbarProps) {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
-        ScreenTime
+        ScreamTime
       </Link>
       <div
         className={`navbar-links navbar-links--${role === "Customer" ? "customer" : "admin"}`}

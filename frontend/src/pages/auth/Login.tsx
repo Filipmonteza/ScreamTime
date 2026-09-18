@@ -25,7 +25,7 @@ function Login() {
   return (
     <div className="page auth-page">
       <p className="auth-welcome">Välkommen till</p>
-      <p className="auth-title">ScreenTime</p>
+      <p className="auth-title">ScreamTime</p>
       <form className="auth-card" onSubmit={handleSubmit}>
         <div className="auth-field">
           <label className="auth-label" htmlFor="email">
