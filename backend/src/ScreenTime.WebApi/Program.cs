@@ -24,7 +24,12 @@ builder.Services.AddControllers()
                 .Select(e => e.ErrorMessage)
                 .FirstOrDefault() ?? "Invalid request.";
 
-            return new BadRequestObjectResult(new { message = firstError });
+            return new BadRequestObjectResult(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Ogiltig begäran",
+                Detail = firstError
+            });
         };
     });
 builder.Services.AddEndpointsApiExplorer();
@@ -116,7 +121,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 .AddRoles<IdentityRole<Guid>>()                 // RoleManager + role-aware user store
 .AddEntityFrameworkStores<ScreenTimeDbContext>()
 .AddSignInManager()                              // AuthController injects SignInManager
-.AddDefaultTokenProviders(); // Required for password reset, email confirmation tokens
+.AddDefaultTokenProviders() // Required for password reset, email confirmation tokens
+.AddErrorDescriber<SwedishIdentityErrorDescriber>();
 
 builder.Services.AddCors(options =>
 {
