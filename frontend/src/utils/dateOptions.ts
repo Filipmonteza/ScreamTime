@@ -14,8 +14,19 @@ export function formatDateTimeLabel(iso: string): string {
   return `${date}, ${time}`;
 }
 
+// The API speaks UTC, so the calendar day has to be read off a Date in the
+// viewer's own zone.
 export function dateKeyFromIso(iso: string): string {
-    return iso.slice(0, 10);
+    return formatDateKey(new Date(iso));
+}
+
+// The value a <input type="datetime-local"> wants: local wall-clock time,
+// no offset.
+export function toDateTimeLocalValue(iso: string): string {
+    const date = new Date(iso);
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${formatDateKey(date)}T${hours}:${minutes}`;
 }
 
 export function todayKey(): string {

@@ -56,10 +56,10 @@ const customerItems: NavEntry[] = [
     iconFill: iconMoviesFill,
   },
   {
-  to: "/screenings",
-  label: "Visningar",
-  iconDefault: iconScreeningsDefault,
-  iconFill: iconScreeningsFill,
+    to: "/screenings",
+    label: "Visningar",
+    iconDefault: iconScreeningsDefault,
+    iconFill: iconScreeningsFill,
   },
   {
     to: "/bookings",
@@ -162,10 +162,10 @@ const loggedOutItems: NavItem[] = [
     iconFill: iconMoviesFill,
   },
   {
-  to: "/screenings",
-  label: "Visningar",
-  iconDefault: iconScreeningsDefault,
-  iconFill: iconScreeningsFill,
+    to: "/screenings",
+    label: "Visningar",
+    iconDefault: iconScreeningsDefault,
+    iconFill: iconScreeningsFill,
   },
 ];
 
@@ -195,6 +195,7 @@ function Navbar({ role }: NavbarProps) {
   const items = getNavItems(role);
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -249,9 +250,15 @@ function Navbar({ role }: NavbarProps) {
                     isChildActive ? "navbar-link active" : "navbar-link"
                   }
                   onClick={() => setIsDropdownOpen((open) => !open)}
+                  onMouseEnter={() => setHoveredKey(item.label)}
+                  onMouseLeave={() => setHoveredKey(null)}
                 >
                   <img
-                    src={isChildActive ? item.iconFill : item.iconDefault}
+                    src={
+                      isChildActive || hoveredKey === item.label
+                        ? item.iconFill
+                        : item.iconDefault
+                    }
                     alt=""
                     className="navbar-icon"
                   />
@@ -278,6 +285,8 @@ function Navbar({ role }: NavbarProps) {
                         <NavLink
                           key={child.to}
                           to={child.to}
+                          onMouseEnter={() => setHoveredKey(child.to)}
+                          onMouseLeave={() => setHoveredKey(null)}
                           className={({ isActive }) =>
                             isActive
                               ? "navbar-dropdown-item active"
@@ -288,7 +297,9 @@ function Navbar({ role }: NavbarProps) {
                             <>
                               <img
                                 src={
-                                  isActive ? child.iconFill : child.iconDefault
+                                  isActive || hoveredKey === child.to
+                                    ? child.iconFill
+                                    : child.iconDefault
                                 }
                                 alt=""
                                 className="navbar-icon"
@@ -310,6 +321,8 @@ function Navbar({ role }: NavbarProps) {
               key={item.to}
               to={item.to}
               end={item.to === "/"}
+              onMouseEnter={() => setHoveredKey(item.to)}
+              onMouseLeave={() => setHoveredKey(null)}
               className={({ isActive }) =>
                 isActive ? "navbar-link active" : "navbar-link"
               }
@@ -317,7 +330,11 @@ function Navbar({ role }: NavbarProps) {
               {({ isActive }) => (
                 <>
                   <img
-                    src={isActive ? item.iconFill : item.iconDefault}
+                    src={
+                      isActive || hoveredKey === item.to
+                        ? item.iconFill
+                        : item.iconDefault
+                    }
                     alt=""
                     className="navbar-icon"
                   />
