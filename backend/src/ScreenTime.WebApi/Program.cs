@@ -27,7 +27,7 @@ builder.Services.AddControllers()
             return new BadRequestObjectResult(new ProblemDetails
             {
                 Status = StatusCodes.Status400BadRequest,
-                Title = "Ogiltig beg‰ran",
+                Title = "Ogiltig beg√§ran",
                 Detail = firstError
             });
         };
@@ -43,7 +43,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Ange din JWT-token. Exempel: \"eyJhbGciOi...\" (utan ordet Bearer, Swagger l‰gger till det Ât dig)."
+        Description = "Ange din JWT-token. Exempel: \"eyJhbGciOi...\" (utan ordet Bearer, Swagger l√§gger till det √•t dig)."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
