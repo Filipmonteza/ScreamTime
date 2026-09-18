@@ -3,7 +3,7 @@
 namespace ScreenTime.Application.Contracts;
 
 public record AuditoriumCreateDto(
-    [Required, MaxLength(50)] string Name
+    [Required(ErrorMessage = "Salongsnamn krävs."), MaxLength(50, ErrorMessage = "Namnet får max vara 50 tecken.")] string Name
 );
 
 public record AuditoriumDto(
@@ -35,6 +35,6 @@ public record AuditoriumDetailsDto(
 );
 
 public record AuditoriumUpdateDto(
-    [Required, MaxLength(50)] string Name,
+    [Required(ErrorMessage = "Salongsnamn krävs."), MaxLength(50, ErrorMessage = "Namnet får max vara 50 tecken.")] string Name,
     bool IsActive
 );
