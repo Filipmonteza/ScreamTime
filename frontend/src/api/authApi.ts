@@ -1,4 +1,5 @@
 import type { AuthResponse } from '../types/auth'
+import { extractErrorMessage } from './apiError'
 
 const API_BASE_URL = 'http://localhost:5267'
 
@@ -9,8 +10,7 @@ export async function login(email: string, password: string): Promise<AuthRespon
         body: JSON.stringify({ email, password }),
     })
     if (!response.ok) {
-        const data = await response.json().catch(() => null)
-        throw new Error(data?.message ?? `Failed to log in: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to log in: ${response.status}`))
     }
     return response.json()
 }
@@ -22,8 +22,7 @@ export async function register(email: string, password: string, confirmPassword:
         body: JSON.stringify({ email, password, confirmPassword }),
     })
     if (!response.ok) {
-        const data = await response.json().catch(() => null)
-        throw new Error(data?.message ?? data?.errors?.[0]?.description ?? `Failed to register: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to register: ${response.status}`))
     }
     return response.json()
 }

@@ -1,5 +1,6 @@
 import { getAuthHeader } from './authHeader'
 import type { AuthResponse } from '../types/auth'
+import { extractErrorMessage } from './apiError'
 
 const API_BASE_URL = 'http://localhost:5267'
 
@@ -10,8 +11,7 @@ export async function updateEmail(newEmail: string, currentPassword: string): Pr
         body: JSON.stringify({ newEmail, currentPassword }),
     })
     if (!response.ok) {
-        const data = await response.json().catch(() => null)
-        throw new Error(data?.detail ?? `Failed to update email: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to update email: ${response.status}`))
     }
     return response.json()
 }
@@ -23,7 +23,6 @@ export async function updatePassword(currentPassword: string, newPassword: strin
         body: JSON.stringify({ currentPassword, newPassword }),
     })
     if (!response.ok) {
-        const data = await response.json().catch(() => null)
-        throw new Error(data?.detail ?? `Failed to update password: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to update password: ${response.status}`))
     }
 }
