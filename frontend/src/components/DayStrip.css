@@ -1,0 +1,28 @@
+.day-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.day-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.day-strip-day {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.day-strip-day[aria-pressed="true"] {
+  background: var(--accent-color-1);
+  color: var(--color-text-input);
+}

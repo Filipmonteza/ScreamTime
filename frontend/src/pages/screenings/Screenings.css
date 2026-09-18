@@ -5,32 +5,19 @@
   margin-bottom: 24px;
 }
 
-.filter-select-wrapper {
-  position: relative;
+.screening-day {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--color-surface);
-  border-radius: 8px;
-  padding: 8px 16px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.filter-label {
-  font-size: 1rem;
-  color: var(--color-text);
-  white-space: nowrap;
+.screening-day .day-strip {
+  margin-bottom: 8px;
 }
 
-.filter-select {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  border: none;
-  cursor: pointer;
-}
-
-.filter-chevron {
-  width: 16px;
-  height: 16px;
-  pointer-events: none;
+.screening-day-heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-surface-muted);
 }
