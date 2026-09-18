@@ -133,6 +133,7 @@ function Auditoriums() {
       {showAddForm && (
         <AuditoriumForm
           onClose={() => setShowAddForm(false)}
+          onRefresh={loadAuditoriums}
           onSaved={() => {
             setShowAddForm(false);
             loadAuditoriums();
@@ -143,6 +144,7 @@ function Auditoriums() {
         <AuditoriumForm
           auditorium={editingAuditorium}
           onClose={() => setEditingAuditorium(null)}
+          onRefresh={loadAuditoriums}
           onSaved={() => {
             setEditingAuditorium(null);
             loadAuditoriums();

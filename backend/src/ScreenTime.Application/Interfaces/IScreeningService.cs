@@ -6,12 +6,11 @@ namespace ScreenTime.Application.Interfaces;
 /// The screening flow: what is playing, and - for staff - scheduling it.
 /// </summary>
 /// <remarks>
-/// The write methods throw rather than returning null or false the way
-/// <see cref="IMovieService"/> does. A screening can be refused for half a dozen
-/// unrelated reasons - unknown film, deactivated auditorium, a clash with another
-/// screening, a start time in the past, bookings already sold - and a single
-/// null cannot say which. DomainExceptionFilterAttribute maps the exceptions
-/// onto status codes.
+/// The write methods throw rather than returning a bare null or false: a screening
+/// can be refused for half a dozen unrelated reasons - unknown film, deactivated
+/// auditorium, a clash with another screening, a start time in the past, bookings
+/// already sold - and a single return value cannot say which.
+/// DomainExceptionFilterAttribute maps the exceptions onto status codes.
 /// </remarks>
 public interface IScreeningService
 {

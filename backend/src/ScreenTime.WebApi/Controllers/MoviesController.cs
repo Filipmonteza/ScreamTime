@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using ScreenTime.Application.Contracts;
 using ScreenTime.Application.Interfaces;
 using ScreenTime.Infrastructure.Identity;
+using ScreenTime.WebApi.Filters;
 
 namespace ScreenTime.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[DomainExceptionFilter]
 public class MoviesController : ControllerBase
 {
     private const string ManageMoviesRoles = $"{IdentitySeeder.AdminRole},{IdentitySeeder.StaffRole}";
@@ -25,19 +27,13 @@ public class MoviesController : ControllerBase
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<MovieDto>> GetById(Guid id)
-    {
-        var movie = await _movieService.GetMovieByIdAsync(id);
-        return movie is null ? NotFound() : Ok(movie);
-    }
+        => Ok(await _movieService.GetMovieByIdAsync(id));
 
     [HttpPost]
     [Authorize(Roles = ManageMoviesRoles)]
     public async Task<ActionResult<MovieDto>> CreateMovie(CreateMovieDto dto)
     {
         var created = await _movieService.CreateMovieAsync(dto);
-        if (created is null)
-            return BadRequest("En eller flera GenreIds finns inte.");
-
         return CreatedAtAction(nameof(GetById), new { id = created.MovieId }, created);
     }
 
@@ -45,13 +41,15 @@ public class MoviesController : ControllerBase
     [Authorize(Roles = ManageMoviesRoles)]
     public async Task<IActionResult> UpdateMovie(Guid id, UpdateMovieDto dto)
     {
-        var result = await _movieService.UpdateMovieAsync(id, dto);
-        if (result is null) return BadRequest("En eller flera GenreIds finns inte.");
-        return result.Value ? NoContent() : NotFound();
+        await _movieService.UpdateMovieAsync(id, dto);
+        return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = ManageMoviesRoles)]
     public async Task<IActionResult> DeleteMovie(Guid id)
-        => await _movieService.DeleteMovieAsync(id) ? NoContent() : NotFound();
+    {
+        await _movieService.DeleteMovieAsync(id);
+        return NoContent();
+    }
 }

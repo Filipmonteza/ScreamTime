@@ -1,6 +1,7 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import Message from "../../components/Message";
 import "./Auth.css";
 
 function Login() {
@@ -50,7 +51,7 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        {error && <p className="auth-error">{error}</p>}
+        {error && <Message type="error">{error}</Message>}
         <div className="auth-button-row">
           <button type="submit" className="btn-pill">
             Logga in

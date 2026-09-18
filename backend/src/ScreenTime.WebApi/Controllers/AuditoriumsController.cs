@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using ScreenTime.Application.Contracts;
 using ScreenTime.Application.Interfaces;
 using ScreenTime.Infrastructure.Identity;
+using ScreenTime.WebApi.Filters;
 
 namespace ScreenTime.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[DomainExceptionFilter]
 public class AuditoriumsController : ControllerBase
 {
     private const string ManageAuditoriumsRoles = $"{IdentitySeeder.AdminRole},{IdentitySeeder.StaffRole}";
@@ -48,9 +50,7 @@ public class AuditoriumsController : ControllerBase
             return Forbid();
         }
 
-        var auditorium = await _auditoriumService.GetAuditoriumByIdAsync(id, includeInactive);
-
-        return auditorium is null ? NotFound() : Ok(auditorium);
+        return Ok(await _auditoriumService.GetAuditoriumByIdAsync(id, includeInactive));
     }
 
     [HttpPost]
@@ -58,9 +58,6 @@ public class AuditoriumsController : ControllerBase
     public async Task<ActionResult<AuditoriumDto>> CreateAuditorium(AuditoriumCreateDto dto)
     {
         var created = await _auditoriumService.CreateAuditoriumAsync(dto);
-
-        if (created is null)
-            return BadRequest("Ogiltigt eller redan använt salongsnamn.");
 
         return CreatedAtAction(nameof(GetById), new { id = created.AuditoriumId }, created);
     }
@@ -71,33 +68,24 @@ public class AuditoriumsController : ControllerBase
         Guid id,
         AuditoriumUpdateDto dto)
     {
-        var result = await _auditoriumService.UpdateAuditoriumAsync(id, dto);
-
-        if (result is null)
-            return BadRequest("Ogiltigt eller redan använt salongsnamn.");
-
-        return result.Value ? NoContent() : NotFound();
+        await _auditoriumService.UpdateAuditoriumAsync(id, dto);
+        return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = ManageAuditoriumsRoles)]
     public async Task<IActionResult> DeleteAuditorium(Guid id)
-        => await _auditoriumService.DeleteAuditoriumAsync(id)
-            ? NoContent()
-            : NotFound();
+    {
+        await _auditoriumService.DeleteAuditoriumAsync(id);
+        return NoContent();
+    }
 
     [HttpPost("{id:guid}/seats")]
     [Authorize(Roles = ManageAuditoriumsRoles)]
     public async Task<IActionResult> AddSeats(Guid id, AddSeatsRequestDto dto)
     {
         var request = new AddSeatsToAuditoriumDto(id, dto.Seats);
-        var result = await _seatService.AddSeatsToAuditoriumAsync(request);
-
-        return result switch
-        {
-            null => BadRequest("Ogiltig sätesdata, dubbletter, eller okänd sätestyp."),
-            false => NotFound("Salongen hittades inte."),
-            true => NoContent()
-        };
+        await _seatService.AddSeatsToAuditoriumAsync(request);
+        return NoContent();
     }
 }

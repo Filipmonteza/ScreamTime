@@ -6,7 +6,7 @@ public interface ISeatService
 {
     Task<List<SeatDto>> GetAllSeatsAsync();
 
-    Task<bool?> AddSeatsToAuditoriumAsync(
+    Task AddSeatsToAuditoriumAsync(
         AddSeatsToAuditoriumDto dto);
 
     Task<List<SeatTypeDto>> GetAllSeatTypesAsync(CancellationToken cancellationToken = default);

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -13,7 +14,24 @@ const string FrontendCorsPolicy = "Frontend";
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var firstError = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .FirstOrDefault() ?? "Invalid request.";
+
+            return new BadRequestObjectResult(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Ogiltig beg√§ran",
+                Detail = firstError
+            });
+        };
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -25,7 +43,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Ange din JWT-token. Exempel: \"eyJhbGciOi...\" (utan ordet Bearer, Swagger l‰gger till det Ât dig)."
+        Description = "Ange din JWT-token. Exempel: \"eyJhbGciOi...\" (utan ordet Bearer, Swagger l√§gger till det √•t dig)."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -103,7 +121,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 .AddRoles<IdentityRole<Guid>>()                 // RoleManager + role-aware user store
 .AddEntityFrameworkStores<ScreenTimeDbContext>()
 .AddSignInManager()                              // AuthController injects SignInManager
-.AddDefaultTokenProviders(); // Required for password reset, email confirmation tokens
+.AddDefaultTokenProviders() // Required for password reset, email confirmation tokens
+.AddErrorDescriber<SwedishIdentityErrorDescriber>();
 
 builder.Services.AddCors(options =>
 {

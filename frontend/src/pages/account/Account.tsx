@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useAuth } from "../../context/useAuth"
 import { updateEmail, updatePassword } from "../../api/accountApi"
+import Message from "../../components/Message"
 import "../auth/Auth.css"
 import "./Account.css"
 
@@ -88,7 +89,7 @@ function Account() {
                                 required
                             />
                         </div>
-                        {emailError && <p className="account-error">{emailError}</p>}
+                        {emailError && <Message type="error">{emailError}</Message>}
                         <div className="auth-button-row">
                             <button type="submit" className="btn-pill">Spara</button>
                             <button type="button" className="btn-pill" onClick={() => setEditingEmail(false)}>
@@ -136,7 +137,7 @@ function Account() {
                                 minLength={8}
                             />
                         </div>
-                        {passwordError && <p className="account-error">{passwordError}</p>}
+                        {passwordError && <Message type="error">{passwordError}</Message>}
                         <div className="auth-button-row">
                             <button type="submit" className="btn-pill">Spara</button>
                             <button type="button" className="btn-pill" onClick={() => setEditingPassword(false)}>

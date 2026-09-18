@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -58,7 +58,7 @@ public class AuthController : ControllerBase
         if (user == null)
         {
             _logger.LogWarning("Login attempt failed: User with email {Email} not found", request.Email);
-            return Unauthorized(new { message = "Invalid email or password." });
+            return Unauthorized(new { message = "Fel e-post eller lösenord." });
         }
 
         // Check password and sign-in requirements
@@ -69,11 +69,11 @@ public class AuthController : ControllerBase
             if (result.IsLockedOut)
             {
                 _logger.LogWarning("Login attempt failed: User {UserId} account is locked", user.Id);
-                return Unauthorized(new { message = "Account is locked due to multiple failed login attempts." });
+                return Unauthorized(new { message = "Kontot är låst på grund av för många misslyckade inloggningsförsök." });
             }
 
             _logger.LogWarning("Login attempt failed: Invalid password for user {UserId}", user.Id);
-            return Unauthorized(new { message = "Invalid email or password." });
+            return Unauthorized(new { message = "Fel e-post eller lösenord." });
         }
 
         // The token carries every role; AuthResponse.Role reports the first one for the frontend.
@@ -119,7 +119,7 @@ public class AuthController : ControllerBase
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing != null)
         {
-            return BadRequest(new { errors = new[] { new { Code = "DuplicateEmail", Description = "A user with this email already exists." } } });
+            return BadRequest(new { errors = new[] { new { Code = "DuplicateEmail", Description = "Det finns redan ett konto med den här e-postadressen." } } });
         }
 
         var user = new ApplicationUser
