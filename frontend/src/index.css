@@ -85,6 +85,10 @@ p {
   background: var(--accent-color-1-disabled);
 }
 
+.btn-pill:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
 @media (min-width: 950px) {
   .page {
     padding: 120px 80px 80px;
