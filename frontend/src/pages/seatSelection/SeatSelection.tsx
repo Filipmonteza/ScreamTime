@@ -50,6 +50,7 @@ function SeatSelection() {
 
   function toggleSeat(seat: SeatAvailability) {
     if (!seat.isAvailable) return;
+    setBookingError(null);
     setSelectedSeatIds((prev) =>
       prev.includes(seat.seatId)
         ? prev.filter((id) => id !== seat.seatId)
