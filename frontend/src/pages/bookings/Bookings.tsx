@@ -6,6 +6,8 @@ import {
   cancelBooking,
 } from "../../api/bookingApi";
 import { formatDateTimeLabel } from "../../utils/dateOptions";
+import Message from "../../components/Message";
+import Modal from "../../components/Modal";
 import { useNavigate } from "react-router-dom";
 import "./Bookings.css";
 
@@ -19,12 +21,18 @@ function Bookings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancelSuccess, setCancelSuccess] = useState<string | null>(null);
+  const [confirmingBooking, setConfirmingBooking] =
+    useState<BookingListItem | null>(null);
   const navigate = useNavigate();
 
-  async function handleCancel(bookingId: string) {
+  async function handleCancel(bookingId: string, movieTitle: string) {
+    setCancelError(null);
+    setCancelSuccess(null);
     try {
       await cancelBooking(bookingId);
       setCancelError(null);
+      setCancelSuccess(`${movieTitle} avbokad.`);
       const [currentBookings, pastBookings] = await Promise.all([
         getCurrentBookings(),
         getBookingHistory(),
@@ -74,7 +82,8 @@ function Bookings() {
           <div className="booking-section">
             <h2>Kommande</h2>
             {current.length === 0 && <p>Du har inga kommande bokningar.</p>}
-            {cancelError && <p>Fel: {cancelError}</p>}
+            {cancelError && <Message type="error">{cancelError}</Message>}
+            {cancelSuccess && <Message type="success">{cancelSuccess}</Message>}
             <div className="booking-card-grid">
               {current.map((booking) => (
                 <div key={booking.bookingId} className="booking-card">
@@ -83,16 +92,14 @@ function Bookings() {
                     {canCancel(booking.screeningStartTime) && (
                       <button
                         className="btn-pill"
-                        onClick={() => handleCancel(booking.bookingId)}
+                        onClick={() => setConfirmingBooking(booking)}
                       >
                         Avboka
                       </button>
                     )}
                   </div>
                   <p>Bokningsnr: {booking.bookingReference}</p>
-                  <p>
-                    {formatDateTimeLabel(booking.screeningStartTime)}
-                  </p>
+                  <p>{formatDateTimeLabel(booking.screeningStartTime)}</p>
                   <p>{booking.auditoriumName}</p>
                   {booking.seats.map((seat) => (
                     <p key={seat.seatId}>
@@ -115,9 +122,7 @@ function Bookings() {
                 <div key={booking.bookingId} className="booking-card">
                   <h3>{booking.movieTitle}</h3>
                   <p>Bokningsnr: {booking.bookingReference}</p>
-                  <p>
-                    {formatDateTimeLabel(booking.screeningStartTime)}
-                  </p>
+                  <p>{formatDateTimeLabel(booking.screeningStartTime)}</p>
                   <p>{booking.auditoriumName}</p>
                   {booking.seats.map((seat) => (
                     <p key={seat.seatId}>
@@ -139,9 +144,7 @@ function Bookings() {
                 <div key={booking.bookingId} className="booking-card">
                   <h3>{booking.movieTitle}</h3>
                   <p>Bokningsnr: {booking.bookingReference}</p>
-                  <p>
-                    {formatDateTimeLabel(booking.screeningStartTime)}
-                  </p>
+                  <p>{formatDateTimeLabel(booking.screeningStartTime)}</p>
                   <p>{booking.auditoriumName}</p>
                   {booking.seats.map((seat) => (
                     <p key={seat.seatId}>
@@ -153,6 +156,34 @@ function Bookings() {
               ))}
             </div>
           </div>
+          {confirmingBooking && (
+            <Modal onClose={() => setConfirmingBooking(null)}>
+              <h2 className="form-title">
+                Avboka {confirmingBooking.movieTitle}?
+              </h2>
+              <p>Är du säker på att du vill avboka din bokning?</p>
+              <div className="form-actions">
+                <button
+                  className="btn-pill"
+                  onClick={() => {
+                    handleCancel(
+                      confirmingBooking.bookingId,
+                      confirmingBooking.movieTitle,
+                    );
+                    setConfirmingBooking(null);
+                  }}
+                >
+                  Ja
+                </button>
+                <button
+                  className="btn-pill"
+                  onClick={() => setConfirmingBooking(null)}
+                >
+                  Nej
+                </button>
+              </div>
+            </Modal>
+          )}
         </>
       )}
     </div>
