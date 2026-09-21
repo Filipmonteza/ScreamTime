@@ -23,7 +23,6 @@ function Message({ type, children }: MessageProps) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    setVisible(true);
     const timer = setTimeout(() => setVisible(false), AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [type, children]);
