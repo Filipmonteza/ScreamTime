@@ -7,11 +7,12 @@ import { getAllMovies } from "../../api/moviesApi";
 import { getAllAuditoriums } from "../../api/auditoriumsApi";
 import { createScreening, updateScreening } from "../../api/screeningsApi";
 import { toDateTimeLocalValue } from "../../utils/dateOptions";
+import Message from "../../components/Message";
 
 type ScreeningFormProps = {
   screening?: Screening;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (title: string) => void;
 };
 
 function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
@@ -44,6 +45,8 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
       startTime: new Date(startTime).toISOString(),
     };
 
+    const movieTitle = movies.find((m) => m.movieId === movieId)?.title ?? "";
+
     try {
       if (screening) {
         await updateScreening(screening.screeningId, dto);
@@ -51,7 +54,7 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
         await createScreening(dto);
       }
 
-      onSaved();
+      onSaved(movieTitle);
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -68,11 +71,7 @@ function ScreeningForm({ screening, onClose, onSaved }: ScreeningFormProps) {
       onSubmit={handleSubmit}
       onCancel={onClose}
     >
-      {error && (
-        <div className="form-error">
-          {error}
-        </div>
-      )}
+      {error && <Message type="error">{error}</Message>}
 
       <div className="form-field">
         <label className="form-label">Film</label>
