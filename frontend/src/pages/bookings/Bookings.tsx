@@ -92,7 +92,10 @@ function Bookings() {
                     {canCancel(booking.screeningStartTime) && (
                       <button
                         className="btn-pill"
-                        onClick={() => setConfirmingBooking(booking)}
+                        onClick={() => {
+                          setCancelError(null);
+                          setConfirmingBooking(booking);
+                        }}
                       >
                         Avboka
                       </button>
