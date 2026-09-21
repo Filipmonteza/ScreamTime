@@ -99,7 +99,7 @@ builder.Services.AddAuthentication(options =>
 // schemes configured above with its cookie schemes.
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
-    // Password settings (adjust based on your security requirements)
+    // Password settings
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
@@ -114,7 +114,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     // User settings
     options.User.RequireUniqueEmail = true;
 
-    // Sign-in settings (important for JWT later)
+    // Sign-in settings
     options.SignIn.RequireConfirmedEmail = false; // Set to true when email is configured
     options.SignIn.RequireConfirmedAccount = false;
 })
@@ -134,8 +134,6 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
-// TODO: Configure the HTTP request pipeline.
 
 if (app.Environment.IsDevelopment())
 {

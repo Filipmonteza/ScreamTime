@@ -285,7 +285,8 @@ public sealed class BookingService : IBookingService
             .ToList();
     }
 
-    // Gets the customer's completed paid bookings
+    // Gets the customer's past bookings: screenings that have been and gone,
+    // plus anything they cancelled
     public async Task<IReadOnlyList<BookingListItemDto>> GetBookingHistoryAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         if (userId == Guid.Empty)
