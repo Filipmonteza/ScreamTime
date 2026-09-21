@@ -34,6 +34,7 @@ body {
   margin: 0 auto;
   padding: 24px 16px 96px;
   box-sizing: content-box;
+  --page-padding-x: 16px;
 }
 
 *,
@@ -87,5 +88,6 @@ p {
 @media (min-width: 950px) {
   .page {
     padding: 120px 80px 80px;
+    --page-padding-x: 80px;
   }
 }

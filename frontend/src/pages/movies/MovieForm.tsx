@@ -9,7 +9,7 @@ import Message from "../../components/Message";
 type MovieFormProps = {
   movie?: Movie;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (title: string) => void;
 };
 
 function MovieForm({ movie, onClose, onSaved }: MovieFormProps) {
@@ -51,7 +51,7 @@ function MovieForm({ movie, onClose, onSaved }: MovieFormProps) {
       ? updateMovie(movie.movieId, { ...dto, isActive: movie.isActive })
       : createMovie(dto);
     request
-      .then(onSaved)
+      .then(() => onSaved(title))
       .catch((err) =>
         setError(err instanceof Error ? err.message : "Något gick fel."),
       );

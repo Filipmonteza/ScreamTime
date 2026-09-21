@@ -1,5 +1,6 @@
 import type { Screening } from '../types/screening'
 import { getAuthHeader } from './authHeader'
+import { extractErrorMessage } from './apiError'
 
 const API_BASE_URL = 'http://localhost:5267'
 
@@ -29,7 +30,7 @@ export async function getScreeningById(id: string): Promise<Screening> {
     const response = await fetch(`${API_BASE_URL}/api/screenings/${id}`)
 
     if (!response.ok) {
-        throw new Error(`Failed to fetch screening: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to fetch screening: ${response.status}`))
     }
 
     return response.json()
@@ -47,13 +48,9 @@ export async function createScreening(screening: {
     })
 
     if (!response.ok) {
-        if (response.status === 409) {
-            throw new Error(
-                'Det finns redan en visning i den valda salongen som överlappar med den här tiden.',
-            )
-        }
-
-        throw new Error(`Failed to create screening: ${response.status}`)
+        throw new Error(
+            await extractErrorMessage(response, `Failed to create screening: ${response.status}`)
+        )
     }
 
     return response.json()
@@ -74,13 +71,8 @@ export async function updateScreening(
     })
 
     if (!response.ok) {
-        if (response.status === 409) {
-            throw new Error(
-                'Det finns redan en visning i den valda salongen som överlappar med den här tiden.',
-            )
-        }
-
-        throw new Error(`Failed to update screening: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to update screening: ${response.status}`)
+        )
     }
 }
 
@@ -94,6 +86,6 @@ export async function cancelScreening(id: string): Promise<void> {
     )
 
     if (!response.ok) {
-        throw new Error(`Failed to cancel screening: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to cancel screening: ${response.status}`))
     }
 }

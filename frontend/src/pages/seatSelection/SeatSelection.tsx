@@ -15,6 +15,7 @@ import iconSeatSelected from "../../assets/icons/Icon_Seat_Selected.svg";
 import iconSeatUnavailable from "../../assets/icons/Icon_Seat_Unavailable.svg";
 import iconArrowBack from "../../assets/icons/Icon_Arrow_Back.svg";
 import Modal from "../../components/Modal";
+import Message from "../../components/Message";
 
 function SeatSelection() {
   const { screeningId } = useParams<{ screeningId: string }>();
@@ -66,6 +67,7 @@ function SeatSelection() {
 
   async function handleConfirm() {
     if (!screeningId) return;
+    setBookingError(null);
     try {
       const confirmation = await createBooking(screeningId, selectedSeatIds);
       setBooking(confirmation);
@@ -174,9 +176,7 @@ function SeatSelection() {
             </div>
 
             <div className="seat-selection-screen" />
-            {bookingError && (
-              <p className="seat-selection-error">{bookingError}</p>
-            )}
+            {bookingError && <Message type="error">{bookingError}</Message>}
             <div
               className="seat-selection-grid"
               style={
@@ -276,14 +276,14 @@ function SeatSelection() {
               <h2 className="form-title">Bekräfta bokning</h2>
               <p>Är du säker på att du vill boka {seatMap.movieTitle}?</p>
               <div className="form-actions">
+                <button className="btn-pill" onClick={handleConfirm}>
+                  Ja
+                </button>
                 <button
                   className="btn-pill"
                   onClick={() => setShowConfirm(false)}
                 >
                   Nej
-                </button>
-                <button className="btn-pill" onClick={handleConfirm}>
-                  Ja
                 </button>
               </div>
             </Modal>

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import "./Message.css";
 import iconSuccess from "../assets/icons/Icon_Success.svg";
 import iconWarning from "../assets/icons/Icon_Warning.svg";
@@ -16,7 +17,17 @@ const icons: Record<MessageType, string> = {
   error: iconError,
 };
 
+const AUTO_DISMISS_MS = 4000;
+
 function Message({ type, children }: MessageProps) {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(false), AUTO_DISMISS_MS);
+    return () => clearTimeout(timer);
+  }, [type, children]);
+
+  if (!visible) return null;
   return (
     <div className={`message message-${type}`}>
       <img src={icons[type]} alt="" className="message-icon" />
