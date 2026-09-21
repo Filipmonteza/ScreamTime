@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import Message from "../../components/Message";
 import "./Auth.css";
@@ -10,13 +10,15 @@ function Login() {
   const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     try {
       await login(email, password);
-      navigate("/");
+      const from = (location.state as { from?: string } | null)?.from ?? "/";
+      navigate(from);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fel email eller lösenord");
     }
