@@ -28,6 +28,7 @@ function SeatSelection() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [booking, setBooking] = useState<BookingConfirmation | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     if (!screeningId) return;
@@ -58,7 +59,7 @@ function SeatSelection() {
 
   function handleBokaClick() {
     if (!isAuthenticated) {
-      navigate("/login", { state: { from: location.pathname } });
+      setShowLoginPrompt(true);
       return;
     }
     setShowConfirm(true);
@@ -271,6 +272,31 @@ function SeatSelection() {
               Boka
             </button>
           </div>
+          {showLoginPrompt && (
+            <Modal onClose={() => setShowLoginPrompt(false)}>
+              <h2 className="form-title">Du måste vara inloggad</h2>
+              <p>
+                Du måste vara inloggad för att kunna boka en biljett. Vill du
+                logga in?
+              </p>
+              <div className="form-actions">
+                <button
+                  className="btn-pill"
+                  onClick={() =>
+                    navigate("/login", { state: { from: location.pathname } })
+                  }
+                >
+                  Ja
+                </button>
+                <button
+                  className="btn-pill"
+                  onClick={() => setShowLoginPrompt(false)}
+                >
+                  Nej
+                </button>
+              </div>
+            </Modal>
+          )}
           {showConfirm && (
             <Modal onClose={() => setShowConfirm(false)}>
               <h2 className="form-title">Bekräfta bokning</h2>
