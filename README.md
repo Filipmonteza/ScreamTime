@@ -1,67 +1,197 @@
-# ScreenTime – Biograf- och bokningssystem
+# ScreamTime – Cinema and Booking System
 
-ScreenTime är en fullstackapplikation för administration och bokning av biovisningar. Systemet har stöd för filmer, salonger, visningar, sätesval, bokningar, användarkonton och rollbaserad behörighet.
+ScreamTime is a full-stack application for administering and booking cinema screenings. It covers movies, auditoriums, screenings, seat selection, bookings, user accounts and role-based authorisation.
 
-Projektet är utvecklat som ett grupparbete inom systemutveckling på Newton och består av ett REST API i ASP.NET Core samt en frontend i React.
+The project was built as a group assignment in systems development, and consists of a REST API in ASP.NET Core and a React frontend.
 
-## Funktioner
+Supporting documentation – requirements, test strategy and agile process – lives in the [project wiki](https://github.com/Filipmonteza/ScreamTime/wiki).
 
-### För besökare och kunder
+The user interface is in Swedish. Page and section names are quoted in Swedish throughout this document so they match what you see on screen.
 
-- Visa tillgängliga filmer och filminformation.
-- Söka och filtrera filmer efter titel, genre, datum och salong.
-- Visa kommande föreställningar.
-- Registrera konto och logga in.
-- Välja platser inför en föreställning.
-- Se pris för standard- och VIP-platser.
-- Skapa en bokning.
-- Visa aktuella och tidigare bokningar.
-- Avboka en bokning.
+![The ScreamTime home page: staff picks above today's screenings, grouped by auditorium](docs/images/home.png)
 
-### För personal och administratörer
+## Getting started
 
-- Skapa, redigera och inaktivera filmer.
-- Skapa och administrera salonger.
-- Konfigurera salongernas stolar och sätestyper.
-- Skapa, redigera och ställa in visningar.
-- Visa även inställda visningar.
-- Förhindra överlappande visningar i samma salong.
-- Rollbaserad åtkomst för `Admin`, `Staff` och `Customer`.
+### Prerequisites
 
-Backend har även stöd för att lista användare och tilldela roller. Det fullständiga gränssnittet för personaladministration är under utveckling.
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Node.js](https://nodejs.org/) version 24 (see `frontend/.nvmrc`)
+- npm
+- Git
 
-## Tekniker
+Check your installation with:
 
-### Backend
+```bash
+dotnet --version
+node --version
+npm --version
+```
 
-- .NET 8
-- ASP.NET Core Web API
-- Entity Framework Core
-- SQLite
-- ASP.NET Core Identity
-- JWT-autentisering
-- Swagger/OpenAPI
-- xUnit
-- FluentAssertions
+### Install
 
-### Frontend
+```bash
+git clone https://github.com/Filipmonteza/ScreamTime.git
+cd ScreamTime
+dotnet restore
+cd frontend && npm install && cd ..
+```
 
-- React 19
-- TypeScript
-- Vite
-- React Router
-- CSS
+### Run
 
-### Övrigt
+The backend and frontend run at the same time in two terminals. The commands work in both PowerShell and bash.
 
-- Git och GitHub
-- GitHub Actions
-- Pull requests och feature branches
-- Automatisk build och testning i CI
+Terminal 1 – backend, from the repository root:
 
-## Arkitektur
+```bash
+dotnet run --project backend/src/ScreenTime.WebApi/ScreenTime.WebApi.csproj --launch-profile http
+```
 
-Backend är uppdelad i flera lager:
+Terminal 2 – frontend:
+
+```bash
+cd frontend
+npm run dev
+```
+
+| | Address |
+|---|---|
+| Frontend | <http://localhost:5173> |
+| API | <http://localhost:5267> |
+| Swagger | <http://localhost:5267/swagger> |
+
+In development the backend creates, migrates and seeds the database on startup, so a fresh clone needs nothing beyond the commands above. The frontend calls the backend on port `5267`, and the backend allows CORS from `http://localhost:5173`. Change one and you have to change the other.
+
+### Sign in
+
+These accounts are seeded automatically and are meant for local development and demonstration.
+
+| Role | Email | Password |
+|---|---|---|
+| Customer | `test@screentime.com` | `Test1234!` |
+| Admin | `admin@screentime.com` | `Admin1234!` |
+
+No staff account is seeded – sign in as the administrator and create one under **Personal** to try the `Staff` role.
+
+## Features
+
+### Visitors and customers
+
+- Browse available movies and movie details.
+- Search and filter movies by title, genre, day and auditorium.
+- See upcoming screenings.
+- Register an account and sign in.
+- Pick seats for a screening from a seat map showing what is already taken.
+- See prices for standard and VIP seats.
+- Place a booking and receive a confirmation with a booking reference.
+- View current bookings and booking history.
+- Cancel a booking up to 15 minutes before the screening starts.
+- Change the email address and password on their own account.
+
+![Movie details for Alien: age rating, runtime, genre and upcoming screenings](docs/images/movie.png)
+
+*A movie's detail page: age rating, runtime, genre and every upcoming screening, filterable by day and auditorium.*
+
+### Staff and administrators
+
+- Create, edit and deactivate movies.
+- Create and administer auditoriums.
+- Configure an auditorium's seats and seat types.
+- Create, edit and cancel screenings.
+- See cancelled and past screenings as well.
+- Prevent overlapping screenings in the same auditorium.
+- Search all bookings by booking reference or email address.
+
+### Administrators only
+
+- Create staff accounts and assign roles.
+- Change the email address and password of existing staff accounts.
+- Deactivate and reactivate accounts.
+
+## Roles and permissions
+
+| Capability | Customer | Staff | Admin |
+|---|:---:|:---:|:---:|
+| View movies and screenings | Yes | Yes | Yes |
+| Place bookings | Yes | Yes | Yes |
+| View and cancel own bookings | Yes | Yes | Yes |
+| Manage own account | Yes | Yes | Yes |
+| Administer movies | No | Yes | Yes |
+| Administer auditoriums and seats | No | Yes | Yes |
+| Administer screenings | No | Yes | Yes |
+| Search all bookings | No | Yes | Yes |
+| Create staff accounts and assign roles | No | No | Yes |
+
+Permissions are enforced in both the frontend and the backend. The frontend hides what a role cannot reach, and the backend protects every administrative endpoint with `[Authorize]` and a role requirement.
+
+![The Personal page listing staff accounts with edit and remove actions](docs/images/staff.png)
+
+*The **Personal** page, which only administrators can reach: create accounts, assign the `Staff` role, edit and deactivate.*
+
+## Where things live
+
+| Area | Backend | Frontend |
+|---|---|---|
+| Movies and genres | `MoviesController`, `GenresController`, `MovieService` | **Alla filmer**, the movie detail page, **Filmer** (staff) |
+| Auditoriums and seats | `AuditoriumsController`, `SeatsController`, `AuditoriumService` | **Salonger** (staff) |
+| Screenings | `ScreeningsController`, `ScreeningService` | **Visningar**, **Hem** |
+| Bookings | `BookingsController`, `BookingService` | the seat-selection page, **Mina Bokningar**, **Bokningar** (staff) |
+| Accounts and roles | `AuthController`, `AccountController`, `AdminController` | sign-in and registration, **Mitt konto**, **Personal** (admin) |
+
+Repositories sit behind the services in `ScreenTime.Infrastructure/Repositories`, all on the generic `Repository<TEntity>` base described under [Technical concepts](#technical-concepts).
+
+## User scenarios
+
+### Scenario 1 – A customer books cinema tickets
+
+**As a customer I want to pick a screening and free seats so that I can book cinema tickets.**
+
+1. The customer opens a movie and picks an upcoming screening.
+2. The system shows the auditorium's seats and their availability.
+3. The customer selects standard or VIP seats.
+4. The system shows the total price.
+5. The customer confirms the booking and receives a booking reference.
+6. The booking appears under the customer's current bookings.
+7. The booked seats are marked unavailable to other customers.
+
+If somebody else takes the same seat in the meantime, the booking is aborted and the customer is told which seats are no longer free. Double booking is impossible even if two customers click at the same instant: the database holds a unique index on `(ScreeningId, SeatId)` that counts only active tickets.
+
+![Seat map showing standard, VIP and taken seats beside a running order summary](docs/images/booking.png)
+
+*Steps 2–5: standard and VIP seats priced separately, taken seats blocked, and the running total on the right.*
+
+### Scenario 2 – A customer cancels a booking
+
+**As a customer I want to cancel a future booking so that the seats become available again.**
+
+1. The customer signs in and opens their bookings.
+2. The customer picks a booking that can still be cancelled.
+3. The system checks that more than 15 minutes remain until the screening.
+4. The booking's status changes to cancelled.
+5. The booking moves to the booking history.
+6. The reserved seats become available to other customers.
+
+Later than 15 minutes before the start, the cancellation is refused and the booking stands.
+
+### Scenario 3 – Staff administer a screening
+
+**As a member of staff I want to create and administer screenings so that the programme stays up to date.**
+
+1. The staff member signs in with the `Staff` or `Admin` role.
+2. They pick a movie, an auditorium and a start date and time.
+3. The system derives the end time from the movie's runtime plus cleaning time.
+4. The system checks that the screening does not overlap another one in the same auditorium.
+5. A valid screening is added to the programme.
+6. The staff member can later edit or cancel it.
+
+Cancelling a screening also cancels the bookings sold for it, and frees the slot in the auditorium for a new screening.
+
+![Staff view of the programme, one screening marked INSTÄLLD](docs/images/screenings.png)
+
+*The programme as staff see it, filtered by day and auditorium. A cancelled screening stays visible to staff, marked `INSTÄLLD`.*
+
+## Architecture and data model
+
+The backend is split into layers:
 
 ```text
 backend/
@@ -89,7 +219,7 @@ backend/
     └── ScreenTime.WebApi.IntegrationTests/
 ```
 
-Frontend är uppdelad efter ansvar:
+The frontend is split by responsibility:
 
 ```text
 frontend/src/
@@ -103,25 +233,120 @@ frontend/src/
 └── utils/
 ```
 
-### Lagerfördelning
+- **Domain** holds entities, enums and the core domain model.
+- **Application** holds DTOs, interfaces and business logic.
+- **Infrastructure** handles the database, repositories, Identity and JWT.
+- **WebApi** exposes the functionality as REST endpoints.
+- **Frontend** presents the system and talks to the backend over HTTP.
 
-- **Domain** innehåller entiteter, enums och grundläggande domänmodeller.
-- **Application** innehåller DTO:er, interfaces och affärslogik.
-- **Infrastructure** hanterar databas, repositories, Identity och JWT.
-- **WebApi** exponerar funktionaliteten genom REST-endpoints.
-- **Frontend** presenterar systemet och kommunicerar med backend via HTTP.
+Dependencies point inwards: `WebApi` knows about `Application` and `Infrastructure`, both of which know about `Domain`. `Domain` knows about nothing else.
 
-## Tekniska koncept
+> The product is called ScreamTime. The projects and namespaces in the code have been called `ScreenTime.*` since the solution was created and have been left that way.
 
-Projektet demonstrerar minst tre av de efterfrågade teknikerna.
+### Data model
+
+The Identity tables (`AspNetRoles`, `AspNetUserRoles` and the rest) are generated by the framework and left out here.
+
+```mermaid
+erDiagram
+    ApplicationUser ||--o{ Booking    : "places"
+    Movie           ||--o{ MovieGenre : "categorised by"
+    Genre           ||--o{ MovieGenre : "applies to"
+    Movie           ||--o{ Screening  : "is shown as"
+    Auditorium      ||--o{ Screening  : "hosts"
+    Auditorium      ||--o{ Seat       : "contains"
+    SeatType        ||--o{ Seat       : "classifies"
+    Screening       ||--o{ Booking    : "is booked in"
+    Screening       ||--o{ Ticket     : "sells"
+    Booking         ||--o{ Ticket     : "consists of"
+    Seat            ||--o{ Ticket     : "is sold as"
+
+    ApplicationUser {
+        Guid Id PK "from Identity"
+        string Email UK "from Identity"
+        string PasswordHash "from Identity"
+    }
+    Movie {
+        Guid Id PK
+        string Title
+        int AgeRating "0, 7, 11, 15"
+        int RuntimeMinutes
+        string Description
+        string Poster "file name, nullable"
+        bool IsActive
+    }
+    Genre {
+        Guid Id PK
+        string Name UK
+    }
+    MovieGenre {
+        Guid MovieId FK "part of composite PK"
+        Guid GenreId FK "part of composite PK"
+    }
+    Auditorium {
+        Guid Id PK
+        string Name UK "unique among active"
+        bool IsActive
+    }
+    SeatType {
+        Guid Id PK
+        string Name "Standard, VIP"
+        decimal Price
+    }
+    Seat {
+        Guid Id PK
+        Guid AuditoriumId FK
+        Guid SeatTypeId FK
+        string RowLabel
+        int SeatNumber
+    }
+    Screening {
+        Guid Id PK
+        Guid MovieId FK
+        Guid AuditoriumId FK
+        DateTime StartTime "UTC"
+        DateTime EndTime "start + runtime + cleaning"
+        bool IsCancelled
+    }
+    Booking {
+        Guid Id PK
+        Guid UserId FK
+        Guid ScreeningId FK
+        string BookingReference UK
+        int Status "Reserved, Paid, Cancelled"
+        DateTime CreatedAt
+        DateTime CancelledAt "nullable"
+        decimal TotalAmount
+    }
+    Ticket {
+        Guid Id PK
+        Guid BookingId FK
+        Guid ScreeningId FK
+        Guid SeatId FK
+        decimal Price "price at time of purchase"
+        DateTime ReleasedAt "nullable"
+    }
+```
+
+A few choices worth knowing before writing against the model:
+
+- **Seats belong to the auditorium, not to the screening.** A `Seat` exists whether or not anything is playing. What is free for a screening is derived: the auditorium's seats minus the seats holding an active ticket for that screening.
+- **Price lives on `SeatType`, not on the seat.** Changing the VIP price is one update instead of hundreds.
+- **`Ticket` stores the price that applied at purchase.** Later price changes do not rewrite old receipts.
+- **Cancelling releases tickets instead of deleting them.** `Ticket.ReleasedAt` is set, the row survives as history, and the filtered unique index on `(ScreeningId, SeatId)` – which applies only where `ReleasedAt` is `NULL` – frees the seat again. That index is also what makes double booking impossible, independently of the checks in the code.
+- **`Booking.UserId` is a plain `Guid` with no navigation property.** The user lives in Identity, which sits in Infrastructure, and `Domain` is not allowed to know about that layer.
+- **`(AuditoriumId, RowLabel, SeatNumber)` is unique.** No duplicate chairs.
+
+## Technical concepts
+
+Three things shape most of the backend code: a generic repository, LINQ over EF Core, and asynchronous access all the way down.
 
 ### Generics
 
-En generell repository-abstraktion används för operationer som delas mellan olika entiteter:
+A generic repository abstraction covers the operations every entity shares:
 
 ```csharp
-public interface IRepository<TEntity>
-    where TEntity : BaseEntity
+public interface IRepository<TEntity> where TEntity : BaseEntity
 ```
 
 ```csharp
@@ -129,349 +354,117 @@ public abstract class Repository<TEntity> : IRepository<TEntity>
     where TEntity : BaseEntity
 ```
 
-`TEntity` gör att samma implementation kan återanvändas för exempelvis filmer, salonger, bokningar och visningar. Begränsningen `where TEntity : BaseEntity` garanterar att entiteten har ett `Id`.
-
-### LINQ
-
-LINQ används för bland annat filtrering, sortering, gruppering och omvandling:
+`TEntity` lets one implementation serve movies, auditoriums, bookings and screenings alike. The `where TEntity : BaseEntity` constraint guarantees the entity has an `Id`, and that is what makes `GetByIdAsync` expressible generically:
 
 ```csharp
-return await Context.Seats
-    .Where(seat => auditoriumIds.Contains(seat.AuditoriumId))
-    .GroupBy(seat => seat.AuditoriumId)
-    .Select(group => new
+public virtual async Task<TEntity?> GetByIdAsync(
+    Guid id,
+    bool track = false,
+    CancellationToken cancellationToken = default) =>
+    await Query(track)
+        .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+```
+
+Source: `backend/src/ScreenTime.Infrastructure/Repositories/Repository.cs`
+
+### LINQ and asynchronous access
+
+Every read is a LINQ query against EF Core, and every one of them is awaited – no server thread blocks on the database. A `CancellationToken` is threaded from the controller down to the query, so an abandoned HTTP request cancels the work it started.
+
+One query stands in for the pattern. The seat count per auditorium resolves in a single round trip instead of one per auditorium:
+
+```csharp
+await Context.Seats
+    .Where(s => auditoriumIds.Contains(s.AuditoriumId))
+    .GroupBy(s => s.AuditoriumId)
+    .Select(g => new
     {
-        AuditoriumId = group.Key,
-        Count = group.Count()
+        AuditoriumId = g.Key,
+        Count = g.Count()
     })
     .ToDictionaryAsync(
-        item => item.AuditoriumId,
-        item => item.Count);
+        x => x.AuditoriumId,
+        x => x.Count,
+        cancellationToken);
 ```
 
-### Asynkron programmering
+Source: `backend/src/ScreenTime.Infrastructure/Repositories/AuditoriumRepository.cs`
 
-Databas- och API-operationer använder `async`, `await` och `Task<T>`:
+## Testing
 
-```csharp
-public async Task<List<Auditorium>> GetAllAsync(
-    CancellationToken cancellationToken = default)
-{
-    return await Query()
-        .ToListAsync(cancellationToken);
-}
+The backend has 31 integration tests that run against a real API through `WebApplicationFactory`, each test class against its own SQLite database.
+
+The tests are written scenario-first: each name states the situation and the expected outcome, for example `Create_RunningIntoTheStartOfAnExistingScreening_IsRejected`.
+
+| Test file | Covers |
+|---|---|
+| `RegisterTests.cs` | Registering with a new email, and a registration refused because the password confirmation does not match. |
+| `AuthFlowTests.cs` | Registration, sign-in, access to protected endpoints and sign-out. |
+| `RoleAuthorizationTests.cs` | A customer being denied access to administrative endpoints. |
+| `StaffAccountFlowTests.cs` | An administrator creating a staff account, and that account signing in with the `Staff` role. |
+| `ScreeningTests.cs` | Creating, editing and cancelling screenings, every overlap case within one auditorium, time zone handling, filtering by auditorium, date and genre, and cancellation together with its effect on existing bookings. |
+
+```bash
+dotnet test ScreenTime.sln     # backend tests
+cd frontend && npm run build   # production build, also type-checks the project
+cd frontend && npm run lint    # ESLint
 ```
 
-Det gör att servertrådar inte behöver blockeras medan systemet väntar på databasoperationer.
+All of the above runs in CI: GitHub Actions builds both halves, runs the backend tests and runs ESLint on every pull request against `main` and `dev`, and on pushes to `main` (`.github/workflows/ci.yml`).
 
-## Användarscenarier
+## API documentation
 
-### Scenario 1 – Kund bokar biobiljetter
+With the backend running in development, the interactive API documentation is at <http://localhost:5267/swagger>.
 
-**Som kund vill jag kunna välja en visning och lediga stolar för att boka biobiljetter.**
+For endpoints that require authentication:
 
-1. Kunden öppnar en film och väljer en kommande visning.
-2. Systemet visar salongens stolar och deras tillgänglighet.
-3. Kunden väljer standard- eller VIP-stolar.
-4. Systemet visar det totala priset.
-5. Kunden bekräftar bokningen.
-6. Bokningen visas under kundens aktuella bokningar.
-7. De bokade stolarna markeras som otillgängliga för andra kunder.
+1. Sign in through `/api/auth/login`.
+2. Copy the JWT from the response.
+3. Click **Authorize** in Swagger.
+4. Paste the token.
+5. Call the protected endpoint.
 
-### Scenario 2 – Kund avbokar en bokning
+## Database and seed data
 
-**Som kund vill jag kunna avboka en framtida bokning så att platserna blir tillgängliga igen.**
+The project uses SQLite. The database file is created at `backend/src/ScreenTime.WebApi/screenTime.db`.
 
-1. Kunden loggar in och öppnar sina bokningar.
-2. Kunden väljer en bokning som fortfarande kan avbokas.
-3. Systemet ändrar bokningens status till avbokad.
-4. Bokningen flyttas till bokningshistoriken.
-5. De reserverade stolarna blir tillgängliga för andra kunder.
+In development the backend does the following on startup: creates the database if it is missing, applies pending EF Core migrations, inserts seed data, creates the roles, and creates the development accounts.
 
-### Scenario 3 – Personal administrerar en visning
+The seed data contains:
 
-**Som personal vill jag kunna skapa och administrera visningar för att hålla bioprogrammet uppdaterat.**
+- 10 movies with age rating, runtime, description and poster.
+- 4 genres: Supernatural, Psychological, Slasher and Sci-Fi.
+- 2 auditoriums: Stora salongen (96 seats, rows G and H are VIP) and Lilla salongen (40 seats, all standard).
+- The seat types Standard (120 kr) and VIP (180 kr).
+- Two weeks of programme starting today: four screenings per day and auditorium (10:00, 14:00, 18:00 and 22:00), each with 20 minutes of cleaning time after the film.
+- The `Admin`, `Staff` and `Customer` roles, plus two test accounts.
 
-1. Personalen loggar in med rollen `Staff` eller `Admin`.
-2. Personalen väljer film, salong samt startdatum och starttid.
-3. Systemet beräknar sluttiden utifrån filmens längd och städtiden.
-4. Systemet kontrollerar att visningen inte överlappar en annan visning i samma salong.
-5. En giltig visning läggs till i programmet.
-6. Personalen kan senare redigera eller ställa in visningen.
+The roles are seeded in every environment because registration assumes the `Customer` role already exists.
 
-## Förutsättningar
+## Change request
 
-Följande behöver vara installerat:
+A change request came out of a demo for the client, about the layout of the home page. At the time the home page had two sections: **Våra tips** and **Hitta film**, the latter holding the whole movie catalogue with search and filtering. The two sat too close together – both were grids of posters – and between them they said the same thing twice.
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Node.js](https://nodejs.org/) version 24 eller kompatibel version
-- npm
-- Git
+The change went through the normal process: raised as a task, built on the `L-restructure-homepage` branch, and reviewed and merged in [pull request #300](https://github.com/Filipmonteza/ScreamTime/pull/300).
 
-Kontrollera installationerna med:
+The outcome:
 
-```powershell
-dotnet --version
-node --version
-npm --version
-```
-
-## Installation
-
-Klona repot och gå till projektmappen:
-
-```powershell
-git clone <repository-url>
-cd ScreenTime
-```
-
-Återställ backendpaketen:
-
-```powershell
-dotnet restore
-```
-
-Installera frontendpaketen:
-
-```powershell
-cd frontend
-npm install
-cd ..
-```
-
-## Starta projektet
-
-Backend och frontend behöver köras samtidigt i två terminaler.
-
-### Terminal 1 – backend
-
-Kör från projektets rot:
-
-```powershell
-dotnet run --project .\backend\src\ScreenTime.WebApi\ScreenTime.WebApi.csproj --launch-profile http
-```
-
-Backend startar på:
-
-```text
-http://localhost:5267
-```
-
-Swagger finns på:
-
-```text
-http://localhost:5267/swagger
-```
-
-### Terminal 2 – frontend
-
-```powershell
-cd frontend
-npm run dev
-```
-
-Frontend öppnas på:
-
-```text
-http://localhost:5173
-```
-
-Frontend är konfigurerad för att kommunicera med backend på port `5267`.
-
-## Databas och seed-data
-
-Projektet använder SQLite. I utvecklingsmiljön utför backend automatiskt följande vid uppstart:
-
-1. Skapar databasen om den saknas.
-2. Kör väntande EF Core-migrationer.
-3. Lägger in seed-data.
-4. Skapar de roller som systemet använder.
-5. Skapar utvecklingskonton.
-
-Seed-datan innehåller bland annat:
-
-- Filmer och genrer.
-- Filmplanscher.
-- Salonger och stolar.
-- Standard- och VIP-platser.
-- Visningar.
-- Roller och testkonton.
-
-### Återställa utvecklingsdatabasen
-
-Stoppa backend och ta bort:
-
-```text
-backend/src/ScreenTime.WebApi/screenTime.db
-```
-
-Starta sedan backend igen. Databasen skapas och seedas på nytt.
-
-> Detta tar bort alla lokalt skapade användare, bokningar och andra ändringar.
-
-## Utvecklingskonton
-
-Följande konton är endast avsedda för lokal utveckling och demonstration.
-
-### Kund
-
-```text
-E-post: test@screentime.com
-Lösenord: Test1234!
-Roll: Customer
-```
-
-### Administratör
-
-```text
-E-post: admin@screentime.com
-Lösenord: Admin1234!
-Roll: Admin
-```
-
-Använd inte dessa lösenord i en produktionsmiljö.
-
-## Roller och behörigheter
-
-| Funktion | Customer | Staff | Admin |
-|---|:---:|:---:|:---:|
-| Visa filmer och visningar | Ja | Ja | Ja |
-| Skapa bokningar | Ja | Ja | Ja |
-| Visa egna bokningar | Ja | Ja | Ja |
-| Administrera filmer | Nej | Ja | Ja |
-| Administrera salonger | Nej | Ja | Ja |
-| Administrera visningar | Nej | Ja | Ja |
-| Administrera användarroller | Nej | Nej | Ja |
-
-Behörigheterna kontrolleras både i frontend och i backend. Backend använder `[Authorize]` och rollbaserade policies för att skydda administrativa endpoints.
-
-## Testning
-
-Backend innehåller integrationstester för bland annat:
-
-- Registrering och inloggning.
-- Skyddade endpoints.
-- Rollbaserad auktorisering.
-- Skapande och redigering av visningar.
-- Kontroll av överlappande visningar.
-- Filtrering efter datum, genre och salong.
-- Avbokning av visningar.
-- Påverkan på befintliga bokningar.
-- Bokningshistorik.
-
-Kör alla backendtester:
-
-```powershell
-dotnet test .\ScreenTime.sln
-```
-
-Kör frontendens produktionsbygge:
-
-```powershell
-cd frontend
-npm run build
-```
-
-Kör lint:
-
-```powershell
-npm run lint
-```
-
-Vid senaste lokala verifieringen passerade samtliga 26 backendtester och frontendens produktionsbygge slutfördes utan TypeScript-fel.
-
-## API-dokumentation
-
-När backend körs i utvecklingsläge finns den interaktiva API-dokumentationen i Swagger:
-
-```text
-http://localhost:5267/swagger
-```
-
-För endpoints som kräver autentisering:
-
-1. Logga in genom `/api/auth/login`.
-2. Kopiera JWT-token från svaret.
-3. Klicka på **Authorize** i Swagger.
-4. Klistra in token.
-5. Testa den skyddade endpointen.
-
-## CI/CD
-
-Projektet använder GitHub Actions för att automatiskt:
-
-- Återställa NuGet-paket.
-- Bygga backend.
-- Köra backendtester.
-- Installera frontendpaket.
-- Bygga frontend.
-- Köra ESLint.
-
-Workflow-filen finns i:
-
-```text
-.github/workflows/ci.yml
-```
-
-## Versionshantering och arbetsflöde
-
-Projektet utvecklas med:
-
-- Separata feature branches.
-- Regelbundna commits.
-- Pull requests.
-- Kodgranskning innan merge.
-- En gemensam utvecklingsbranch.
-- Automatisk verifiering genom GitHub Actions.
-
-Exempel på branchstruktur:
-
-```text
-main
-└── dev
-    ├── feature/movie-management
-    ├── feature/booking-flow
-    ├── feature/screenings
-    └── feature/role-authorization
-```
-
-## Projektstatus
-
-Följande delar är implementerade:
-
-- Filmregister.
-- Salonghantering.
-- Visningsflöde.
-- Bokningsflöde och sätesval.
-- Bokningshistorik och avbokning.
-- Registrering och inloggning.
-- JWT-autentisering.
-- Rollbaserad auktorisering.
-- Sökning och filtrering.
-- Generiskt repository.
-- Integrationstester.
-- GitHub Actions.
-
-Kvarvarande arbete:
-
-- Färdigställa frontend för personal- och användaradministration.
-- Utöka dokumentationen av scenariobaserade tester.
-- Genomföra slutlig manuell regressionstestning.
-- Förbereda slutdatabasen inför inlämningen.
+- **Hitta film** was replaced on the home page by **Dagens visningar**, grouped by auditorium (the layout shown at the top of this page). It answers a different question from **Våra tips** – what is on today, rather than what we recommend – and the two can no longer be confused.
+- The movie catalogue with search and filtering was kept, but on a page of its own, **Alla filmer**, reachable from the menu.
+- The seed data was reworked into four screenings per day and auditorium, so the home page has a programme to show straight after a fresh database is created.
 
 ## Team
 
-Projektet har utvecklats som ett grupparbete med agila arbetsmetoder, feature branches, pull requests och gemensam kodgranskning.
+The project was built as a group assignment using agile methods, feature branches, pull requests and shared code review.
 
-| Roll | Namn |
-|---|---|
-| Scrum Master | Björn |
-| Tech Lead | Amanda |
-| Testansvarig | Ezana/Filip/Amanda |
-| Utvecklare | Lucas |
-| Utvecklare | Ezana |
-| Utvecklare | Filip |
+| Name | Areas of responsibility | Role |
+|---|---|---|
+| Amanda | Backend, Frontend | Requirements Manager, Software Engineer |
+| Björn | Frontend, Design | Scrum Master, Software Engineer |
+| Ezana | Backend, Authentication, Infrastructure | Security Consultant, Software Engineer |
+| Filip | Backend, Testing, Domain, API | Test Lead, Software Engineer |
+| Luca | Backend, Frontend, Database | Tech Lead, Software Engineer |
 
-## Licens
+## License
 
-Projektet är framtaget i utbildningssyfte och är inte avsett för kommersiell användning.
+Built for educational purposes and not intended for commercial use.
