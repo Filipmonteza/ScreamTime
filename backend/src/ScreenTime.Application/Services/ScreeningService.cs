@@ -251,9 +251,7 @@ public class ScreeningService : IScreeningService
     {
         if (movieId == Guid.Empty)
         {
-            throw new ArgumentException(
-                "Filmens ID får inte vara tomt.",
-                nameof(movieId));
+            throw new ArgumentException("Filmens ID får inte vara tomt.");
         }
 
         var movie = await _movieRepository.GetByIdAsync(
@@ -271,9 +269,7 @@ public class ScreeningService : IScreeningService
     {
         if (auditoriumId == Guid.Empty)
         {
-            throw new ArgumentException(
-                "Salongens ID får inte vara tomt.",
-                nameof(auditoriumId));
+            throw new ArgumentException("Salongens ID får inte vara tomt.");
         }
 
         var auditorium = await _auditoriumRepository.GetByIdAsync(
@@ -296,9 +292,7 @@ public class ScreeningService : IScreeningService
 
         if (start <= DateTime.UtcNow)
         {
-            throw new ArgumentException(
-                "En visning måste börja i framtiden.",
-                nameof(startTime));
+            throw new ArgumentException("En visning måste börja i framtiden.");
         }
 
         return (
