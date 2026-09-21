@@ -276,14 +276,14 @@ function SeatSelection() {
               <h2 className="form-title">Bekräfta bokning</h2>
               <p>Är du säker på att du vill boka {seatMap.movieTitle}?</p>
               <div className="form-actions">
+                <button className="btn-pill" onClick={handleConfirm}>
+                  Ja
+                </button>
                 <button
                   className="btn-pill"
                   onClick={() => setShowConfirm(false)}
                 >
                   Nej
-                </button>
-                <button className="btn-pill" onClick={handleConfirm}>
-                  Ja
                 </button>
               </div>
             </Modal>
