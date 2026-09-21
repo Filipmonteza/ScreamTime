@@ -7,6 +7,7 @@ import FilterSelect from "../../components/FilterSelect";
 import DayStrip from "../../components/DayStrip";
 import ListToolbar from "../../components/ListToolbar";
 import ListCard from "../../components/ListCard";
+import Message from "../../components/Message";
 import "./Screenings.css";
 import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -23,12 +24,12 @@ function Screenings() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const canManageScreenings =
-    user?.role === "Admin" || user?.role === "Staff";
+  const canManageScreenings = user?.role === "Admin" || user?.role === "Staff";
 
   const [screenings, setScreenings] = useState<Screening[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [auditoriumFilter, setAuditoriumFilter] = useState("");
@@ -55,13 +56,15 @@ function Screenings() {
     loadScreenings();
   }, [loadScreenings]);
 
-  function handleCancel(id: string) {
+  function handleCancel(id: string, title: string) {
     setError(null);
+    setSavedMessage(null);
     setDeletingId(id);
 
     cancelScreening(id)
       .then(() => {
         setConfirmingDeleteId(null);
+        setSavedMessage(`${title} inställd.`);
         loadScreenings();
       })
       .catch((err) => {
@@ -105,7 +108,7 @@ function Screenings() {
   const activeDay =
     selectedDay === null
       ? days[0]
-      : days.find((date) => date >= selectedDay) ?? days[days.length - 1];
+      : (days.find((date) => date >= selectedDay) ?? days[days.length - 1]);
 
   const visibleScreenings = filteredScreenings.filter(
     (s) => dateKeyFromIso(s.startTime) === activeDay,
@@ -115,11 +118,7 @@ function Screenings() {
     <div className="page screenings">
       <h1>Visningar</h1>
 
-      <SearchBar
-        value={query}
-        onChange={setQuery}
-        placeholder="Sök film"
-      />
+      <SearchBar value={query} onChange={setQuery} placeholder="Sök film" />
 
       <div className="screening-filters">
         <FilterSelect
@@ -136,12 +135,16 @@ function Screenings() {
       {canManageScreenings && (
         <ListToolbar
           addLabel="Lägg till visning"
-          onAdd={() => setShowAddForm(true)}
+          onAdd={() => {
+            setShowAddForm(true);
+            setSavedMessage(null);
+          }}
         />
       )}
 
       {loading && <p>Laddar...</p>}
       {error && <p>Fel: {error}</p>}
+      {savedMessage && <Message type="success">{savedMessage}</Message>}
 
       {!loading && !error && days.length === 0 && (
         <p>Inga visningar kunde hittas</p>
@@ -155,35 +158,29 @@ function Screenings() {
             onSelect={setSelectedDay}
           />
 
-          <h2 className="screening-day-heading">
-            {formatDayLabel(activeDay)}
-          </h2>
+          <h2 className="screening-day-heading">{formatDayLabel(activeDay)}</h2>
 
           <div className="card-grid">
             {visibleScreenings.map((screening) => (
               <ListCard
                 key={screening.screeningId}
                 title={screening.movieTitle}
-                statusLabel={
-                  screening.isCancelled ? "INSTÄLLD" : undefined
-                }
+                statusLabel={screening.isCancelled ? "INSTÄLLD" : undefined}
                 primaryActionLabel={
                   canManageScreenings || screening.isCancelled
-                      ? undefined
-                      : screening.bookedSeats >= screening.capacity
-                          ? "Fullbokad"
-                          : "Boka"
+                    ? undefined
+                    : screening.bookedSeats >= screening.capacity
+                      ? "Fullbokad"
+                      : "Boka"
                 }
                 primaryActionDisabled={
-                    screening.bookedSeats >= screening.capacity
+                  screening.bookedSeats >= screening.capacity
                 }
                 onPrimaryAction={() =>
-                    navigate(`/booking/${screening.screeningId}`)
+                  navigate(`/booking/${screening.screeningId}`)
                 }
                 inactiveStyle={screening.isCancelled}
-                showActions={
-                  canManageScreenings && !screening.isCancelled
-                }
+                showActions={canManageScreenings && !screening.isCancelled}
                 deleteLabel="Ställ in"
                 infoLines={[
                   formatTime(screening.startTime),
@@ -195,12 +192,12 @@ function Screenings() {
                   confirmingDeleteId === screening.screeningId
                 }
                 deleting={
-                  canManageScreenings &&
-                  deletingId === screening.screeningId
+                  canManageScreenings && deletingId === screening.screeningId
                 }
                 onEdit={() => {
                   if (canManageScreenings) {
                     setEditingScreening(screening);
+                    setSavedMessage(null);
                   }
                 }}
                 onRequestDelete={() => {
@@ -210,7 +207,7 @@ function Screenings() {
                 }}
                 onConfirmDelete={() => {
                   if (canManageScreenings) {
-                    handleCancel(screening.screeningId);
+                    handleCancel(screening.screeningId, screening.movieTitle);
                   }
                 }}
                 onCancelDelete={() => setConfirmingDeleteId(null)}
@@ -223,8 +220,9 @@ function Screenings() {
       {canManageScreenings && showAddForm && (
         <ScreeningForm
           onClose={() => setShowAddForm(false)}
-          onSaved={() => {
+          onSaved={(title) => {
             setShowAddForm(false);
+            setSavedMessage(`${title} är tillagd.`);
             loadScreenings();
           }}
         />
@@ -234,8 +232,9 @@ function Screenings() {
         <ScreeningForm
           screening={editingScreening}
           onClose={() => setEditingScreening(null)}
-          onSaved={() => {
+          onSaved={(title) => {
             setEditingScreening(null);
+            setSavedMessage(`${title} är redigerad.`);
             loadScreenings();
           }}
         />
