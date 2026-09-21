@@ -84,7 +84,15 @@ function Movies() {
       {loading && <p>Laddar...</p>}
       {error && <p>Fel: {error}</p>}
 
-      {!loading && (
+      {!loading && !error && filteredMovies.length === 0 && (
+        <p>
+          {movies.length === 0
+            ? "Det finns inga filmer ännu."
+            : "Inga filmer matchade sökningen."}
+        </p>
+      )}
+
+      {!loading && !error && (
         <div className="card-grid">
           {pagedMovies.map((movie) => (
             <ListCard
