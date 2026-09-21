@@ -59,7 +59,7 @@ npm run dev
 | API | <http://localhost:5267> |
 | Swagger | <http://localhost:5267/swagger> |
 
-In development the backend creates, migrates and seeds the database on startup, so a fresh clone needs nothing beyond the commands above. The frontend calls the backend on port `5267`, and the backend allows CORS from `http://localhost:5173`. Change one and you have to change the other.
+The database is committed to the repository, and in development the backend migrates and seeds it on startup if it is missing, so a fresh clone needs nothing beyond the commands above. The frontend calls the backend on port `5267`, and the backend allows CORS from `http://localhost:5173`. Change one and you have to change the other.
 
 ### Sign in
 
@@ -438,9 +438,9 @@ For endpoints that require authentication:
 
 ## Database and seed data
 
-The project uses SQLite. The database file is created at `backend/src/ScreenTime.WebApi/screenTime.db`.
+The project uses SQLite, and the database file at `backend/src/ScreenTime.WebApi/screenTime.db` is committed to the repository, so a fresh clone has a populated database without running anything first.
 
-In development the backend does the following on startup: creates the database if it is missing, applies pending EF Core migrations, inserts seed data, creates the roles, and creates the development accounts.
+In development the backend does the following on startup: creates the database if it is missing, applies pending EF Core migrations, inserts seed data, creates the roles, and creates the development accounts. Seeding is skipped when the database already holds data, so the committed file is left as it is. To start over, delete it and run the backend again.
 
 The seed data contains:
 
@@ -448,7 +448,7 @@ The seed data contains:
 - 4 genres: Supernatural, Psychological, Slasher and Sci-Fi.
 - 2 auditoriums: Stora salongen (96 seats, rows G and H are VIP) and Lilla salongen (40 seats, all standard).
 - The seat types Standard (120 kr) and VIP (180 kr).
-- Two weeks of programme starting today: four screenings per day and auditorium (10:00, 14:00, 18:00 and 22:00), each with 20 minutes of cleaning time after the film.
+- Two weeks of programme counted from the day the database is seeded: four screenings per day and auditorium (10:00, 14:00, 18:00 and 22:00), each with 20 minutes of cleaning time after the film. The committed file was seeded on 2026-09-21 and so runs to 2026-10-04; regenerate it as described above for a later window.
 - The `Admin`, `Staff` and `Customer` roles, plus two test accounts.
 
 The roles are seeded in every environment because registration assumes the `Customer` role already exists.

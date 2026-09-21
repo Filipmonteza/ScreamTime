@@ -359,7 +359,9 @@ BundleArtifacts/
 _pkginfo.txt
 
 
-# SQLite database files (created locally by `dotnet run`)
+# SQLite database files. The seeded development database is committed on
+# purpose; the -shm/-wal sidecars and any other .db file are not.
 *.db
 *.db-shm
 *.db-wal
+!backend/src/ScreenTime.WebApi/screenTime.db
