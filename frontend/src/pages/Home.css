@@ -22,62 +22,71 @@
   display: none;
 }
 
-.movie-card {
-  flex-shrink: 0;
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-.movie-card-poster {
-  width: 269px;
-  height: 404px;
-  border-radius: 4px;
-  background: var(--color-surface);
-  object-fit: cover;
-}
-
-.title-movie-card {
-  font-weight: 600;
-  font-size: 16px;
-  margin: 10px 0 0;
-}
-
-.genre-movie-card {
-  font-weight: 400;
-  font-size: 14px;
-  color: var(--color-text-muted);
-  margin: 4px 0 0;
-}
-/* FIND MOVIES */
-
-.find-section {
+/* TODAY'S SCREENINGS */
+.today-section {
   display: flex;
   flex-direction: column;
   gap: 24px;
   margin-bottom: 50px;
 }
 
-/* FILTER */
-.toolbar {
+.today-auditoriums {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.today-auditorium {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.today-showtimes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.today-showtime {
+  display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 20px;
 }
 
-/* PAGINATED MOVIE LIST*/
-.movie-list {
+.today-showtime-time {
+  width: 48px;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.today-showtime-info {
   display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
-.movie-list .movie-card-poster {
-  width: 201px;
-  height: 302px;
+.today-showtime-title {
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none;
 }
 
-.movie-list .movie-card {
-  width: 201px;
+.today-showtime-seats {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 950px) {
+  .today-auditoriums {
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  }
+
+  .today-auditorium {
+    padding: 24px;
+  }
 }

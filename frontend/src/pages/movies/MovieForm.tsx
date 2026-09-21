@@ -4,6 +4,7 @@ import type { Genre } from "../../types/genre";
 import type { Movie } from "../../types/movie";
 import { getAllGenres } from "../../api/genresApi";
 import { createMovie, updateMovie } from "../../api/moviesApi";
+import Message from "../../components/Message";
 
 type MovieFormProps = {
   movie?: Movie;
@@ -20,6 +21,7 @@ function MovieForm({ movie, onClose, onSaved }: MovieFormProps) {
     movie?.runtimeMinutes ?? 90,
   );
   const [description, setDescription] = useState(movie?.description ?? "");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getAllGenres().then(setGenres);
@@ -37,6 +39,7 @@ function MovieForm({ movie, onClose, onSaved }: MovieFormProps) {
 
   function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
     const dto = {
       title,
       ageRating,
@@ -47,7 +50,11 @@ function MovieForm({ movie, onClose, onSaved }: MovieFormProps) {
     const request = movie
       ? updateMovie(movie.movieId, { ...dto, isActive: movie.isActive })
       : createMovie(dto);
-    request.then(onSaved);
+    request
+      .then(onSaved)
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "Något gick fel."),
+      );
   }
 
   return (
@@ -57,6 +64,7 @@ function MovieForm({ movie, onClose, onSaved }: MovieFormProps) {
       onSubmit={handleSubmit}
       onCancel={onClose}
     >
+      {error && <Message type="error">{error}</Message>}
       <div className="form-field">
         <label className="form-label">Titel</label>
         <input

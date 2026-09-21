@@ -5,11 +5,11 @@ namespace ScreenTime.Application.Contracts;
 public record AccountDto(Guid UserId, string Email);
 
 public record UpdateEmailDto(
-    [Required, EmailAddress] string NewEmail,
-    [Required] string CurrentPassword
+    [Required(ErrorMessage = "E-postadress krävs."), EmailAddress(ErrorMessage = "E-postadressen är ogiltig.")] string NewEmail,
+    [Required(ErrorMessage = "Lösenord krävs.")] string CurrentPassword
 );
 
 public record UpdatePasswordDto(
-    [Required] string CurrentPassword,
-    [Required, MinLength(8)] string NewPassword
+    [Required(ErrorMessage = "Lösenord krävs.")] string CurrentPassword,
+    [Required(ErrorMessage = "Nytt lösenord krävs."), MinLength(8, ErrorMessage = "Lösenordet måste vara minst 8 tecken långt.")] string NewPassword
 );

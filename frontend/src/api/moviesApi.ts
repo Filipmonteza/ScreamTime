@@ -1,5 +1,6 @@
 import type { Movie } from '../types/movie'
 import { getAuthHeader } from './authHeader'
+import { extractErrorMessage } from './apiError'
 
 const API_BASE_URL = 'http://localhost:5267'
 
@@ -14,7 +15,7 @@ export async function getAllMovies(): Promise<Movie[]> {
 export async function getMovieById(id: string): Promise<Movie> {
     const response = await fetch(`${API_BASE_URL}/api/movies/${id}`)
     if (!response.ok) {
-        throw new Error(`Failed to fetch movie: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to fetch movie: ${response.status}`))
     }
     return response.json()
 }
@@ -32,7 +33,7 @@ export async function createMovie(movie: {
         body: JSON.stringify(movie),
     })
     if (!response.ok) {
-        throw new Error(`Failed to create movie: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to create movie: ${response.status}`))
     }
     return response.json()
 }
@@ -51,7 +52,7 @@ export async function updateMovie(id: string, movie: {
         body: JSON.stringify(movie),
     })
     if (!response.ok) {
-        throw new Error(`Failed to update movie: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to update movie: ${response.status}`))
     }
 }
 
@@ -61,6 +62,6 @@ export async function deleteMovie(id: string): Promise<void> {
         headers: { ...getAuthHeader() },
     })
     if (!response.ok) {
-        throw new Error(`Failed to delete movie: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to delete movie: ${response.status}`))
     }
 }

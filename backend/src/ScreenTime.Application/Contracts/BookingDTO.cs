@@ -59,5 +59,3 @@ public record BookingListItemDto(
     IReadOnlyList<BookedSeatDto> Seats,
     decimal TotalAmount
 );
-    
-    

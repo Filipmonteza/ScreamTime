@@ -1,3 +1,7 @@
+function capitalize(word: string): string {
+    return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 function formatDateKey(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -14,8 +18,23 @@ export function formatDateTimeLabel(iso: string): string {
   return `${date}, ${time}`;
 }
 
+// The API speaks UTC, so the calendar day has to be read off a Date in the
+// viewer's own zone.
 export function dateKeyFromIso(iso: string): string {
-    return iso.slice(0, 10);
+    return formatDateKey(new Date(iso));
+}
+
+// The value a <input type="datetime-local"> wants: local wall-clock time,
+// no offset.
+export function toDateTimeLocalValue(iso: string): string {
+    const date = new Date(iso);
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${formatDateKey(date)}T${hours}:${minutes}`;
+}
+
+export function todayKey(): string {
+    return formatDateKey(new Date());
 }
 
 export function nextDays(count: number): string[] {
@@ -34,7 +53,7 @@ export function formatWeekdayLabel(dateStr: string): string {
     const weekday = new Date(dateStr).toLocaleDateString("sv-SE", {
         weekday: "long",
     });
-    return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    return capitalize(weekday);
 }
 
 export function formatDateOptionLabel(dateStr: string, index: number): string {
@@ -46,6 +65,28 @@ export function formatDateOptionLabel(dateStr: string, index: number): string {
         day: "numeric",
         month: "long",
     });
-    const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-    return `${capitalizedWeekday} ${dayMonth}`;
+    return `${capitalize(weekday)} ${dayMonth}`;
+}
+
+function relativeDayLabel(dateKey: string): string | null {
+    const [today, tomorrow] = nextDays(2);
+    if (dateKey === today) return "Idag";
+    if (dateKey === tomorrow) return "Imorgon";
+    return null;
+}
+
+// A calendar day as the programme labels it: "Idag", "Imorgon", then
+// "Fredag 19 september".
+export function formatDayLabel(dateKey: string): string {
+    return relativeDayLabel(dateKey) ?? formatDateOptionLabel(dateKey, 2);
+}
+
+// The same day squeezed into a chip: "Idag", "Imorgon", then "Fre 19".
+export function formatShortDayLabel(dateKey: string): string {
+    const relative = relativeDayLabel(dateKey);
+    if (relative) return relative;
+    const date = new Date(dateKey);
+    const weekday = date.toLocaleDateString("sv-SE", { weekday: "short" });
+    const dayOfMonth = date.toLocaleDateString("sv-SE", { day: "numeric" });
+    return `${capitalize(weekday)} ${dayOfMonth}`;
 }

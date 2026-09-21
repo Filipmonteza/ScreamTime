@@ -33,4 +33,12 @@ public class ScreenTimeDbContext : IdentityDbContext<ApplicationUser, IdentityRo
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ScreenTimeDbContext).Assembly);
     }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        // Every DateTime in the model is UTC; see UtcDateTimeConverter.
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+    }
 }

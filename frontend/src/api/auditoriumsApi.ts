@@ -1,5 +1,6 @@
 import type { Auditorium } from '../types/auditorium'
 import { getAuthHeader } from './authHeader'
+import { extractErrorMessage } from './apiError'
 
 const API_BASE_URL = 'http://localhost:5267'
 
@@ -20,7 +21,7 @@ export async function createAuditorium(auditorium: { name: string }): Promise<Au
         body: JSON.stringify(auditorium),
     })
     if (!response.ok) {
-        throw new Error(`Failed to create auditorium: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to create auditorium: ${response.status}`))
     }
     return response.json()
 }
@@ -32,7 +33,7 @@ export async function updateAuditorium(id: string, auditorium: { name: string; i
         body: JSON.stringify(auditorium),
     })
     if (!response.ok) {
-        throw new Error(`Failed to update auditorium: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to update auditorium: ${response.status}`))
     }
 }
 
@@ -42,7 +43,7 @@ export async function deleteAuditorium(id: string): Promise<void> {
         headers: { ...getAuthHeader() },
     })
     if (!response.ok) {
-        throw new Error(`Failed to delete auditorium: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to delete auditorium: ${response.status}`))
     }
 }
 
@@ -56,6 +57,6 @@ export async function addSeatsToAuditorium(
         body: JSON.stringify({ seats }),
     })
     if (!response.ok) {
-        throw new Error(`Failed to add seats: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to add seats: ${response.status}`))
     }
 }

@@ -50,14 +50,20 @@ const customerItems: NavEntry[] = [
     iconFill: iconHomeFill,
   },
   {
-  to: "/screenings",
-  label: "Visningar",
-  iconDefault: iconScreeningsDefault,
-  iconFill: iconScreeningsFill,
+    to: "/all-movies",
+    label: "Alla filmer",
+    iconDefault: iconMoviesDefault,
+    iconFill: iconMoviesFill,
+  },
+  {
+    to: "/screenings",
+    label: "Visningar",
+    iconDefault: iconScreeningsDefault,
+    iconFill: iconScreeningsFill,
   },
   {
     to: "/bookings",
-    label: "Bokningar",
+    label: "Mina Bokningar",
     iconDefault: iconBookingsDefault,
     iconFill: iconBookingsFill,
   },
@@ -103,6 +109,12 @@ const adminItems: NavEntry[] = [
     iconFill: iconScreeningsFill,
   },
   {
+    to: "/adminbookings",
+    label: "Bokningar",
+    iconDefault: iconBookingsDefault,
+    iconFill: iconBookingsFill,
+  },
+  {
     to: "/auditoriums",
     label: "Salonger",
     iconDefault: iconAuditoriumsDefault,
@@ -144,15 +156,33 @@ const loggedOutItems: NavItem[] = [
     iconFill: iconHomeFill,
   },
   {
-  to: "/screenings",
-  label: "Visningar",
-  iconDefault: iconScreeningsDefault,
-  iconFill: iconScreeningsFill,
+    to: "/all-movies",
+    label: "Alla filmer",
+    iconDefault: iconMoviesDefault,
+    iconFill: iconMoviesFill,
+  },
+  {
+    to: "/screenings",
+    label: "Visningar",
+    iconDefault: iconScreeningsDefault,
+    iconFill: iconScreeningsFill,
   },
 ];
 
 function getNavItems(role: Role): NavEntry[] {
-  if (role === "Admin" || role === "Staff") return adminItems;
+  if (role === "Admin") return adminItems;
+  if (role === "Staff") {
+    // Staff should see most admin items but not the staff management page
+    return adminItems.map((entry) => {
+      if (isDropdown(entry)) {
+        return {
+          ...entry,
+          children: entry.children.filter((child) => child.to !== "/staff"),
+        };
+      }
+      return entry;
+    });
+  }
   if (role === "Customer") return customerItems;
   return loggedOutItems;
 }
@@ -165,6 +195,7 @@ function Navbar({ role }: NavbarProps) {
   const items = getNavItems(role);
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -197,7 +228,7 @@ function Navbar({ role }: NavbarProps) {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
-        ScreenTime
+        ScreamTime
       </Link>
       <div
         className={`navbar-links navbar-links--${role === "Customer" ? "customer" : "admin"}`}
@@ -219,9 +250,15 @@ function Navbar({ role }: NavbarProps) {
                     isChildActive ? "navbar-link active" : "navbar-link"
                   }
                   onClick={() => setIsDropdownOpen((open) => !open)}
+                  onMouseEnter={() => setHoveredKey(item.label)}
+                  onMouseLeave={() => setHoveredKey(null)}
                 >
                   <img
-                    src={isChildActive ? item.iconFill : item.iconDefault}
+                    src={
+                      isChildActive || hoveredKey === item.label
+                        ? item.iconFill
+                        : item.iconDefault
+                    }
                     alt=""
                     className="navbar-icon"
                   />
@@ -248,6 +285,8 @@ function Navbar({ role }: NavbarProps) {
                         <NavLink
                           key={child.to}
                           to={child.to}
+                          onMouseEnter={() => setHoveredKey(child.to)}
+                          onMouseLeave={() => setHoveredKey(null)}
                           className={({ isActive }) =>
                             isActive
                               ? "navbar-dropdown-item active"
@@ -258,7 +297,9 @@ function Navbar({ role }: NavbarProps) {
                             <>
                               <img
                                 src={
-                                  isActive ? child.iconFill : child.iconDefault
+                                  isActive || hoveredKey === child.to
+                                    ? child.iconFill
+                                    : child.iconDefault
                                 }
                                 alt=""
                                 className="navbar-icon"
@@ -280,6 +321,8 @@ function Navbar({ role }: NavbarProps) {
               key={item.to}
               to={item.to}
               end={item.to === "/"}
+              onMouseEnter={() => setHoveredKey(item.to)}
+              onMouseLeave={() => setHoveredKey(null)}
               className={({ isActive }) =>
                 isActive ? "navbar-link active" : "navbar-link"
               }
@@ -287,7 +330,11 @@ function Navbar({ role }: NavbarProps) {
               {({ isActive }) => (
                 <>
                   <img
-                    src={isActive ? item.iconFill : item.iconDefault}
+                    src={
+                      isActive || hoveredKey === item.to
+                        ? item.iconFill
+                        : item.iconDefault
+                    }
                     alt=""
                     className="navbar-icon"
                   />

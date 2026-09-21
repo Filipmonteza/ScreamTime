@@ -124,4 +124,34 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
     private static bool IsSeatAlreadyTaken(DbUpdateException exception) =>
         exception.InnerException is SqliteException { SqliteExtendedErrorCode: 2067 } inner
         && inner.Message.Contains("Tickets", StringComparison.OrdinalIgnoreCase);
+
+    public async Task<(List<Booking> Items, int TotalCount)> SearchAsync(
+    string search,
+    Guid? matchedUserId,
+    int page,
+    int pageSize,
+    CancellationToken cancellationToken = default)
+    {
+        var normalizedSearch = search.Trim().ToLower();
+
+        var query = Context.Bookings
+            .Include(b => b.Screening).ThenInclude(s => s.Movie)
+            .Include(b => b.Screening).ThenInclude(s => s.Auditorium)
+            .Include(b => b.Tickets).ThenInclude(t => t.Seat)
+            .Where(b =>
+                b.BookingReference.ToLower().Contains(normalizedSearch) ||
+                (matchedUserId != null && b.UserId == matchedUserId))
+            .OrderByDescending(b => b.CreatedAt);
+
+        // Counted on the same filtered query, before Skip/Take, so this is the
+        // count across all matching pages, not just the one being returned.
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
 }

@@ -3,18 +3,14 @@ import type { Screening } from "../../types/screening";
 import { getAllScreenings, cancelScreening } from "../../api/screeningsApi";
 import ScreeningForm from "./ScreeningForm";
 import SearchBar from "../../components/SearchBar";
+import FilterSelect from "../../components/FilterSelect";
+import DayStrip from "../../components/DayStrip";
 import ListToolbar from "../../components/ListToolbar";
-import usePagination from "../../hooks/usePagination";
 import ListCard from "../../components/ListCard";
 import "./Screenings.css";
-import iconChevronDown from "../../assets/icons/Icon_Chevron_Down.svg";
 import { useAuth } from "../../context/useAuth";
-
-function formatDay(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("sv-SE", {
-    weekday: "long",
-  });
-}
+import { useNavigate } from "react-router-dom";
+import { dateKeyFromIso, formatDayLabel } from "../../utils/dateOptions";
 
 function formatTime(dateStr: string): string {
   return new Date(dateStr).toLocaleTimeString("sv-SE", {
@@ -24,6 +20,7 @@ function formatTime(dateStr: string): string {
 }
 
 function Screenings() {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const canManageScreenings =
@@ -33,7 +30,7 @@ function Screenings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [dayFilter, setDayFilter] = useState("");
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [auditoriumFilter, setAuditoriumFilter] = useState("");
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
     null,
@@ -45,7 +42,7 @@ function Screenings() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadScreenings = useCallback(() => {
-    getAllScreenings(canManageScreenings)
+    getAllScreenings({ includeCancelled: canManageScreenings })
       .then((data) => {
         setError(null);
         setScreenings(data);
@@ -74,11 +71,6 @@ function Screenings() {
       .finally(() => setDeletingId(null));
   }
 
-  const uniqueDays = useMemo(
-    () => [...new Set(screenings.map((s) => formatDay(s.startTime)))],
-    [screenings],
-  );
-
   const uniqueAuditoriums = useMemo(
     () => [...new Set(screenings.map((s) => s.auditoriumName))],
     [screenings],
@@ -90,24 +82,34 @@ function Screenings() {
     return screenings.filter((s) => {
       const matchesQuery = s.movieTitle.toLowerCase().includes(q);
 
-      const matchesDay =
-        !dayFilter || formatDay(s.startTime) === dayFilter;
-
       const matchesAuditorium =
         !auditoriumFilter || s.auditoriumName === auditoriumFilter;
 
-      return matchesQuery && matchesDay && matchesAuditorium;
+      return matchesQuery && matchesAuditorium;
     });
-  }, [screenings, query, dayFilter, auditoriumFilter]);
+  }, [screenings, query, auditoriumFilter]);
 
-  const filterKey = `${query}__${dayFilter}__${auditoriumFilter}`;
+  // The days that still have something to show after the search and auditorium
+  // filters. The API returns screenings in start-time order, so the keys come
+  // out in date order too.
+  const days = useMemo(
+    () => [
+      ...new Set(filteredScreenings.map((s) => dateKeyFromIso(s.startTime))),
+    ],
+    [filteredScreenings],
+  );
 
-  const {
-    page,
-    setPage,
-    totalPages,
-    pagedItems: pagedScreenings,
-  } = usePagination(filteredScreenings, 12, filterKey);
+  // The chosen day is kept even while a filter hides it, so clearing the
+  // filter lands back on it. Until then the strip shows the nearest day on
+  // or after it, or the last day if nothing follows.
+  const activeDay =
+    selectedDay === null
+      ? days[0]
+      : days.find((date) => date >= selectedDay) ?? days[days.length - 1];
+
+  const visibleScreenings = filteredScreenings.filter(
+    (s) => dateKeyFromIso(s.startTime) === activeDay,
+  );
 
   return (
     <div className="page screenings">
@@ -120,120 +122,102 @@ function Screenings() {
       />
 
       <div className="screening-filters">
-        <div className="filter-select-wrapper">
-          <span className="filter-label">
-            {dayFilter || "Dag"}
-          </span>
-
-          <img
-            src={iconChevronDown}
-            alt=""
-            className="filter-chevron"
-          />
-
-          <select
-            className="filter-select"
-            value={dayFilter}
-            onChange={(e) => setDayFilter(e.target.value)}
-          >
-            <option value="">Dag</option>
-
-            {uniqueDays.map((day) => (
-              <option key={day} value={day}>
-                {day}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-select-wrapper">
-          <span className="filter-label">
-            {auditoriumFilter || "Salong"}
-          </span>
-
-          <img
-            src={iconChevronDown}
-            alt=""
-            className="filter-chevron"
-          />
-
-          <select
-            className="filter-select"
-            value={auditoriumFilter}
-            onChange={(e) => setAuditoriumFilter(e.target.value)}
-          >
-            <option value="">Salong</option>
-
-            {uniqueAuditoriums.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FilterSelect
+          value={auditoriumFilter}
+          onChange={setAuditoriumFilter}
+          options={uniqueAuditoriums.map((name) => ({
+            value: name,
+            label: name,
+          }))}
+          placeholder="Alla salonger"
+        />
       </div>
 
-      <ListToolbar
-        addLabel={canManageScreenings ? "Lägg till visning" : undefined}
-        onAdd={
-          canManageScreenings
-            ? () => setShowAddForm(true)
-            : undefined
-        }
-        page={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
+      {canManageScreenings && (
+        <ListToolbar
+          addLabel="Lägg till visning"
+          onAdd={() => setShowAddForm(true)}
+        />
+      )}
 
       {loading && <p>Laddar...</p>}
       {error && <p>Fel: {error}</p>}
 
-      {!loading && (
-        <div className="card-grid">
-          {pagedScreenings.map((screening) => (
-            <ListCard
-              key={screening.screeningId}
-              title={screening.movieTitle}
-              statusLabel={
-                screening.isCancelled ? "AVBOKAD" : undefined
-              }
-              inactiveStyle={screening.isCancelled}
-              showActions={
-                canManageScreenings && !screening.isCancelled
-              }
-              deleteLabel="Avboka"
-              infoLines={[
-                `${formatDay(screening.startTime)}, ${formatTime(screening.startTime)}`,
-                screening.auditoriumName,
-                `Sålda biljetter: ${screening.bookedSeats}/${screening.capacity}`,
+      {!loading && !error && days.length === 0 && (
+        <p>Inga visningar kunde hittas</p>
+      )}
+
+      {!loading && activeDay && (
+        <section className="screening-day">
+          <DayStrip
+            days={days}
+            selected={activeDay}
+            onSelect={setSelectedDay}
+          />
+
+          <h2 className="screening-day-heading">
+            {formatDayLabel(activeDay)}
+          </h2>
+
+          <div className="card-grid">
+            {visibleScreenings.map((screening) => (
+              <ListCard
+                key={screening.screeningId}
+                title={screening.movieTitle}
+                statusLabel={
+                  screening.isCancelled ? "INSTÄLLD" : undefined
+                }
+                primaryActionLabel={
+                  canManageScreenings || screening.isCancelled
+                      ? undefined
+                      : screening.bookedSeats >= screening.capacity
+                          ? "Fullbokad"
+                          : "Boka"
+                }
+                primaryActionDisabled={
+                    screening.bookedSeats >= screening.capacity
+                }
+                onPrimaryAction={() =>
+                    navigate(`/booking/${screening.screeningId}`)
+                }
+                inactiveStyle={screening.isCancelled}
+                showActions={
+                  canManageScreenings && !screening.isCancelled
+                }
+                deleteLabel="Ställ in"
+                infoLines={[
+                  formatTime(screening.startTime),
+                  screening.auditoriumName,
+                  `Sålda biljetter: ${screening.bookedSeats}/${screening.capacity}`,
                 ]}
-              confirming={
-                canManageScreenings &&
-                confirmingDeleteId === screening.screeningId
-              }
-              deleting={
-                canManageScreenings &&
-                deletingId === screening.screeningId
-              }
-              onEdit={() => {
-                if (canManageScreenings) {
-                  setEditingScreening(screening);
+                confirming={
+                  canManageScreenings &&
+                  confirmingDeleteId === screening.screeningId
                 }
-              }}
-              onRequestDelete={() => {
-                if (canManageScreenings) {
-                  setConfirmingDeleteId(screening.screeningId);
+                deleting={
+                  canManageScreenings &&
+                  deletingId === screening.screeningId
                 }
-              }}
-              onConfirmDelete={() => {
-                if (canManageScreenings) {
-                  handleCancel(screening.screeningId);
-                }
-              }}
-              onCancelDelete={() => setConfirmingDeleteId(null)}
-            />
-          ))}
-        </div>
+                onEdit={() => {
+                  if (canManageScreenings) {
+                    setEditingScreening(screening);
+                  }
+                }}
+                onRequestDelete={() => {
+                  if (canManageScreenings) {
+                    setConfirmingDeleteId(screening.screeningId);
+                  }
+                }}
+                onConfirmDelete={() => {
+                  if (canManageScreenings) {
+                    handleCancel(screening.screeningId);
+                  }
+                }}
+                onCancelDelete={() => setConfirmingDeleteId(null)}
+              />
+            ))}
+          </div>
+        </section>
       )}
 
       {canManageScreenings && showAddForm && (

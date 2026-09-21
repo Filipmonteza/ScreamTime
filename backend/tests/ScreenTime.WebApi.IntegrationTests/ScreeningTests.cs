@@ -2,8 +2,12 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ScreenTime.Application.Contracts;
+using ScreenTime.Domain.Common;
 using ScreenTime.Domain.Enums;
+using ScreenTime.Infrastructure.Data;
 using Xunit;
 
 namespace ScreenTime.WebApi.IntegrationTests;
@@ -21,8 +25,9 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
 
     // The seeded programme covers the next fourteen days. These tests schedule
     // far past it, and each test picks its own day, so they cannot collide with
-    // the seed data or with each other.
-    private static readonly DateTime FarFuture = DateTime.Today.AddDays(200);
+    // the seed data or with each other. UTC, like everything the API speaks, so
+    // a time posted here comes back equal on any machine.
+    private static readonly DateTime FarFuture = DateTime.UtcNow.Date.AddDays(200);
 
     private readonly ScreenTimeApiFactory _factory;
 
@@ -104,6 +109,72 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
         created.EndTime.Should().Be(
             startTime.AddMinutes(movie.RuntimeMinutes + CleaningMinutes));
         created.IsCancelled.Should().BeFalse();
+    }
+
+    // Storage and the API are UTC whatever zone the server runs in.
+    // The deadline rules have to work regardless of timezone.
+    [Fact]
+    public async Task Create_StoresAndReturnsTheStartTimeInUtc()
+    {
+        var client = await CreateAdminClientAsync();
+        var movie = await GetFirstMovieAsync(client);
+        var auditorium = await GetAuditoriumAsync(client, index: 0);
+        
+        var wallClock = DateTime.SpecifyKind(
+            FarFuture.AddDays(150).AddHours(18),
+            DateTimeKind.Unspecified);
+        var posted = new DateTimeOffset(wallClock, TimeSpan.FromHours(2));
+
+        var response = await client.PostAsJsonAsync(
+            "/api/screenings",
+            new { movie.MovieId, auditorium.AuditoriumId, StartTime = posted });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        
+        var created = (await response.Content.ReadFromJsonAsync<ScreeningDto>())!;
+        var reloaded = await client.GetFromJsonAsync<ScreeningDto>(
+            $"/api/screenings/{created.ScreeningId}");
+
+        reloaded!.StartTime.Kind.Should().Be(DateTimeKind.Utc);
+        reloaded.StartTime.Should().Be(posted.UtcDateTime);
+    }
+
+    [Fact]
+    public async Task CancelBooking_RecordsTheCancellationTimeInUtc()
+    {
+        var admin = await CreateAdminClientAsync();
+        var customer = await CreateCustomerClientAsync();
+
+        var movie = await GetFirstMovieAsync(admin);
+        var auditorium = await GetAuditoriumAsync(admin, index: 1);
+
+        var screening = await CreateScreeningAsync(
+            admin,
+            movie.MovieId,
+            auditorium.AuditoriumId,
+            FarFuture.AddDays(160).AddHours(18));
+
+        var booking = await BookTwoSeatsAsync(customer, screening.ScreeningId);
+
+        var before = DateTime.UtcNow;
+
+        var cancelled = await customer.PostAsync(
+            $"/api/bookings/{booking.BookingId}/cancel",
+            content: null);
+
+        cancelled.StatusCode.Should().Be(HttpStatusCode.OK);
+        
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
+        var stored = await db.Bookings
+            .AsNoTracking()
+            .SingleAsync(b => b.Id == booking.BookingId);
+
+        stored.CancelledAt.Should().NotBeNull();
+        stored.CancelledAt!.Value.Kind.Should().Be(DateTimeKind.Utc);
+        stored.CancelledAt.Value.Should()
+            .BeOnOrAfter(before).And
+            .BeOnOrBefore(DateTime.UtcNow);
     }
 
     // The overlap rule in the three positions a clash can take: a screening
@@ -280,7 +351,7 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
             new CreateScreeningDto(
                 movie.MovieId,
                 auditorium.AuditoriumId,
-                DateTime.Today.AddDays(-1).AddHours(18)));
+                DateTime.UtcNow.AddDays(-1)));
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -420,13 +491,15 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
     public async Task GetAll_FilteredByDate_ReturnsOnlyThatDay()
     {
         var client = _factory.CreateClient();
-        var day = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+        var day = CinemaClock.Today.AddDays(1);
 
         var screenings = await GetScreeningsAsync(client, $"?date={day:yyyy-MM-dd}");
 
+        // A "day" is a day on the cinema's calendar, not a UTC one.
         screenings.Should().NotBeEmpty();
         screenings.Should().OnlyContain(
-            s => DateOnly.FromDateTime(s.StartTime) == day);
+            s => DateOnly.FromDateTime(
+                TimeZoneInfo.ConvertTimeFromUtc(s.StartTime, CinemaClock.TimeZone)) == day);
     }
 
     [Fact]
@@ -492,6 +565,66 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
             "/api/bookings/history");
 
         history.Should().Contain(b => b.BookingId == booking.BookingId);
+    }
+
+    [Fact]
+    public async Task CancelBooking_MoreThan15MinutesBeforeTheScreening_IsAllowed()
+    {
+        var admin = await CreateAdminClientAsync();
+        var customer = await CreateCustomerClientAsync();
+
+        var movie = await GetFirstMovieAsync(admin);
+        var auditorium = await CreateEmptyAuditoriumAsync(admin, "Avbokning tillåten");
+
+        // Half an hour out: fifteen minutes on the right side of the deadline.
+        var screening = await CreateScreeningAsync(
+            admin,
+            movie.MovieId,
+            auditorium.AuditoriumId,
+            DateTime.UtcNow.AddMinutes(30));
+
+        var booking = await BookTwoSeatsAsync(customer, screening.ScreeningId);
+
+        var cancelled = await customer.PostAsync(
+            $"/api/bookings/{booking.BookingId}/cancel",
+            content: null);
+
+        cancelled.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var reloaded = await customer.GetFromJsonAsync<BookingConfirmationDto>(
+            $"/api/bookings/{booking.BookingId}");
+
+        reloaded!.Status.Should().Be(BookingStatus.Cancelled);
+    }
+
+    [Fact]
+    public async Task CancelBooking_LessThan15MinutesBeforeTheScreening_IsRefused()
+    {
+        var admin = await CreateAdminClientAsync();
+        var customer = await CreateCustomerClientAsync();
+
+        var movie = await GetFirstMovieAsync(admin);
+        var auditorium = await CreateEmptyAuditoriumAsync(admin, "Avbokning nekad");
+
+        var screening = await CreateScreeningAsync(
+            admin,
+            movie.MovieId,
+            auditorium.AuditoriumId,
+            DateTime.UtcNow.AddMinutes(10));
+
+        var booking = await BookTwoSeatsAsync(customer, screening.ScreeningId);
+
+        var cancelled = await customer.PostAsync(
+            $"/api/bookings/{booking.BookingId}/cancel",
+            content: null);
+
+        cancelled.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        // The booking and its seats are untouched.
+        var reloaded = await customer.GetFromJsonAsync<BookingConfirmationDto>(
+            $"/api/bookings/{booking.BookingId}");
+
+        reloaded!.Status.Should().Be(BookingStatus.Paid);
     }
 
     [Fact]
@@ -603,6 +736,40 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
             "/api/auditoriums");
 
         return auditoriums![index];
+    }
+
+    // The seeded auditoriums are booked at 10, 14, 18 and 22 for the next two
+    // weeks, so a screening that has to start within the next half hour will
+    // collide with the programme for most of the day. Tests that need one get a
+    // auditirum of their own instead.
+    private static async Task<AuditoriumDto> CreateEmptyAuditoriumAsync(
+        HttpClient client,
+        string name)
+    {
+        var created = await client.PostAsJsonAsync(
+            "/api/auditoriums",
+            new AuditoriumCreateDto(name));
+
+        created.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var auditorium = (await created.Content.ReadFromJsonAsync<AuditoriumDto>())!;
+
+        var seatTypes = await client.GetFromJsonAsync<List<SeatTypeDto>>(
+            "/api/seats/types");
+
+        var seatTypeId = seatTypes!.First().Id;
+
+        var seated = await client.PostAsJsonAsync(
+            $"/api/auditoriums/{auditorium.AuditoriumId}/seats",
+            new AddSeatsRequestDto(
+            [
+                new SeatCreateDto("A", 1, seatTypeId),
+                new SeatCreateDto("A", 2, seatTypeId),
+            ]));
+
+        seated.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        return auditorium;
     }
 
     private Task<HttpClient> CreateAdminClientAsync() =>

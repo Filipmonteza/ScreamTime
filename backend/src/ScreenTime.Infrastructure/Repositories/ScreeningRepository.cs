@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ScreenTime.Application.Contracts;
 using ScreenTime.Application.Interfaces;
+using ScreenTime.Domain.Common;
 using ScreenTime.Domain.Entities;
 using ScreenTime.Domain.Enums;
 using ScreenTime.Infrastructure.Data;
@@ -76,9 +77,11 @@ public class ScreeningRepository : Repository<Screening>, IScreeningRepository
 
         if (filter.Date is { } date)
         {
-            // One calendar day, from midnight up to but not including the next.
-            var dayStart = date.ToDateTime(TimeOnly.MinValue);
-            var dayEnd = dayStart.AddDays(1);
+            // One day on the cinema's calendar, from midnight up to but not
+            // including the next. Both ends are converted separately so a day
+            // that changes to or from summer time is still the right length.
+            var dayStart = CinemaClock.FromCinemaTime(date.ToDateTime(TimeOnly.MinValue));
+            var dayEnd = CinemaClock.FromCinemaTime(date.AddDays(1).ToDateTime(TimeOnly.MinValue));
 
             query = query.Where(s => s.StartTime >= dayStart && s.StartTime < dayEnd);
         }

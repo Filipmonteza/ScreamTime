@@ -1,5 +1,6 @@
 using ScreenTime.Application.Contracts;
 using ScreenTime.Application.Interfaces;
+using ScreenTime.Domain.Common;
 using ScreenTime.Domain.Entities;
 using ScreenTime.Domain.Enums;
 
@@ -290,7 +291,10 @@ public class ScreeningService : IScreeningService
         DateTime startTime,
         Movie movie)
     {
-        if (startTime <= DateTime.UtcNow)
+        // Whatever offset the client sent, from here on the time is UTC.
+        var start = CinemaClock.ToUtc(startTime);
+
+        if (start <= DateTime.UtcNow)
         {
             throw new ArgumentException(
                 "En visning måste börja i framtiden.",
@@ -298,8 +302,8 @@ public class ScreeningService : IScreeningService
         }
 
         return (
-            startTime,
-            startTime.AddMinutes(movie.RuntimeMinutes + CleaningMinutes));
+            start,
+            start.AddMinutes(movie.RuntimeMinutes + CleaningMinutes));
     }
 
     // The rule ScreeningConfiguration cannot express: one auditorium cannot show two

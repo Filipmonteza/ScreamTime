@@ -36,10 +36,7 @@
   text-decoration: none;
 }
 
-.navbar-links--customer {
-  gap: 36px;
-}
-
+.navbar-links--customer,
 .navbar-links--admin {
   gap: 14px;
 }
@@ -104,6 +101,7 @@ button.navbar-dropdown-item {
 }
 
 @media (min-width: 450px) {
+  .navbar-links--customer,
   .navbar-links--admin {
     gap: 36px;
   }

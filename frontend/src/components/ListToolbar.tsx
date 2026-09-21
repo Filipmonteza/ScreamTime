@@ -4,9 +4,9 @@ import "./ListToolbar.css";
 interface ListToolbarProps {
   addLabel?: string;
   onAdd?: () => void;
-  page: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
 function ListToolbar({
@@ -24,11 +24,13 @@ function ListToolbar({
         </button>
       )}
 
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-      />
+      {page !== undefined && totalPages !== undefined && onPageChange && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      )}
     </div>
   );
 }

@@ -40,27 +40,27 @@ public class SeatService : ISeatService
             )).ToList();
     }
 
-    public async Task<bool?> AddSeatsToAuditoriumAsync(
+    public async Task AddSeatsToAuditoriumAsync(
         AddSeatsToAuditoriumDto dto)
     {
         // Reject invalid or empty seat batches before querying the database.
         if (dto.AuditoriumId == Guid.Empty ||
             dto.Seats is null ||
             dto.Seats.Count == 0)
-            return null;
+            throw new ArgumentException("Ogiltig eller tom sätesdata.");
 
         var auditorium = await _auditoriumRepository.GetByIdAsync(
             dto.AuditoriumId);
 
         if (auditorium is null)
-            return false;
+            throw new KeyNotFoundException("Salongen hittades inte.");
 
         if (dto.Seats.Any(seat =>
                 string.IsNullOrWhiteSpace(seat.RowLabel) ||
                 seat.RowLabel.Trim().Length > 5 ||
                 seat.SeatNumber < 1 ||
                 seat.SeatTypeId == Guid.Empty))
-            return null;
+            throw new ArgumentException("Ogiltig sätesdata.");
 
         // Normalize row labels so seat coordinates are compared case-insensitively.
         var normalizedSeats = dto.Seats
@@ -77,7 +77,7 @@ public class SeatService : ISeatService
             .Count();
 
         if (uniqueSeatCount != normalizedSeats.Count)
-            return null;
+            throw new ArgumentException("Dubbletter i sätesdata.");
 
         // Reject seat coordinates that already exist in this auditorium.
         var existingSeats = await _seatRepository.GetByAuditoriumIdAsync(
@@ -95,7 +95,7 @@ public class SeatService : ISeatService
                 seat.SeatNumber)));
 
         if (conflictsWithExistingSeats)
-            return null;
+            throw new ArgumentException("Ett eller flera säten finns redan i salongen.");
 
         // Ensure every requested seat type exists before creating any seats.
         var requestedSeatTypeIds = normalizedSeats
@@ -107,7 +107,7 @@ public class SeatService : ISeatService
             requestedSeatTypeIds);
 
         if (existingSeatTypes.Count != requestedSeatTypeIds.Count)
-            return null;
+            throw new ArgumentException("Okänd sätestyp.");
 
         // Create and save the entire seat batch as one operation.
         var seatsToAdd = normalizedSeats
@@ -123,6 +123,6 @@ public class SeatService : ISeatService
 
         await _seatRepository.AddRangeAsync(seatsToAdd);
 
-        return await _seatRepository.SaveChangesAsync();
+        await _seatRepository.SaveChangesAsync();
     }
 }
