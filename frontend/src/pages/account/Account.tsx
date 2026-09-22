@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../../context/useAuth";
 import { updateEmail, updatePassword, deactivateAccount } from "../../api/accountApi";
 import Message from "../../components/Message";
+import Modal from "../../components/Modal";
 import "../auth/Auth.css";
 import "./Account.css";
 
@@ -209,27 +210,21 @@ function Account() {
         </div>
 
         {showDeactivateConfirm && (
-          <div className="deactivate-modal">
-            <div className="deactivate-modal-content">
-              <p>
-                Är du säker på att du vill avaktivera ditt konto? Detta loggar ut dig och du kan
-                inte logga in igen.
-              </p>
-              {deactivateError && <Message type="error">{deactivateError}</Message>}
-              <div className="auth-button-row">
-                <button type="button" className="btn-pill btn-danger" onClick={handleDeactivate}>
-                  Ja, avaktivera
-                </button>
-                <button
-                  type="button"
-                  className="btn-pill"
-                  onClick={() => setShowDeactivateConfirm(false)}
-                >
-                  Avbryt
-                </button>
-              </div>
+          <Modal onClose={() => setShowDeactivateConfirm(false)}>
+            <p>
+              Är du säker på att du vill avaktivera ditt konto? Detta loggar ut dig och du kan
+              inte logga in igen.
+            </p>
+            {deactivateError && <Message type="error">{deactivateError}</Message>}
+            <div className="auth-button-row">
+              <button type="button" className="btn-pill btn-danger" onClick={handleDeactivate}>
+                Ja, avaktivera
+              </button>
+              <button type="button" className="btn-pill" onClick={() => setShowDeactivateConfirm(false)}>
+                Avbryt
+              </button>
             </div>
-          </div>
+          </Modal>
         )}
       </div>
     </div>
