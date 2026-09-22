@@ -86,6 +86,7 @@ No staff account is seeded – sign in as the administrator and create one under
 - View current bookings and booking history.
 - Cancel a booking up to 15 minutes before the screening starts.
 - Change the email address and password on their own account.
+- Close their own account, which only an administrator can reactivate.
 
 ![Movie details for Alien: age rating, runtime, genre and upcoming screenings](docs/images/movie.png)
 
@@ -105,7 +106,7 @@ No staff account is seeded – sign in as the administrator and create one under
 
 - Create staff accounts and assign roles.
 - Change the email address and password of existing staff accounts.
-- Deactivate and reactivate accounts.
+- Deactivate and reactivate accounts, though never their own.
 
 ## Roles and permissions
 
@@ -392,7 +393,7 @@ Source: `backend/src/ScreenTime.Infrastructure/Repositories/AuditoriumRepository
 
 ## Testing
 
-The backend has 50 integration tests that run against a real API through `WebApplicationFactory`, each test class against its own SQLite database. SQLite rather than the EF in-memory provider because the in-memory provider ignores unique indexes, so a broken double-booking constraint would pass its own test unnoticed.
+The backend has 51 integration tests that run against a real API through `WebApplicationFactory`, each test class against its own SQLite database. SQLite rather than the EF in-memory provider because the in-memory provider ignores unique indexes, so a broken double-booking constraint would pass its own test unnoticed.
 
 The tests are written scenario-first: each name states the situation and the expected outcome, for example `Create_RunningIntoTheStartOfAnExistingScreening_IsRejected`.
 
@@ -401,7 +402,7 @@ The tests are written scenario-first: each name states the situation and the exp
 | `ScreeningTests.cs` | 26 | Creating, editing and cancelling screenings, every overlap case within one auditorium, time zone handling, filtering by auditorium, date and genre, and cancellation together with its effect on existing bookings. |
 | `AuditoriumTests.cs` | 10 | Creating, renaming and closing a salong with valid and invalid data, the soft delete that takes a salong off the public list without losing its seats, and closing refused while the salong still has screenings to come – allowed once they are cancelled or already playing. |
 | `BookingTests.cs` | 4 | Booking the seats a customer picked and the confirmation they get back, double-booking refused through the API and at the database index, and a seat released by a cancellation becoming bookable again. |
-| `AccountDeactivationTests.cs` | 3 | A customer closing their own account, the token they already hold being refused on the next request, and an administrator reactivating the account so that the same token works again. |
+| `AccountDeactivationTests.cs` | 4 | A customer closing their own account, the token they already hold being refused on the next request, an administrator reactivating the account so that the same token works again, and an administrator refused when closing their own. |
 | `RegisterTests.cs` | 2 | Registering with a new email, and a registration refused because the password confirmation does not match. |
 | `AuthFlowTests.cs` | 1 | Registration, sign-in, access to protected endpoints and sign-out. |
 | `RoleAuthorizationTests.cs` | 1 | A customer being denied access to administrative endpoints. |

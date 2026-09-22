@@ -90,4 +90,17 @@ public class AccountDeactivationTests : IClassFixture<ScreenTimeApiFactory>
         var protectedResponseAfter = await customer.GetAsync("/api/bookings/current");
         protectedResponseAfter.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task DeactivateAccount_AsAdmin_IsRefused()
+    {
+        var admin = await _factory.CreateAdminClientAsync();
+
+        var response = await admin.PostAsync("/api/account/deactivate", content: null);
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        // Still signed in, and still able to reach the admin-only endpoints
+        var adminEndpoint = await admin.GetAsync("/api/admin/users");
+        adminEndpoint.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 }
