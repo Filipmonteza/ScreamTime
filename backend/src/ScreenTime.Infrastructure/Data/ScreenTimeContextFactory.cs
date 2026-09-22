@@ -16,7 +16,7 @@ public class ScreenTimeContextFactory : IDesignTimeDbContextFactory<ScreenTimeDb
     public ScreenTimeDbContext CreateDbContext(string[] args)
     {
         var options = new DbContextOptionsBuilder<ScreenTimeDbContext>()
-            .UseSqlite("Data Source=screentime.db")
+            .UseSqlite("Data Source=screenTime.db")
             .Options;
 
         return new ScreenTimeDbContext(options);
