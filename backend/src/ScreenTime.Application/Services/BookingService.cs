@@ -17,16 +17,21 @@ public sealed class BookingService : IBookingService
     // Repository used to get and save booking data
     private readonly IBookingRepository _bookingRepository;
 
+    // Repository used to get an auditorium's seats for the seat map
+    private readonly ISeatRepository _seatRepository;
+
     // Resolves customer emails for admin/staff search, since Application
     // cannot reference ApplicationUser (Infrastructure/Identity) directly.
     private readonly IUserLookupService _userLookupService;
 
-    // Gets the booking repository and user lookup service through dependency injection
+    // Gets the repositories and user lookup service through dependency injection
     public BookingService(
         IBookingRepository bookingRepository,
+        ISeatRepository seatRepository,
         IUserLookupService userLookupService)
     {
         _bookingRepository = bookingRepository;
+        _seatRepository = seatRepository;
         _userLookupService = userLookupService;
     }
 
@@ -352,7 +357,7 @@ public sealed class BookingService : IBookingService
                 "Visningen har redan börjat.");
         }
 
-        var seats = await _bookingRepository.GetSeatsByAuditoriumIdAsync(
+        var seats = await _seatRepository.GetByAuditoriumIdAsync(
             screening.AuditoriumId,
             cancellationToken);
 

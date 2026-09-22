@@ -45,12 +45,6 @@ public interface IBookingRepository : IRepository<Booking>
         CancellationToken cancellationToken = default
     );
 
-    // Gets all seats in an auditorium, with SeatType loaded.
-    Task<IReadOnlyList<Seat>> GetSeatsByAuditoriumIdAsync(
-        Guid auditoriumId,
-        CancellationToken cancellationToken = default
-    );
-
     // Gets the seat IDs held by an active (not released) ticket for the
     // given screening.
     Task<IReadOnlyCollection<Guid>> GetUnavailableSeatIdsAsync(
