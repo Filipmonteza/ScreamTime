@@ -33,6 +33,12 @@ public interface IScreeningRepository : IRepository<Screening>
         Guid? excludeScreeningId = null,
         CancellationToken cancellationToken = default);
 
+    // True when the auditorium still has a live screening ahead of it, which is
+    // what keeps the auditorium from being deactivated.
+    Task<bool> HasUpcomingScreeningsAsync(
+        Guid auditoriumId,
+        CancellationToken cancellationToken = default);
+
     // True when the screening still holds bookings that nobody has cancelled.
     Task<bool> HasActiveBookingsAsync(
         Guid screeningId,

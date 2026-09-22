@@ -1,17 +1,26 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ScreenTime.Application.Contracts;
+using ScreenTime.Domain.Entities;
+using ScreenTime.Infrastructure.Data;
 using Xunit;
 
 namespace ScreenTime.WebApi.IntegrationTests;
 
 /// <summary>
 /// Creating, editing and removing an auditorium, each with valid and invalid data.
-/// Invalid means a duplicate name: the rule the service enforces itself.
+/// Invalid means a duplicate name, or closing an auditorium that still has a
+/// programme to play: the rules the service enforces itself.
 /// </summary>
 public class AuditoriumTests : IClassFixture<ScreenTimeApiFactory>
 {
+    // Far past the seeded data, so a screening booked here cannot collide
+    // with the seed data.
+    private static readonly DateTime FarFuture = DateTime.UtcNow.Date.AddDays(300);
+
     private readonly ScreenTimeApiFactory _factory;
 
     public AuditoriumTests(ScreenTimeApiFactory factory)
@@ -131,5 +140,131 @@ public class AuditoriumTests : IClassFixture<ScreenTimeApiFactory>
         var response = await client.DeleteAsync($"/api/auditoriums/{Guid.NewGuid()}");
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Delete_ASalongThatStillHasScreeningsToPlay_IsRefused()
+    {
+        var admin = await _factory.CreateAdminClientAsync();
+        var salong = await admin.CreateAuditoriumAsync("Salong med program");
+
+        await CreateScreeningAsync(admin, salong.AuditoriumId, FarFuture.AddHours(18));
+
+        var response = await admin.DeleteAsync($"/api/auditoriums/{salong.AuditoriumId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        // Still open, and still on the public list: the refusal must not have
+        // closed it halfway.
+        (await _factory.CreateClient().GetAuditoriumsAsync())
+            .Should().ContainSingle(a => a.AuditoriumId == salong.AuditoriumId)
+            .Which.IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Update_DeactivatingASalongThatStillHasScreeningsToPlay_IsRefused()
+    {
+        var admin = await _factory.CreateAdminClientAsync();
+        var salong = await admin.CreateAuditoriumAsync("Salong med inbokat program");
+
+        await CreateScreeningAsync(admin, salong.AuditoriumId, FarFuture.AddHours(18));
+
+        var response = await admin.PutAsJsonAsync(
+            $"/api/auditoriums/{salong.AuditoriumId}",
+            new AuditoriumUpdateDto(salong.Name, IsActive: false));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        (await admin.GetAuditoriumDetailsAsync(salong.AuditoriumId))
+            .IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Delete_ASalongWhoseScreeningsAreCancelled_ClosesIt()
+    {
+        var admin = await _factory.CreateAdminClientAsync();
+        var salong = await admin.CreateAuditoriumAsync("Salong utan program");
+
+        var screening = await CreateScreeningAsync(
+            admin,
+            salong.AuditoriumId,
+            FarFuture.AddHours(18));
+
+        var cancelled = await admin.PostAsync(
+            $"/api/screenings/{screening.ScreeningId}/cancel",
+            content: null);
+
+        cancelled.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var response = await admin.DeleteAsync($"/api/auditoriums/{salong.AuditoriumId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        (await admin.GetAuditoriumsAsync("?includeInactive=true"))
+            .Should().ContainSingle(a => a.AuditoriumId == salong.AuditoriumId)
+            .Which.IsActive.Should().BeFalse();
+    }
+    
+    [Fact]
+    public async Task Delete_ASalongWhoseOnlyScreeningIsAlreadyPlaying_ClosesIt()
+    {
+        var admin = await _factory.CreateAdminClientAsync();
+        var salong = await admin.CreateAuditoriumAsync("Salong mitt i en visning");
+
+        // The API refuses to schedule a screening in the past, so the one that is
+        // already running is written straight to the database.
+        await StartScreeningNowAsync(salong.AuditoriumId);
+
+        var response = await admin.DeleteAsync($"/api/auditoriums/{salong.AuditoriumId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // The screening itself is left alone: the audience sits through the film,
+        // and the salong is closed for everything after it.
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
+
+        var screening = await db.Screenings
+            .AsNoTracking()
+            .SingleAsync(s => s.AuditoriumId == salong.AuditoriumId);
+
+        screening.IsCancelled.Should().BeFalse();
+    }
+
+    // A screening that began half an hour ago and has not finished yet.
+    private async Task StartScreeningNowAsync(Guid auditoriumId)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ScreenTimeDbContext>();
+
+        var start = DateTime.UtcNow.AddMinutes(-30);
+
+        db.Screenings.Add(new Screening
+        {
+            Id = Guid.NewGuid(),
+            MovieId = (await db.Movies.AsNoTracking().FirstAsync()).Id,
+            AuditoriumId = auditoriumId,
+            StartTime = start,
+            EndTime = start.AddMinutes(120),
+            IsCancelled = false
+        });
+
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task<ScreeningDto> CreateScreeningAsync(
+        HttpClient client,
+        Guid auditoriumId,
+        DateTime startTime)
+    {
+        var movies = (await client.GetFromJsonAsync<List<MovieDto>>("/api/movies"))!;
+
+        var response = await client.PostAsJsonAsync(
+            "/api/screenings",
+            new CreateScreeningDto(movies.First().MovieId, auditoriumId, startTime));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        return (await response.Content.ReadFromJsonAsync<ScreeningDto>())!;
     }
 }
