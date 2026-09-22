@@ -13,6 +13,10 @@ public static class SeedData
 {
     private const int CleaningMinutes = 20;
 
+    // The committed database is seeded once and then graded for up to two
+    // weeks after hand-in, so its programme has to outlast that.
+    private const int ProgrammeDays = 28;
+
     // Four hours apart, which leaves room for a film a good deal longer than
     // anything currently seeded, so no two screenings in the same auditorium
     // can overlap.
@@ -138,7 +142,7 @@ public static class SeedData
         // Lilla salongen: 5 rows of 8, all standard. 40 seats.
         db.Seats.AddRange(BuildSeats(lilla, "ABCDE", seatsPerRow: 8, vipRows: ""));
 
-        // Two weeks of programme starting today, so a fresh database has
+        // Four weeks of programme starting today, so a fresh database has
         // something on the home page's "Dagens visningar" straight away. The
         // programme endpoint hides slots that have already passed. "Today" and
         // the start hours are on the cinema's clock; what is stored is UTC.
@@ -151,7 +155,7 @@ public static class SeedData
             (Auditorium: lilla, Movies: movies.Where((_, i) => i % 2 == 1).ToArray()),
         };
 
-        for (var day = 0; day < 14; day++)
+        for (var day = 0; day < ProgrammeDays; day++)
         {
             foreach (var (auditorium, films) in programmes)
             {

@@ -392,15 +392,16 @@ Source: `backend/src/ScreenTime.Infrastructure/Repositories/AuditoriumRepository
 
 ## Testing
 
-The backend has 43 integration tests that run against a real API through `WebApplicationFactory`, each test class against its own SQLite database. SQLite rather than the EF in-memory provider because the in-memory provider ignores unique indexes, so a broken double-booking constraint would pass its own test unnoticed.
+The backend has 50 integration tests that run against a real API through `WebApplicationFactory`, each test class against its own SQLite database. SQLite rather than the EF in-memory provider because the in-memory provider ignores unique indexes, so a broken double-booking constraint would pass its own test unnoticed.
 
 The tests are written scenario-first: each name states the situation and the expected outcome, for example `Create_RunningIntoTheStartOfAnExistingScreening_IsRejected`.
 
 | Test file | Tests | Covers |
 |---|---|---|
 | `ScreeningTests.cs` | 26 | Creating, editing and cancelling screenings, every overlap case within one auditorium, time zone handling, filtering by auditorium, date and genre, and cancellation together with its effect on existing bookings. |
-| `AuditoriumTests.cs` | 6 | Creating, renaming and closing a salong with valid and invalid data, and the soft delete that takes a salong off the public list without losing its seats. |
+| `AuditoriumTests.cs` | 10 | Creating, renaming and closing a salong with valid and invalid data, the soft delete that takes a salong off the public list without losing its seats, and closing refused while the salong still has screenings to come – allowed once they are cancelled or already playing. |
 | `BookingTests.cs` | 4 | Booking the seats a customer picked and the confirmation they get back, double-booking refused through the API and at the database index, and a seat released by a cancellation becoming bookable again. |
+| `AccountDeactivationTests.cs` | 3 | A customer closing their own account, the token they already hold being refused on the next request, and an administrator reactivating the account so that the same token works again. |
 | `RegisterTests.cs` | 2 | Registering with a new email, and a registration refused because the password confirmation does not match. |
 | `AuthFlowTests.cs` | 1 | Registration, sign-in, access to protected endpoints and sign-out. |
 | `RoleAuthorizationTests.cs` | 1 | A customer being denied access to administrative endpoints. |
@@ -448,7 +449,7 @@ The seed data contains:
 - 4 genres: Supernatural, Psychological, Slasher and Sci-Fi.
 - 2 auditoriums: Stora salongen (96 seats, rows G and H are VIP) and Lilla salongen (40 seats, all standard).
 - The seat types Standard (120 kr) and VIP (180 kr).
-- Two weeks of programme counted from the day the database is seeded: four screenings per day and auditorium (10:00, 14:00, 18:00 and 22:00), each with 20 minutes of cleaning time after the film. The committed file was seeded on 2026-09-21 and so runs to 2026-10-04; regenerate it as described above for a later window.
+- Four weeks of programme counted from the day the database is seeded: four screenings per day and auditorium (10:00, 14:00, 18:00 and 22:00), each with 20 minutes of cleaning time after the film. The committed file was seeded on 2026-09-22 and so runs to 2026-10-19; regenerate it as described above for a later window.
 - The `Admin`, `Staff` and `Customer` roles, plus two test accounts.
 
 The roles are seeded in every environment because registration assumes the `Customer` role already exists.
