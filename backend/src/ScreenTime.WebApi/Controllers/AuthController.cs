@@ -61,6 +61,13 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Fel e-post eller lösenord." });
         }
 
+        // If the account was deactivated (locked out indefinitely) return a clearer message
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value == DateTimeOffset.MaxValue)
+        {
+            _logger.LogWarning("Login attempt failed: User {UserId} account is deactivated", user.Id);
+            return Unauthorized(new { message = "Account is deactivated. Contact support to reactivate." });
+        }
+
         // Check password and sign-in requirements
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 

@@ -16,11 +16,16 @@ namespace ScreenTime.WebApi.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtTokenService _jwtTokenService;
 
-    public AccountController(UserManager<ApplicationUser> userManager, IJwtTokenService jwtTokenService)
+    public AccountController(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
+        IJwtTokenService jwtTokenService)
     {
         _userManager = userManager;
+        _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
     }
 
@@ -76,6 +81,29 @@ public class AccountController : ControllerBase
         var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
         if (!result.Succeeded)
             throw new ArgumentException(string.Join(" ", result.Errors.Select(e => e.Description)));
+
+        return NoContent();
+    }
+
+    [HttpPost("deactivate")]
+    public async Task<IActionResult> DeactivateAccount()
+    {
+        var user = await _userManager.FindByIdAsync(GetUserId().ToString());
+        if (user is null) return NotFound();
+
+        var lockoutResult = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+        if (!lockoutResult.Succeeded)
+            return BadRequest(new { errors = lockoutResult.Errors.Select(e => new { e.Code, e.Description }) });
+
+        // Sign out server-side (covers cookie scenarios). Clients should also remove stored tokens.
+        try
+        {
+            await _signInManager.SignOutAsync();
+        }
+        catch (InvalidOperationException)
+        {
+            // No sign-out handlers are registered (JWT-only configuration). Safe to ignore.
+        }
 
         return NoContent();
     }

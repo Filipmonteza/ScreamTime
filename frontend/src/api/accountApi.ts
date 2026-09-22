@@ -26,3 +26,15 @@ export async function updatePassword(currentPassword: string, newPassword: strin
         throw new Error(await extractErrorMessage(response, `Failed to update password: ${response.status}`))
     }
 }
+
+export async function deactivateAccount(): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/account/deactivate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+    })
+    if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.error ?? `Failed to deactivate account: ${response.status}`)
+    }
+}
+

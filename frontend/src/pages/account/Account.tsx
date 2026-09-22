@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../../context/useAuth";
-import { updateEmail, updatePassword } from "../../api/accountApi";
+import { updateEmail, updatePassword, deactivateAccount } from "../../api/accountApi";
 import Message from "../../components/Message";
+import Modal from "../../components/Modal";
 import "../auth/Auth.css";
 import "./Account.css";
 
 function Account() {
-  const { user, updateAuth } = useAuth();
+  const { user, updateAuth, logout } = useAuth();
 
   const [editingEmail, setEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -18,9 +19,22 @@ function Account() {
   const [newPassword, setNewPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [deactivateError, setDeactivateError] = useState<string | null>(null);
 
   if (!user) {
     return <div className="page auth-page">Du måste vara inloggad.</div>;
+  }
+
+  async function handleDeactivate() {
+    setDeactivateError(null);
+    try {
+      await deactivateAccount();
+      await logout();
+      window.location.href = "/";
+    } catch (err) {
+      setDeactivateError(err instanceof Error ? err.message : "Något gick fel.");
+    }
   }
 
   async function handleEmailSubmit(e: React.FormEvent) {
@@ -139,7 +153,6 @@ function Account() {
         {passwordSuccess && !editingPassword && (
           <Message type="success">Lösenord uppdaterat.</Message>
         )}
-
         {editingPassword && (
           <form onSubmit={handlePasswordSubmit}>
             <div className="auth-field">
@@ -183,6 +196,35 @@ function Account() {
               </button>
             </div>
           </form>
+        )}
+        <hr className="account-divider" />
+
+        <div className="auth-button-row">
+          <button
+            type="button"
+            className="btn-pill btn-danger"
+            onClick={() => setShowDeactivateConfirm(true)}
+          >
+            Avaktivera konto
+          </button>
+        </div>
+
+        {showDeactivateConfirm && (
+          <Modal onClose={() => setShowDeactivateConfirm(false)}>
+            <p>
+              Är du säker på att du vill avaktivera ditt konto? Detta loggar ut dig och du kan
+              inte logga in igen.
+            </p>
+            {deactivateError && <Message type="error">{deactivateError}</Message>}
+            <div className="auth-button-row">
+              <button type="button" className="btn-pill btn-danger" onClick={handleDeactivate}>
+                Ja, avaktivera
+              </button>
+              <button type="button" className="btn-pill" onClick={() => setShowDeactivateConfirm(false)}>
+                Avbryt
+              </button>
+            </div>
+          </Modal>
         )}
       </div>
     </div>
