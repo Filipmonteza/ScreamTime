@@ -17,11 +17,11 @@ function Form({ title, submitLabel, onSubmit, onCancel, children }: FormProps) {
         <h1 className="form-title">{title}</h1>
         {children}
         <div className="form-actions">
-          <button type="button" className="btn-pill" onClick={onCancel}>
-            Avbryt
-          </button>
           <button type="submit" className="btn-pill">
             {submitLabel}
+          </button>
+          <button type="button" className="btn-pill" onClick={onCancel}>
+            Avbryt
           </button>
         </div>
       </form>
