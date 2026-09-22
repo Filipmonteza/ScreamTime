@@ -112,7 +112,9 @@ builder.Services.AddAuthentication(options =>
                 return;
             }
 
-            if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow)
+            // Only consider the account deactivated if LockoutEnd is set to DateTimeOffset.MaxValue
+            // Temporary lockouts (e.g. due to failed login attempts) must NOT invalidate existing JWTs.
+            if (user.LockoutEnd.HasValue && user.LockoutEnd.Value == DateTimeOffset.MaxValue)
             {
                 context.Fail("User account is deactivated.");
                 return;
