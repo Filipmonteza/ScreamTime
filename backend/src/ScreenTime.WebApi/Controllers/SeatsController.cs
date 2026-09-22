@@ -15,10 +15,8 @@ public class SeatsController : ControllerBase
         _seatService = seatService;
     }
 
-    [HttpGet]
-    public async Task<ActionResult<List<SeatDto>>> GetAll()
-        => Ok(await _seatService.GetAllSeatsAsync());
-
+    // The price list. Anonymous on purpose - the seat map shows what a Standard
+    // and a VIP seat cost before anyone signs in, so there is nothing to guard.
     [HttpGet("types")]
     public async Task<ActionResult<List<SeatTypeDto>>> GetAllSeatTypes()
     => Ok(await _seatService.GetAllSeatTypesAsync());

@@ -15,13 +15,6 @@ public class SeatRepository : Repository<Seat>, ISeatRepository
     protected override IQueryable<Seat> Query(bool track = false) =>
         base.Query(track).Include(s => s.SeatType);
 
-    // The cross-auditorium listing is the only read that also names the auditorium.
-    public override async Task<List<Seat>> GetAllAsync(
-        CancellationToken cancellationToken = default) =>
-        await Query()
-            .Include(s => s.Auditorium)
-            .ToListAsync(cancellationToken);
-
     public async Task<List<Seat>> GetByAuditoriumIdAsync(
         Guid auditoriumId,
         CancellationToken cancellationToken = default) =>

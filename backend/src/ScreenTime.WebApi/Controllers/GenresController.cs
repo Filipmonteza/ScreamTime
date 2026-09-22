@@ -15,6 +15,8 @@ public class GenresController : ControllerBase
         _genreService = genreService;
     }
 
+    // The catalogue's genre vocabulary. Anonymous on purpose - the same names are
+    // printed on every film card, and the admin film form reads the ids from here.
     [HttpGet]
     public async Task<ActionResult<List<GenreDto>>> GetAll()
         => Ok(await _genreService.GetAllGenresAsync());
