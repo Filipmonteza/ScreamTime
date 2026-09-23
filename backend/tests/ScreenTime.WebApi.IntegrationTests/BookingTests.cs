@@ -26,7 +26,7 @@ public class BookingTests : IClassFixture<ScreenTimeApiFactory>
     // SQLite reports a violated unique index as extended result code 2067.
     private const int SqliteConstraintUnique = 2067;
 
-    // Past the seeded fortnight, and a day per test, so nothing collides with
+    // Past the seeded programme, and a day per test, so nothing collides with
     // the programme or with another test. UTC, like everything the API speaks.
     private static readonly DateTime FarFuture = DateTime.UtcNow.Date.AddDays(300);
 
