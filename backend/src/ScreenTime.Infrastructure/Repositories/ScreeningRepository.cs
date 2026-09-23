@@ -112,6 +112,22 @@ public class ScreeningRepository : Repository<Screening>, IScreeningRepository
             cancellationToken);
     }
 
+    // StartTime, the same boundary GetFilteredAsync and BookingService measure
+    // against: a screening that has begun is already off the public programme and
+    // can no longer be booked, so letting it play out costs nothing.
+    public async Task<bool> HasUpcomingScreeningsAsync(
+        Guid auditoriumId,
+        CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+
+        return await Entities.AnyAsync(
+            s => s.AuditoriumId == auditoriumId &&
+                 !s.IsCancelled &&
+                 s.StartTime > now,
+            cancellationToken);
+    }
+
     public async Task<bool> HasActiveBookingsAsync(
         Guid screeningId,
         CancellationToken cancellationToken = default) =>
