@@ -91,6 +91,11 @@ public class AccountController : ControllerBase
         var user = await _userManager.FindByIdAsync(GetUserId().ToString());
         if (user is null) return NotFound();
 
+        // Only an admin can reactivate an account, so an admin closing their own
+        // could leave nobody able to. AdminController refuses the same thing.
+        if (await _userManager.IsInRoleAsync(user, IdentitySeeder.AdminRole))
+            throw new InvalidOperationException("En administratör kan inte avaktivera sitt eget konto.");
+
         var lockoutResult = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
         if (!lockoutResult.Succeeded)
             return BadRequest(new { errors = lockoutResult.Errors.Select(e => new { e.Code, e.Description }) });

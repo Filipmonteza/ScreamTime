@@ -197,17 +197,22 @@ function Account() {
             </div>
           </form>
         )}
-        <hr className="account-divider" />
+        {/* Admins can't close their own account: only an admin can reactivate one. */}
+        {user.role !== "Admin" && (
+          <>
+            <hr className="account-divider" />
 
-        <div className="auth-button-row">
-          <button
-            type="button"
-            className="btn-pill btn-danger"
-            onClick={() => setShowDeactivateConfirm(true)}
-          >
-            Avaktivera konto
-          </button>
-        </div>
+            <div className="auth-button-row">
+              <button
+                type="button"
+                className="btn-pill btn-danger"
+                onClick={() => setShowDeactivateConfirm(true)}
+              >
+                Avaktivera konto
+              </button>
+            </div>
+          </>
+        )}
 
         {showDeactivateConfirm && (
           <Modal onClose={() => setShowDeactivateConfirm(false)}>
