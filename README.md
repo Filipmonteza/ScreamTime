@@ -459,11 +459,11 @@ The project was built as a group assignment using agile methods, feature branche
 
 | Name | Areas of responsibility | Role |
 |---|---|---|
-| Amanda | Backend, Frontend | Requirements Manager, Software Engineer |
+| Amanda | Backend, Frontend, API | Requirements Manager, Software Engineer |
 | Björn | Frontend, Design | Scrum Master, Software Engineer |
-| Ezana | Backend, Authentication, Infrastructure | Security Consultant, Software Engineer |
-| Filip | Backend, Testing, Domain, API | Test Lead, Software Engineer |
-| Luca | Backend, Frontend, Database | Tech Lead, Software Engineer |
+| Ezana | Backend, Authentication, Testing | Security Consultant, Software Engineer |
+| Filip | Backend, Domain, Application | Software Engineer |
+| Luca | Backend, Frontend, Infrastructure | Tech Lead, Test Lead, Software Engineer |
 
 ## License
 
