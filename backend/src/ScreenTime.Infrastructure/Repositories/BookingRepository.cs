@@ -93,13 +93,6 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
             b => b.BookingReference == bookingReference,
             cancellationToken);
 
-    public async Task<IReadOnlyList<Seat>> GetSeatsByAuditoriumIdAsync(
-        Guid auditoriumId,
-        CancellationToken cancellationToken = default) =>
-        await SeatsWithType()
-            .Where(s => s.AuditoriumId == auditoriumId)
-            .ToListAsync(cancellationToken);
-
     public async Task<IReadOnlyCollection<Guid>> GetUnavailableSeatIdsAsync(
         Guid screeningId,
         CancellationToken cancellationToken = default) =>
