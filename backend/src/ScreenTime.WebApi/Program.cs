@@ -8,6 +8,7 @@ using ScreenTime.Infrastructure;
 using ScreenTime.Infrastructure.Data;
 using ScreenTime.Infrastructure.Identity;
 using System.Text;
+using System.Security.Claims;
 
 const string FrontendCorsPolicy = "Frontend";
 
@@ -91,6 +92,35 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         ClockSkew = TimeSpan.Zero // Remove default 5 minute tolerance
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                context.Fail("Missing user id claim.");
+                return;
+            }
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                context.Fail("User not found.");
+                return;
+            }
+
+            // Only consider the account deactivated if LockoutEnd is set to DateTimeOffset.MaxValue
+            // Temporary lockouts (e.g. due to failed login attempts) must NOT invalidate existing JWTs.
+            if (user.LockoutEnd.HasValue && user.LockoutEnd.Value == DateTimeOffset.MaxValue)
+            {
+                context.Fail("User account is deactivated.");
+                return;
+            }
+        }
+    };
 });
 
 // Configure ASP.NET Core Identity.
@@ -99,7 +129,7 @@ builder.Services.AddAuthentication(options =>
 // schemes configured above with its cookie schemes.
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
-    // Password settings (adjust based on your security requirements)
+    // Password settings
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
@@ -114,7 +144,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     // User settings
     options.User.RequireUniqueEmail = true;
 
-    // Sign-in settings (important for JWT later)
+    // Sign-in settings
     options.SignIn.RequireConfirmedEmail = false; // Set to true when email is configured
     options.SignIn.RequireConfirmedAccount = false;
 })
@@ -134,8 +164,6 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
-// TODO: Configure the HTTP request pipeline.
 
 if (app.Environment.IsDevelopment())
 {

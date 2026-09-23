@@ -14,12 +14,6 @@ namespace ScreenTime.WebApi.Controllers;
 [DomainExceptionFilter]
 public class BookingsController : ControllerBase
 {
-    // No roles are seeded yet, so these match nobody today and every caller is
-    // treated as a customer acting on their own bookings. Move them to a shared
-    // constant once role seeding lands.
-    private const string AdminRole = "Admin";
-    private const string StaffRole = "Staff";
-
     private readonly IBookingService _bookingService;
 
     public BookingsController(IBookingService bookingService)
@@ -82,8 +76,8 @@ public class BookingsController : ControllerBase
             cancellationToken));
 
     // Browsing the seat map is part of picking a screening, so it needs no
-    // login. It lives here rather than on a ScreeningsController so that the
-    // /api/screenings route stays free for whoever writes that controller.
+    // login. It answers on /api/bookings rather than /api/screenings because
+    // availability is booking data, not programme data.
     [HttpGet("screenings/{screeningId:guid}/seats")]
     [AllowAnonymous]
     public async Task<ActionResult<ScreeningSeatMapDto>> GetSeatMap(
@@ -91,8 +85,9 @@ public class BookingsController : ControllerBase
         CancellationToken cancellationToken) =>
         Ok(await _bookingService.GetSeatMapAsync(screeningId, cancellationToken));
 
+    // Staff act on any booking; a customer only on their own.
     private bool CanManageAllBookings =>
-        User.IsInRole(AdminRole) || User.IsInRole(StaffRole);
+        User.IsInRole(IdentitySeeder.AdminRole) || User.IsInRole(IdentitySeeder.StaffRole);
 
     // JwtTokenService writes the user id to both sub and NameIdentifier.
     private Guid GetUserId()

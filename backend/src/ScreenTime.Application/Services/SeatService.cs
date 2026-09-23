@@ -17,18 +17,6 @@ public class SeatService : ISeatService
         _auditoriumRepository = auditoriumRepository;
     }
 
-    public async Task<List<SeatDto>> GetAllSeatsAsync()
-    {
-        var seats = await _seatRepository.GetAllAsync();
-        return seats.Select(s => new SeatDto(
-            s.Id,
-            s.Auditorium.Name,
-            s.RowLabel,
-            s.SeatNumber,
-            s.SeatType.Name
-        )).ToList();
-    }
-
     public async Task<List<SeatTypeDto>> GetAllSeatTypesAsync(
         CancellationToken cancellationToken = default)
     {

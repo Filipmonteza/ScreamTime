@@ -111,8 +111,8 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
         created.IsCancelled.Should().BeFalse();
     }
 
-    // Storage and the API are UTC whatever zone the server runs in.
-    // The deadline rules have to work regardless of timezone.
+    // Storage and the API are UTC whatever zone the server runs in, which is
+    // what the deadline rules depend on.
     [Fact]
     public async Task Create_StoresAndReturnsTheStartTimeInUtc()
     {
@@ -667,7 +667,7 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
     }
 
     // Books the first two free seats on a screening, the way the seat picker
-    // will once the booking UI exists.
+    // does.
     private static async Task<BookingConfirmationDto> BookTwoSeatsAsync(
         HttpClient client,
         Guid screeningId)
@@ -740,8 +740,8 @@ public class ScreeningTests : IClassFixture<ScreenTimeApiFactory>
 
     // The seeded auditoriums are booked at 10, 14, 18 and 22 for the next two
     // weeks, so a screening that has to start within the next half hour will
-    // collide with the programme for most of the day. Tests that need one get a
-    // auditirum of their own instead.
+    // collide with the programme for most of the day. Tests that need one get an
+    // auditorium of their own instead.
     private static async Task<AuditoriumDto> CreateEmptyAuditoriumAsync(
         HttpClient client,
         string name)

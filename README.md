@@ -59,7 +59,7 @@ npm run dev
 | API | <http://localhost:5267> |
 | Swagger | <http://localhost:5267/swagger> |
 
-In development the backend creates, migrates and seeds the database on startup, so a fresh clone needs nothing beyond the commands above. The frontend calls the backend on port `5267`, and the backend allows CORS from `http://localhost:5173`. Change one and you have to change the other.
+The database is committed to the repository, and in development the backend migrates and seeds it on startup if it is missing, so a fresh clone needs nothing beyond the commands above. The frontend calls the backend on port `5267`, and the backend allows CORS from `http://localhost:5173`. Change one and you have to change the other.
 
 ### Sign in
 
@@ -86,6 +86,7 @@ No staff account is seeded – sign in as the administrator and create one under
 - View current bookings and booking history.
 - Cancel a booking up to 15 minutes before the screening starts.
 - Change the email address and password on their own account.
+- Close their own account, which only an administrator can reactivate.
 
 ![Movie details for Alien: age rating, runtime, genre and upcoming screenings](docs/images/movie.png)
 
@@ -105,7 +106,7 @@ No staff account is seeded – sign in as the administrator and create one under
 
 - Create staff accounts and assign roles.
 - Change the email address and password of existing staff accounts.
-- Deactivate and reactivate accounts.
+- Deactivate and reactivate accounts, though never their own.
 
 ## Roles and permissions
 
@@ -392,17 +393,30 @@ Source: `backend/src/ScreenTime.Infrastructure/Repositories/AuditoriumRepository
 
 ## Testing
 
-The backend has 31 integration tests that run against a real API through `WebApplicationFactory`, each test class against its own SQLite database.
+The backend has 51 integration tests that run against a real API through `WebApplicationFactory`, each test class against its own SQLite database. SQLite rather than the EF in-memory provider because the in-memory provider ignores unique indexes, so a broken double-booking constraint would pass its own test unnoticed.
 
 The tests are written scenario-first: each name states the situation and the expected outcome, for example `Create_RunningIntoTheStartOfAnExistingScreening_IsRejected`.
 
-| Test file | Covers |
-|---|---|
-| `RegisterTests.cs` | Registering with a new email, and a registration refused because the password confirmation does not match. |
-| `AuthFlowTests.cs` | Registration, sign-in, access to protected endpoints and sign-out. |
-| `RoleAuthorizationTests.cs` | A customer being denied access to administrative endpoints. |
-| `StaffAccountFlowTests.cs` | An administrator creating a staff account, and that account signing in with the `Staff` role. |
-| `ScreeningTests.cs` | Creating, editing and cancelling screenings, every overlap case within one auditorium, time zone handling, filtering by auditorium, date and genre, and cancellation together with its effect on existing bookings. |
+| Test file | Tests | Covers |
+|---|---|---|
+| `ScreeningTests.cs` | 26 | Creating, editing and cancelling screenings, every overlap case within one auditorium, time zone handling, filtering by auditorium, date and genre, and cancellation together with its effect on existing bookings. |
+| `AuditoriumTests.cs` | 10 | Creating, renaming and closing a salong with valid and invalid data, the soft delete that takes a salong off the public list without losing its seats, and closing refused while the salong still has screenings to come – allowed once they are cancelled or already playing. |
+| `BookingTests.cs` | 4 | Booking the seats a customer picked and the confirmation they get back, double-booking refused through the API and at the database index, and a seat released by a cancellation becoming bookable again. |
+| `AccountDeactivationTests.cs` | 4 | A customer closing their own account, the token they already hold being refused on the next request, an administrator reactivating the account so that the same token works again, and an administrator refused when closing their own. |
+| `RegisterTests.cs` | 2 | Registering with a new email, and a registration refused because the password confirmation does not match. |
+| `AuthFlowTests.cs` | 1 | Registration, sign-in, access to protected endpoints and sign-out. |
+| `RoleAuthorizationTests.cs` | 1 | A customer being denied access to administrative endpoints. |
+| `StaffAccountFlowTests.cs` | 1 | An administrator creating a staff account, and that account signing in with the `Staff` role. |
+| `MovieTests.cs` | 1 | A film being removed from the catalogue, and staying gone for staff as well as customers. |
+| `SeatTests.cs` | 1 | Adding seats of both types to a salong, and the capacity counted from them. |
+
+### Where coverage could be extended
+
+- **Service rules** — several are only exercised in passing by a larger scenario and could each have a test of their own.
+- **Permissions** — covered per role, not per endpoint.
+- **Frontend** — no JavaScript test runner, so client-side state is untested.
+- **Concurrency** — two bookings on one seat is simulated by writing the second ticket directly, not fired in parallel.
+- **Seat removal** — untested because there is no endpoint for it yet.
 
 ```bash
 dotnet test ScreenTime.sln     # backend tests
@@ -426,9 +440,9 @@ For endpoints that require authentication:
 
 ## Database and seed data
 
-The project uses SQLite. The database file is created at `backend/src/ScreenTime.WebApi/screenTime.db`.
+The project uses SQLite, and the database file at `backend/src/ScreenTime.WebApi/screenTime.db` is committed to the repository, so a fresh clone has a populated database without running anything first.
 
-In development the backend does the following on startup: creates the database if it is missing, applies pending EF Core migrations, inserts seed data, creates the roles, and creates the development accounts.
+In development the backend does the following on startup: creates the database if it is missing, applies pending EF Core migrations, inserts seed data, creates the roles, and creates the development accounts. Seeding is skipped when the database already holds data, so the committed file is left as it is. To start over, delete it and run the backend again.
 
 The seed data contains:
 
@@ -436,7 +450,7 @@ The seed data contains:
 - 4 genres: Supernatural, Psychological, Slasher and Sci-Fi.
 - 2 auditoriums: Stora salongen (96 seats, rows G and H are VIP) and Lilla salongen (40 seats, all standard).
 - The seat types Standard (120 kr) and VIP (180 kr).
-- Two weeks of programme starting today: four screenings per day and auditorium (10:00, 14:00, 18:00 and 22:00), each with 20 minutes of cleaning time after the film.
+- Four weeks of programme counted from the day the database is seeded: four screenings per day and auditorium (10:00, 14:00, 18:00 and 22:00), each with 20 minutes of cleaning time after the film. The committed file was seeded on 2026-09-22 and so runs to 2026-10-19; regenerate it as described above for a later window.
 - The `Admin`, `Staff` and `Customer` roles, plus two test accounts.
 
 The roles are seeded in every environment because registration assumes the `Customer` role already exists.

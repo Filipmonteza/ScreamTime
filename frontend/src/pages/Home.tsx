@@ -84,6 +84,7 @@ function Home() {
         <>
           <div className="tips-section">
             <h2>Våra tips</h2>
+            {tipMovies.length === 0 && <p>Inga filmer just nu</p>}
             {tipMovies.length > 0 && (
               <div className="movie-row">
                 {tipMovies.map((movie) => (
@@ -97,9 +98,9 @@ function Home() {
             {screeningsLoading && <p>Laddar...</p>}
             {screeningsError && <p>Fel: {screeningsError}</p>}
 
-            {!screeningsLoading && !screeningsError && programme.length === 0 && (
-              <p>Inga visningar idag</p>
-            )}
+            {!screeningsLoading &&
+              !screeningsError &&
+              programme.length === 0 && <p>Inga visningar idag</p>}
 
             {programme.length > 0 && (
               <div className="today-auditoriums">

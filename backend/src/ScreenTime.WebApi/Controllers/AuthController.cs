@@ -10,7 +10,7 @@ using ScreenTime.Infrastructure.Identity;
 namespace ScreenTime.WebApi.Controllers;
 
 /// <summary>
-/// Handles user authentication operations including login.
+/// Handles user authentication: login, registration and logout.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -59,6 +59,13 @@ public class AuthController : ControllerBase
         {
             _logger.LogWarning("Login attempt failed: User with email {Email} not found", request.Email);
             return Unauthorized(new { message = "Fel e-post eller lösenord." });
+        }
+
+        // A deactivated account is a lockout with no end date
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value == DateTimeOffset.MaxValue)
+        {
+            _logger.LogWarning("Login attempt failed: User {UserId} account is deactivated", user.Id);
+            return Unauthorized(new { message = "Kontot är avaktiverat. Kontakta personalen för att aktivera det igen." });
         }
 
         // Check password and sign-in requirements
@@ -165,10 +172,10 @@ public class AuthController : ControllerBase
         return Created(string.Empty, response);
     }
 
-   /// <summary>
-   /// Logs out the current user.
-   /// For JWT authentication, logout is handled client-side by removing the token.
-   /// </summary>
+    /// <summary>
+    /// Logs out the current user.
+    /// For JWT authentication, logout is handled client-side by removing the token.
+    /// </summary>
     [HttpPost("logout")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

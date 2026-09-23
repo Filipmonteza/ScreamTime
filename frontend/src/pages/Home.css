@@ -10,10 +10,10 @@
   display: flex;
   gap: 24px;
   overflow-x: auto;
-  margin-left: -80px;
-  padding-left: 80px;
-  margin-right: -80px;
-  padding-right: 80px;
+  margin-left: calc(-1 * max(var(--page-padding-x), (100vw - 1120px) / 2));
+  padding-left: max(var(--page-padding-x), calc((100vw - 1120px) / 2));
+  margin-right: calc(-1 * max(var(--page-padding-x), (100vw - 1120px) / 2));
+  padding-right: max(var(--page-padding-x), calc((100vw - 1120px) / 2));
   scrollbar-width: none;
   -ms-overflow-style: none;
 }

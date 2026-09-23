@@ -4,8 +4,6 @@ namespace ScreenTime.Application.Interfaces;
 
 public interface ISeatService
 {
-    Task<List<SeatDto>> GetAllSeatsAsync();
-
     Task AddSeatsToAuditoriumAsync(
         AddSeatsToAuditoriumDto dto);
 

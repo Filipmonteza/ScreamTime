@@ -7,14 +7,6 @@ using System.Threading.Tasks;
 
 namespace ScreenTime.Application.Contracts;
 
-public record SeatDto(
-    Guid Id,
-    string AuditoriumName,
-    string RowLabel,
-    int SeatNumber,
-    string SeatTypeName
-);
-
 public record SeatCreateDto(
         [Required, MaxLength(5)] string RowLabel,
         [Range(1, int.MaxValue)] int SeatNumber,

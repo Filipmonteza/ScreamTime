@@ -15,6 +15,7 @@ import iconSeatSelected from "../../assets/icons/Icon_Seat_Selected.svg";
 import iconSeatUnavailable from "../../assets/icons/Icon_Seat_Unavailable.svg";
 import iconArrowBack from "../../assets/icons/Icon_Arrow_Back.svg";
 import Modal from "../../components/Modal";
+import Message from "../../components/Message";
 
 function SeatSelection() {
   const { screeningId } = useParams<{ screeningId: string }>();
@@ -28,6 +29,7 @@ function SeatSelection() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [booking, setBooking] = useState<BookingConfirmation | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     if (!screeningId) return;
@@ -49,6 +51,7 @@ function SeatSelection() {
 
   function toggleSeat(seat: SeatAvailability) {
     if (!seat.isAvailable) return;
+    setBookingError(null);
     setSelectedSeatIds((prev) =>
       prev.includes(seat.seatId)
         ? prev.filter((id) => id !== seat.seatId)
@@ -58,7 +61,7 @@ function SeatSelection() {
 
   function handleBokaClick() {
     if (!isAuthenticated) {
-      navigate("/login", { state: { from: location.pathname } });
+      setShowLoginPrompt(true);
       return;
     }
     setShowConfirm(true);
@@ -66,6 +69,7 @@ function SeatSelection() {
 
   async function handleConfirm() {
     if (!screeningId) return;
+    setBookingError(null);
     try {
       const confirmation = await createBooking(screeningId, selectedSeatIds);
       setBooking(confirmation);
@@ -174,9 +178,7 @@ function SeatSelection() {
             </div>
 
             <div className="seat-selection-screen" />
-            {bookingError && (
-              <p className="seat-selection-error">{bookingError}</p>
-            )}
+            {bookingError && <Message type="error">{bookingError}</Message>}
             <div
               className="seat-selection-grid"
               style={
@@ -271,19 +273,44 @@ function SeatSelection() {
               Boka
             </button>
           </div>
+          {showLoginPrompt && (
+            <Modal onClose={() => setShowLoginPrompt(false)}>
+              <h2 className="form-title">Du måste vara inloggad</h2>
+              <p>
+                Du måste vara inloggad för att kunna boka en biljett. Vill du
+                logga in?
+              </p>
+              <div className="form-actions">
+                <button
+                  className="btn-pill"
+                  onClick={() =>
+                    navigate("/login", { state: { from: location.pathname } })
+                  }
+                >
+                  Ja
+                </button>
+                <button
+                  className="btn-pill"
+                  onClick={() => setShowLoginPrompt(false)}
+                >
+                  Nej
+                </button>
+              </div>
+            </Modal>
+          )}
           {showConfirm && (
             <Modal onClose={() => setShowConfirm(false)}>
               <h2 className="form-title">Bekräfta bokning</h2>
               <p>Är du säker på att du vill boka {seatMap.movieTitle}?</p>
               <div className="form-actions">
+                <button className="btn-pill" onClick={handleConfirm}>
+                  Ja
+                </button>
                 <button
                   className="btn-pill"
                   onClick={() => setShowConfirm(false)}
                 >
                   Nej
-                </button>
-                <button className="btn-pill" onClick={handleConfirm}>
-                  Ja
                 </button>
               </div>
             </Modal>

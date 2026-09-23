@@ -110,8 +110,17 @@
 }
 
 @media (min-width: 950px) {
+  .movie-detail {
+    width: fit-content;
+    margin: 0 auto;
+  }
+
   .movie-detail-content {
     flex-direction: row;
+  }
+
+  .movie-detail-body {
+    max-width: 424px;
   }
 
   .movie-detail-poster {

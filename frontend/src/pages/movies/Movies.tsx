@@ -6,6 +6,7 @@ import SearchBar from "../../components/SearchBar";
 import ListToolbar from "../../components/ListToolbar";
 import usePagination from "../../hooks/usePagination";
 import ListCard from "../../components/ListCard";
+import Message from "../../components/Message";
 
 const ageRatingLabels: Record<number, string> = {
   0: "Barntillåten",
@@ -18,6 +19,7 @@ function Movies() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
     null,
@@ -40,12 +42,14 @@ function Movies() {
     loadMovies();
   }, []);
 
-  function handleDelete(id: string) {
+  function handleDelete(id: string, title: string) {
     setError(null);
+    setSavedMessage(null);
     setDeletingId(id);
     deleteMovie(id)
       .then(() => {
         setConfirmingDeleteId(null);
+        setSavedMessage(`${title} är borttagen.`);
         loadMovies();
       })
       .catch((err) => {
@@ -75,7 +79,10 @@ function Movies() {
 
       <ListToolbar
         addLabel="Lägg till film"
-        onAdd={() => setShowAddForm(true)}
+        onAdd={() => {
+          setShowAddForm(true);
+          setSavedMessage(null);
+        }}
         page={page}
         totalPages={totalPages}
         onPageChange={setPage}
@@ -83,8 +90,17 @@ function Movies() {
 
       {loading && <p>Laddar...</p>}
       {error && <p>Fel: {error}</p>}
+      {savedMessage && <Message type="success">{savedMessage}</Message>}
 
-      {!loading && (
+      {!loading && !error && filteredMovies.length === 0 && (
+        <p>
+          {movies.length === 0
+            ? "Det finns inga filmer ännu."
+            : "Inga filmer matchade sökningen."}
+        </p>
+      )}
+
+      {!loading && !error && (
         <div className="card-grid">
           {pagedMovies.map((movie) => (
             <ListCard
@@ -97,9 +113,12 @@ function Movies() {
               ]}
               confirming={confirmingDeleteId === movie.movieId}
               deleting={deletingId === movie.movieId}
-              onEdit={() => setEditingMovie(movie)}
+              onEdit={() => {
+                setEditingMovie(movie);
+                setSavedMessage(null);
+              }}
               onRequestDelete={() => setConfirmingDeleteId(movie.movieId)}
-              onConfirmDelete={() => handleDelete(movie.movieId)}
+              onConfirmDelete={() => handleDelete(movie.movieId, movie.title)}
               onCancelDelete={() => setConfirmingDeleteId(null)}
             />
           ))}
@@ -109,8 +128,9 @@ function Movies() {
       {showAddForm && (
         <MovieForm
           onClose={() => setShowAddForm(false)}
-          onSaved={() => {
+          onSaved={(title) => {
             setShowAddForm(false);
+            setSavedMessage(`${title} är tillagd.`);
             loadMovies();
           }}
         />
@@ -119,8 +139,9 @@ function Movies() {
         <MovieForm
           movie={editingMovie}
           onClose={() => setEditingMovie(null)}
-          onSaved={() => {
+          onSaved={(title) => {
             setEditingMovie(null);
+            setSavedMessage(`${title} är redigerad.`);
             loadMovies();
           }}
         />
