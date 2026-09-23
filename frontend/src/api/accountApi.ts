@@ -33,8 +33,7 @@ export async function deactivateAccount(): Promise<void> {
         headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
     })
     if (!response.ok) {
-        const data = await response.json().catch(() => null)
-        throw new Error(data?.error ?? `Failed to deactivate account: ${response.status}`)
+        throw new Error(await extractErrorMessage(response, `Failed to deactivate account: ${response.status}`))
     }
 }
 
